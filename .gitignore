@@ -1,0 +1,43 @@
+# Dependencias
+node_modules
+
+# Builds y salidas
+dist
+dist-ssr
+*.tsbuildinfo
+.vite
+coverage
+
+# Playwright / pruebas
+test-results
+playwright-report
+blob-report
+playwright/.cache
+e2e-shots
+
+# Logs
+*.log
+npm-debug.log*
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code (config local)
+.claude/settings.local.json
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# OneDrive / Office temporales
+~$*
+*.tmp
+.~lock.*
