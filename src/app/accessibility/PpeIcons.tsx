@@ -47,25 +47,64 @@ export function GogglesIcon({ worn }: IconProps) {
   );
 }
 
-/** Cabello recogido: perfil con moño y gomita. */
+const HAIR = '#5b3a24';
+const HAIR_SHADE = '#472c1a';
+const SKIN = '#f2c9a0';
+const SKIN_SHADE = '#e3b085';
+
+/**
+ * Cabello: rostro completo de frente. Suelto cae a los lados sobre los hombros; recogido queda pegado a la cabeza
+ * con un moño alto y gomita, y se ven las orejas.
+ */
 export function HairIcon({ worn }: IconProps) {
   return (
     <svg viewBox="0 0 96 96" aria-hidden="true">
+      <defs>
+        <clipPath id="ppe-hair-clip">
+          <circle cx="48" cy="48" r="46" />
+        </clipPath>
+      </defs>
       <circle cx="48" cy="48" r="46" className="ppe-backdrop" />
-      <rect x="40" y="66" width="14" height="14" rx="3" fill="#e9b88c" />
-      <circle cx="46" cy="50" r="20" fill="#f2c9a0" />
-      <circle cx="33" cy="52" r="3.5" fill="#e9b88c" />
-      {worn ? (
-        <>
-          <path d="M26 50 Q24 26 46 26 Q66 26 67 46 Q60 35 46 35 Q34 36 30 52 Z" fill="#5b3a24" />
-          <circle cx="68" cy="31" r="10" fill="#5b3a24" />
-          <rect x="59" y="33" width="7" height="5" rx="2" transform="rotate(-35 62 35)" fill="#e84a5f" />
-        </>
-      ) : (
-        <path d="M26 54 Q22 24 46 25 Q70 26 68 52 L72 76 Q64 70 62 58 Q60 40 46 36 Q32 38 30 56 L24 74 Q22 62 26 54 Z" fill="#5b3a24" />
-      )}
-      <circle cx="53" cy="50" r="2" fill="#2b3238" />
-      <path d="M50 59 Q54 62 58 58" fill="none" stroke="#a0603a" strokeWidth="1.8" strokeLinecap="round" />
+      <g clipPath="url(#ppe-hair-clip)">
+        {/* Hombros (camiseta) */}
+        <path d="M14 98 Q16 76 48 73 Q80 76 82 98 Z" fill="#5f87ad" />
+        {/* Cabello suelto por detrás: cae sobre los hombros */}
+        {!worn && <path d="M29 46 Q27 20 48 20 Q69 20 67 46 L71 84 Q64 88 59 81 L58 62 L38 62 L37 81 Q32 88 25 84 Z" fill={HAIR_SHADE} />}
+        <rect x="42" y="58" width="12" height="17" rx="4" fill={SKIN_SHADE} />
+        {worn && (
+          <>
+            <ellipse cx="33" cy="48" rx="3.2" ry="4.6" fill={SKIN_SHADE} />
+            <ellipse cx="63" cy="48" rx="3.2" ry="4.6" fill={SKIN_SHADE} />
+          </>
+        )}
+        <ellipse cx="48" cy="46" rx="15" ry="18" fill={SKIN} />
+        {/* Rasgos */}
+        <path d="M39.5 42.5 Q42 41 44.5 42.5" fill="none" stroke={HAIR} strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M51.5 42.5 Q54 41 56.5 42.5" fill="none" stroke={HAIR} strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="42" cy="47" r="1.9" fill="#2b3238" />
+        <circle cx="54" cy="47" r="1.9" fill="#2b3238" />
+        <path d="M48 49.5 Q46.6 53.5 48.6 54.2" fill="none" stroke="#c98f62" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="39.5" cy="54" r="2.6" fill="#ef9a8a" opacity="0.35" />
+        <circle cx="56.5" cy="54" r="2.6" fill="#ef9a8a" opacity="0.35" />
+        <path d="M43.5 57.5 Q48 61 52.5 57.5" fill="none" stroke="#a0603a" strokeWidth="1.7" strokeLinecap="round" />
+        {worn ? (
+          <>
+            {/* Recogido: pegado a la cabeza, moño alto con gomita */}
+            <circle cx="48" cy="17" r="8.5" fill={HAIR} />
+            <path d="M42 15 Q48 11 54 15 M43 19.5 Q48 16 53 19.5" fill="none" stroke={HAIR_SHADE} strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M32.5 45 Q30.5 25.5 48 25.5 Q65.5 25.5 63.5 45 Q60 33 48 32.5 Q36 33 32.5 45 Z" fill={HAIR} />
+            <path d="M40 28.5 Q44 27 47 29.5 M51 29 Q54.5 27.5 57.5 30" fill="none" stroke={HAIR_SHADE} strokeWidth="1" strokeLinecap="round" />
+            <rect x="42.5" y="22.8" width="11" height="4.2" rx="2" fill="#e84a5f" />
+          </>
+        ) : (
+          <>
+            {/* Suelto: flequillo y mechones que tapan las orejas y caen junto a la cara */}
+            <path d="M32 46 Q31 25 48 25 Q65 25 64 46 Q60 33 50 32 Q44 36 36 37 Q33 40 32 46 Z" fill={HAIR} />
+            <path d="M33 38 Q29.5 52 31.5 69 L36.5 67 Q34.5 53 36.5 41 Z" fill={HAIR} />
+            <path d="M63 38 Q66.5 52 64.5 69 L59.5 67 Q61.5 53 59.5 41 Z" fill={HAIR} />
+          </>
+        )}
+      </g>
     </svg>
   );
 }
