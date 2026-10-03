@@ -100,6 +100,25 @@ describe('§17.2 escenarios de error y recuperación', () => {
     expectConservation(w);
   });
 
+  it('el agua de humedecer el papel no cuenta como lavado del residuo', () => {
+    const base = newPracticeWorld({ mode: 'PRACTICE', seed: 13 });
+    prepareSample(base);
+    heat(base);
+    const washFor = (wetMl: number) => {
+      const w = structuredClone(base);
+      setupFilter(w, 'paper1', 'beaker2', false);
+      pourMl(w, 'piseta', 'funnel', wetMl, 0.5);
+      run(w, 20);
+      expect(w.evidence.washMl ?? 0).toBe(0);
+      filter(w, 2.0);
+      return w.evidence.washMl ?? 0;
+    };
+    const normal = washFor(0.6);
+    const generous = washFor(1.5);
+    within(normal, [1.6, 2.8]);
+    expect(Math.abs(generous - normal)).toBeLessThan(0.05);
+  });
+
   it('4. exceso de agua y recuperación por evaporación', () => {
     const w = newPracticeWorld({ mode: 'GUIDED', seed: 11 });
     prepareSample(w);

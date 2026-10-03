@@ -81,6 +81,9 @@ export function materials(q: QualityLevel): MaterialSet {
 export function liquidMaterial(color: number, opacity: number, planes: THREE.Plane[]): THREE.MeshPhysicalMaterial {
   return new THREE.MeshPhysicalMaterial({
     color,
+    // Un poco de luz propia para que el líquido se lea también en la sombra o contra la mesada oscura.
+    emissive: color,
+    emissiveIntensity: 0.12,
     roughness: 0.08,
     metalness: 0,
     transparent: true,

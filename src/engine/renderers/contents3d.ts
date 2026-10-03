@@ -15,7 +15,12 @@ import { cavityGeometry } from './lathe';
 import { liquidMaterial } from './materials';
 import { type FrameCtx, mixColor, seededPoints } from './frame';
 
-const WATER = 0xcfe8ff;
+/**
+ * Agua: azul claro en lugar de casi incolora. El agua real es transparente, pero dentro de una probeta estrecha y
+ * sobre la mesada oscura no se distinguía; con este tono se ve el volumen y el nivel sin confundirla con una disolución
+ * coloreada (las turbias/coloreadas se mezclan a partir de este tono).
+ */
+const WATER = 0x4fa6ec;
 const UP = new THREE.Vector3(0, 1, 0);
 const DOWN = new THREE.Vector3(0, -1, 0);
 
@@ -65,7 +70,7 @@ export class Contents3D {
 
   constructor(private id: string, private shape: VesselShape, name: string, seg: number) {
     const cav = cavityGeometry(name, shape.profile, seg);
-    this.aqMat = liquidMaterial(WATER, 0.35, [this.planeAq]);
+    this.aqMat = liquidMaterial(WATER, 0.55, [this.planeAq]);
     this.aq = new THREE.Mesh(cav, this.aqMat);
     this.aq.renderOrder = 1;
     this.aqCapMat = liquidMaterial(WATER, 0.45, []);
@@ -73,7 +78,7 @@ export class Contents3D {
     this.aqCap = new THREE.Mesh(capGeo, this.aqCapMat);
     this.aqCap.rotation.x = -Math.PI / 2;
     this.aqCap.renderOrder = 1;
-    this.meniscus = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0x5f8fb8, transparent: true, opacity: 0.7, depthWrite: false }));
+    this.meniscus = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0x1f5f96, transparent: true, opacity: 0.9, depthWrite: false }));
     this.meniscus.rotation.x = -Math.PI / 2;
     this.meniscus.renderOrder = 1;
     this.oilMat = liquidMaterial(0xf0d77a, 0.75, [this.planeOilTop, this.planeOilBottom]);
@@ -148,7 +153,7 @@ export class Contents3D {
 
     // Color y turbidez de la fase acuosa.
     let tint = WATER;
-    let alpha = 0.33;
+    let alpha = 0.55;
     let dark = 0;
     let yellow = 0;
     for (const k of Object.keys(m.solid) as SubstanceId[]) {
@@ -169,8 +174,10 @@ export class Contents3D {
       alpha = Math.min(0.9, alpha + m.emulsion * 0.45);
     }
     this.aqMat.color.setHex(tint);
+    this.aqMat.emissive.setHex(tint); // la luz propia sigue al color (una suspensión de carbón no brilla en azul)
     this.aqMat.opacity = alpha;
     this.aqCapMat.color.setHex(mixColor(tint, 0xffffff, 0.25));
+    this.aqCapMat.emissive.setHex(mixColor(tint, 0xffffff, 0.25));
     this.aqCapMat.opacity = Math.min(0.95, alpha + 0.12);
     const oilKey = Object.keys(m.oil)[0] as SubstanceId | undefined;
     if (oilKey) {

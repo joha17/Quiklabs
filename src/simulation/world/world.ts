@@ -692,6 +692,8 @@ function applyPours(w: World, dt: number, ctx: SimContext): void {
       if (tgt?.type === 'FUNNEL') {
         bump(w, 'funnelPourMl', ml);
         if (pr.guided) bump(w, 'funnelPourGuidedMl', ml);
+        // Lo que llega de la mezcla (no de la piseta): el agua de humedecer el papel no inicia el lavado.
+        if (src.type !== 'WASH_BOTTLE') bump(w, 'mixtureFunnelPourMl', ml);
         w.evidence.maxFunnelPourRate = Math.max(w.evidence.maxFunnelPourRate ?? 0, pr.liquidRateMlS);
         const paper = tgt.funnel?.paperId ? w.vessels[tgt.funnel.paperId] : null;
         if (paper?.filter && !paper.filter.torn && pr.liquidRateMlS > w.params.filter.tearRateThresholdMlS && !pr.guided) {
@@ -706,8 +708,8 @@ function applyPours(w: World, dt: number, ctx: SimContext): void {
       if (!tgt) pr.spilledMl += ml;
       pr.transferredMl += ml;
       bump(w, `pour:${sid}->${pr.targetId ?? 'bench'}`, ml);
-      // Lavado del residuo (después de empezar a filtrar): al embudo o al vaso que contuvo el carbón.
-      if (src.type === 'WASH_BOTTLE' && (w.evidence.funnelPourMl ?? 0) > 0.5 && tgt && (tgt.type === 'FUNNEL' || (tgt.type === 'BEAKER' && tgt.maxParticulateG > 0.2))) {
+      // Lavado del residuo (después de empezar a filtrar la mezcla): al embudo o al vaso que contuvo el carbón.
+      if (src.type === 'WASH_BOTTLE' && (w.evidence.mixtureFunnelPourMl ?? 0) > 0.5 && tgt && (tgt.type === 'FUNNEL' || (tgt.type === 'BEAKER' && tgt.maxParticulateG > 0.2))) {
         bump(w, 'washMl', ml);
         bump(w, `washMl:${tgt.id}`, ml);
       }

@@ -123,7 +123,9 @@ textarea { width: 100%; resize: vertical; min-height: 3.2rem; }
 .drawer-head { position: sticky; top: 0; background: var(--panel); padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 0.5rem; z-index: 2; }
 .drawer-body { padding: 0.6rem 0.8rem 1.2rem; display: grid; gap: 0.8rem; }
 @media (max-width: 900px) {
-  .lab-main { grid-template-columns: 1fr; }
+  .lab-main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
+  /* Los contenedores de los paneles laterales no ocupan filas: sus cajones son superpuestos (absolutos). */
+  .lab-main > div:not(.canvas-wrap) { display: contents; }
   .drawer { position: absolute; top: 0; bottom: 0; right: 0; z-index: 20; box-shadow: var(--shadow); }
   .drawer.left { left: 0; right: auto; }
 }

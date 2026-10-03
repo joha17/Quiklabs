@@ -10,6 +10,7 @@ import { SUBSTANCES } from '../../practices/practice-02/substances';
 import { cmd, lv, pourMl, run, squeezeTo } from '../helpers';
 import { filter, heat, prepareSample, setupFilter } from '../routes';
 import { partBResults } from '../../practices/practice-02/results';
+import { describeVessel } from '../../app/describe';
 
 const JARS = ['jar_zn', 'jar_graphite', 'jar_s', 'jar_nacl', 'jar_sucrose'];
 
@@ -72,8 +73,28 @@ describe('§17.2-1 ruta ideal de la Parte A', () => {
     run(w, 3);
     cmd(w, { type: 'setAgitation', vesselId: 't2', intensity: 0, tool: 'NONE' });
     expect(status(w, 't2').appearance).toBe('DARK_CLOUD');
+    expect(describeVessel(w, w.vessels.t2)).toContain('suspensión negra');
     run(w, 90);
     expect(status(w, 't2').appearance).toBe('SEDIMENT');
+  });
+
+  it('la descripción de una suspensión usa el color del sólido suspendido', () => {
+    const w = newPracticeWorld({ mode: 'PRACTICE', seed: 4 });
+    for (const [jar, tube] of [['jar_s', 't3'], ['jar_zn', 't1']] as const) {
+      cmd(w, { type: 'scoop', toolId: 'spatula', sourceId: jar });
+      cmd(w, { type: 'tapTool', toolId: 'spatula', targetId: tube });
+      cmd(w, { type: 'cleanTool', toolId: 'spatula' });
+      squeezeTo(w, 'cyl', 2);
+      pourMl(w, 'cyl', tube, 5, 1);
+      cmd(w, { type: 'setAgitation', vesselId: tube, intensity: 0.9, tool: 'SHAKE' });
+      run(w, 3);
+      cmd(w, { type: 'setAgitation', vesselId: tube, intensity: 0, tool: 'NONE' });
+    }
+    const s = describeVessel(w, w.vessels.t3);
+    const zn = describeVessel(w, w.vessels.t1);
+    expect(s).not.toMatch(/oscura|negra/);
+    if (s.includes('suspensión')) expect(s).toContain('suspensión amarilla');
+    if (zn.includes('suspensión')) expect(zn).toContain('suspensión gris');
   });
 
   it('el aceite agitado forma emulsión temporal y luego dos fases (A6)', () => {

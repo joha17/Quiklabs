@@ -91,7 +91,7 @@
     "paper1": "Papel de filtro 1", "paper2": "Papel de filtro 2", "paper3": "Papel de filtro 3", "dish": "Cápsula de porcelana",
     "bath": "Cristalizador (baño)", "ice_bucket": "Cubeta de hielo", "ice_scoop": "Pala para hielo", "jug": "Jarra de agua", "jar_kno3": "Frasco de KNO₃ (cristal semilla)",
     "waste_solid": "Contenedor de residuos sólidos", "waste_liquid": "Contenedor de residuos líquidos",
-    "tray": "Bandeja de tubos", "rack": "Gradilla", "balance": "Balanza digital (0,01 g)", "hotplate": "Plantilla calefactora", "rod": "Agitador de vidrio",
+    "tray": "Bandeja de tubos", "rack": "Gradilla", "balance": "Balanza digital (0,01 g)", "hotplate": "Plantilla calefactora", "rod": "Varilla de vidrio (agitador)",
     "probe": "Sonda de temperatura", "stand": "Soporte con aro", "watch_glass": "Vidrio de reloj", "tongs": "Pinza para material caliente"
   },
   "type": {
@@ -202,7 +202,7 @@
     "liquid": "{{ml}} mL de líquido",
     "temp": ", {{t}} °C",
     "solid": "sólido {{color}} en el fondo",
-    "cloud": "suspensión oscura",
+    "cloud": "suspensión {{color}}",
     "clear": "líquido transparente",
     "twoLayers": "dos capas líquidas",
     "drops": "gotas dispersas",
@@ -218,6 +218,9 @@
   },
   "color": {
     "black": "negro", "white": "blanco", "yellow": "amarillo", "grey": "gris", "colorless": "incoloro"
+  },
+  "colorF": {
+    "black": "negra", "white": "blanca", "yellow": "amarilla", "grey": "gris"
   },
   "nb": {
     "title": "Libreta digital",
@@ -524,7 +527,8 @@
     "pisetaRest": "Piseta sobre el recipiente: mantenla pulsada sin mover (o «Apretar») para echar agua; arrástrala para separarla.",
     "dropperRest": "Gotero sobre el recipiente: haz clic en él para soltar una gota.",
     "dropperAligned": "Gotero acoplado a la boca: clic derecho (o P) = 1 gota. Aléjalo para desacoplarlo o suelta para dejarlo en reposo.",
-    "pisetaAligned": "Piseta acoplada al recipiente: mantén el clic derecho (o P) para echar agua.",
+    "pisetaNoTarget": "No hay ningún recipiente junto a la boquilla: acerca la piseta a la probeta (o a un vaso o tubo) y se acoplará sola.",
+    "pisetaAligned":"Piseta acoplada al recipiente: mantén el clic derecho (o P) para echar agua.",
     "pourDocked": "Acoplado para verter: mantén el clic derecho (o P, o «Verter») para inclinarlo poco a poco; al soltar se endereza. La rueda o Q/E ajustan la inclinación. Aléjalo para desacoplar.",
     "pourNotDocked": "Acerca el recipiente a otro (tubo, vaso, embudo, cápsula…) y detente un instante para acoplarlo antes de verter.",
     "keyboardHold": "Sosteniendo con teclado: flechas para mover, Q/E inclinar, A agitar, Intro soltar, Esc cancelar.",

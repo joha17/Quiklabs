@@ -17,16 +17,18 @@ export function nameOf(w: World, id: string): string {
   return id;
 }
 
-const colorWord = (hex: number): string => {
+const colorKey = (hex: number): 'yellow' | 'black' | 'white' | 'grey' => {
   const r = (hex >> 16) & 255;
   const g = (hex >> 8) & 255;
   const b = hex & 255;
   const l = (r + g + b) / 3;
-  if (r > 200 && g > 180 && b < 120) return t('color.yellow');
-  if (l < 70) return t('color.black');
-  if (l > 225) return t('color.white');
-  return t('color.grey');
+  if (r > 200 && g > 180 && b < 120) return 'yellow';
+  if (l < 70) return 'black';
+  if (l > 225) return 'white';
+  return 'grey';
 };
+/** Color con concordancia: «sólido amarillo» / «suspensión amarilla». */
+const colorWord = (hex: number, feminine = false): string => t(`${feminine ? 'colorF' : 'color'}.${colorKey(hex)}`);
 
 function probeOrQualitative(w: World, v: Vessel): string {
   if (w.devices.probe.vesselId === v.id) return t('desc.temp', { t: v.temperatureC.toFixed(1) });
@@ -49,10 +51,18 @@ export function describeVessel(w: World, v: Vessel, instrumentRes = 0.1): string
   const solids = Object.entries(m.solid) as Array<[SubstanceId, number]>;
   const sedColors = new Set<string>();
   let susp = 0;
+  let suspMain: SubstanceId | null = null;
+  let suspMainG = 0;
   for (const [k, g] of solids) {
     if (g < 0.002) continue;
     const s = m.suspended[k] ?? 0;
-    if (s > 0.25 && SUBSTANCES[k].particle.kind === 'POWDER') susp += g * s;
+    if (s > 0.25 && SUBSTANCES[k].particle.kind === 'POWDER') {
+      susp += g * s;
+      if (g * s > suspMainG) {
+        suspMainG = g * s;
+        suspMain = k;
+      }
+    }
     if (s < 0.9) sedColors.add(colorWord(SUBSTANCES[k].colorHex));
   }
   if (lv > 0.005) {
@@ -60,7 +70,7 @@ export function describeVessel(w: World, v: Vessel, instrumentRes = 0.1): string
     const shown = Math.round(lv / res) * res;
     parts.unshift(t('desc.liquid', { ml: shown.toFixed(res < 0.1 ? 2 : 1).replace('.', ',') }));
     if (oilVolumeMl(m, SUBSTANCES) > 0.01 && m.waterG > 0.1) parts.push(m.emulsion > 0.15 ? t('desc.drops') : t('desc.twoLayers'));
-    else if (susp > 0.003) parts.push(t('desc.cloud'));
+    else if (susp > 0.003 && suspMain) parts.push(t('desc.cloud', { color: colorWord(SUBSTANCES[suspMain].colorHex, true) }));
     else parts.push(t('desc.clear'));
   } else if (mixMassG(m) < 0.001) parts.unshift(t('desc.empty'));
   if (sedColors.size) parts.push(t('desc.solid', { color: [...sedColors].join(' y ') }));

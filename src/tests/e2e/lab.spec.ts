@@ -735,6 +735,110 @@ test.describe('Laboratorio 3D', () => {
     expect(w.vessels.funnel.funnel.stemTouchingWall).toBe(true);
     expect(w.vessels.beaker2.pose.z).toBeGreaterThan(1);
     await page.screenshot({ path: 'e2e-shots/16-vaso-bajo-embudo.png' });
+
+    // Con el receptor bajo el embudo, acercar la mezcla por el lado del vaso receptor acopla con el EMBUDO
+    // (la boca del receptor queda bajo el cono: verter ahí se saltaría el filtro).
+    await page.evaluate(() => {
+      const w = (window as never as { __lab: { getState(): AnyState } }).__lab.getState().runtime.world;
+      w.vessels.piseta.mix.waterG -= 8;
+      w.vessels.beaker1.mix.waterG += 5;
+      w.vessels.beaker2.mix.waterG += 3;
+    });
+    const dockOf = () => page.evaluate(() => (window as never as { __lab: { getState(): AnyState } }).__lab.getState().stage.controller.pourDock?.targetId ?? null);
+    // Con el teclado (tomar, flechas): llega por la izquierda, donde el receptor queda más cerca que el embudo.
+    const mix = w.vessels.beaker1.pose;
+    await page.evaluate(() => {
+      const s = (window as never as { __lab: { getState(): AnyState } }).__lab.getState();
+      s.select('beaker1');
+      s.stage.controller.beginDrag('beaker1', true);
+      (document.querySelector('.canvas-host') as HTMLElement).focus();
+    });
+    const press = async (key: string, n: number) => { for (let i = 0; i < n; i++) await page.keyboard.press(key); };
+    const dx = Math.round(f.x - 7.5 - mix.x);
+    const dy = Math.round(f.y - mix.y);
+    await press('Shift+ArrowRight', Math.floor(dx / 5));
+    await press('ArrowRight', dx % 5);
+    await press(dy > 0 ? 'ArrowUp' : 'ArrowDown', Math.abs(dy));
+    await page.waitForTimeout(900);
+    expect(await dockOf()).toBe('funnel');
+    await page.keyboard.press('Escape');
+    await waitIdle(page);
+    // Levantar el receptor de debajo del embudo no lo acopla para verter en el embudo.
+    await page.evaluate(() => (window as never as { __lab: { getState(): AnyState } }).__lab.getState().stage.controller.beginDrag('beaker2', true));
+    await page.waitForTimeout(800);
+    expect(await dockOf()).toBeNull();
+    await page.evaluate(() => (window as never as { __lab: { getState(): AnyState } }).__lab.getState().stage.controller.onKeyDown('Escape', false));
+  });
+
+  test('apretar la piseta que está junto a la probeta la llena (se acopla sola); sin recipiente cerca no derrama', async ({ page }) => {
+    await startLab(page);
+    let w = await world(page);
+    const cyl = w.vessels.cyl.pose;
+    const water = async () => (await world(page)).vessels.cyl.mix.waterG as number;
+    // Piseta en la mesada a ~5 cm de la probeta, sin acoplar (como la deja un estudiante).
+    await page.evaluate(([x, y]) => {
+      const s = (window as never as { __lab: { getState(): AnyState } }).__lab.getState();
+      s.dispatch({ type: 'setPose', id: 'piseta', pose: { x, y, z: 0, rotationRad: 0 } });
+    }, [cyl.x + 9.5, cyl.y + 2] as const);
+    await lookAt(page, cyl.x + 4, cyl.y, 6, 60);
+    w = await world(page);
+    expect(w.vessels.piseta.support).toBe('bench');
+    // 1) Mantenerla pulsada sin mover: se acopla sola a la probeta y la llena.
+    const p = await pickPoint(page, 'piseta');
+    await page.mouse.move(p.x, p.y);
+    await page.mouse.down();
+    await page.waitForTimeout(1800);
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    w = await world(page);
+    expect(w.vessels.piseta.support).toBe('mouth:cyl');
+    expect(w.vessels.cyl.mix.waterG).toBeGreaterThan(0.5);
+    expect(w.ledger.spilled.H2O ?? 0).toBeLessThan(0.01);
+    // 2) El botón «Apretar la piseta (mantener)» también llena la probeta.
+    const before = await water();
+    const btn = page.getByRole('button', { name: /Apretar la piseta/ }).first();
+    const bb = (await btn.boundingBox())!;
+    await page.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(1500);
+    await page.mouse.up();
+    expect(await water()).toBeGreaterThan(before + 0.5);
+    await page.screenshot({ path: 'e2e-shots/17-piseta-llena-probeta.png' });
+    const cp = (await world(page)).vessels.cyl.pose;
+    await lookAt(page, cp.x, cp.y, 5, 22);
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'e2e-shots/18-probeta-con-agua-cerca.png' });
+    // 3) Lejos de todo recipiente: apretar no derrama agua en la mesada (avisa).
+    const empty = await page.evaluate(() => {
+      const s = (window as never as { __lab: { getState(): AnyState } }).__lab.getState();
+      const w = s.runtime.world;
+      // Un sitio de la mesada sin ningún recipiente a menos de 20 cm.
+      let spot = { x: 0, y: 0 };
+      search: for (let x = 20; x < 540; x += 5) {
+        for (let y = 8; y < 58; y += 5) {
+          const near = Object.values(w.vessels).some((v: AnyState) => v.id !== 'piseta' && Math.hypot(v.pose.x - x, v.pose.y - y) < 20);
+          if (!near) {
+            spot = { x, y };
+            break search;
+          }
+        }
+      }
+      s.dispatch({ type: 'place', id: 'piseta', support: 'bench' });
+      s.dispatch({ type: 'setPose', id: 'piseta', pose: { x: spot.x, y: spot.y, z: 0, rotationRad: 0 } });
+      s.select('piseta');
+      return spot;
+    });
+    expect(empty.x).toBeGreaterThan(0);
+    await page.waitForTimeout(200);
+    const btn2 = page.getByRole('button', { name: /Apretar la piseta/ }).first();
+    const b2 = (await btn2.boundingBox())!;
+    await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(800);
+    await page.mouse.up();
+    w = await world(page);
+    expect(w.ledger.spilled.H2O ?? 0).toBeLessThan(0.01);
+    await expect(page.getByText(/No hay ningún recipiente junto a la boquilla/)).toBeVisible();
   });
 
   /** Capturas por estación y nivel de calidad, con el presupuesto de dibujo de §3.9. */

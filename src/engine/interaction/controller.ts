@@ -61,6 +61,10 @@ const MAGNET_CAPTURE_CM = 1.5;
 const MAGNET_RELEASE_CM = 1.5;
 /** La piseta se acopla si su cuerpo queda a menos de esto del recipiente (cm). */
 const PISETA_BODY_CAPTURE_CM = 3;
+/** Recipientes a los que se acopla la piseta (agua destilada para medir, disolver, humedecer el papel o lavar). */
+const PISETA_TARGETS = new Set(['GRADUATED_CYLINDER', 'BEAKER', 'TEST_TUBE', 'PORCELAIN_DISH', 'FUNNEL']);
+/** Al apretar la piseta en la mesada, se acopla sola a un recipiente cuyo cuerpo esté a menos de esto (cm). */
+const PISETA_PRESS_REACH_CM = 8;
 /** Soltar un recipiente a menos de esto del punto bajo la boquilla de una piseta lo encaja ahí (cm). */
 const PISETA_DOCK_CM = 4;
 /** Recipientes que se pueden encajar bajo la boquilla de una piseta soltándolos a su lado. */
@@ -136,6 +140,8 @@ export class InteractionController {
   private hoverTool: { targetId: string; since: number } | null = null;
   /** Tras una acción, no se repite sobre el mismo recipiente hasta que la punta salga de él. */
   private disarmed: { toolId: string; targetId: string } | null = null;
+  /** Vaso levantado de debajo de un embudo: no se acopla para verter en ese embudo hasta alejarlo. */
+  private pourDisarmed: { sourceId: string; targetId: string } | null = null;
   private hinted = new Set<string>();
   /** Desde cuándo la espátula sucia está sobre el papel absorbente (pausa antes de limpiarse sola). */
   private towelSince: number | null = null;
@@ -412,9 +418,12 @@ export class InteractionController {
     this.host.select(id);
     const mode = id === 'hotplate' && hit?.part === 'knob' ? 'knob' : 'pending';
     this.press = { id, sx, sy, t: this.now, mode, knobStartPct: this.w.devices.hotplate.powerPct, knobLastSent: this.now };
-    // Piseta en reposo sobre una boca: mantenerla pulsada sin mover = apretar; arrastrarla = levantarla (frame/move).
+    // Piseta en reposo sobre una boca, o en la mesada junto a un recipiente: mantenerla pulsada sin mover = apretar
+    // (si hace falta se acopla sola antes); arrastrarla = levantarla (frame/move).
     const v = this.w.vessels[id];
-    if (v && v.type === 'WASH_BOTTLE' && (v.support ?? '').startsWith('mouth:')) this.press.mode = 'restTool';
+    if (v && v.type === 'WASH_BOTTLE' && ((v.support ?? '').startsWith('mouth:') || (v.support === 'bench' && this.pisetaTargetNear(v)))) {
+      this.press.mode = 'restTool';
+    }
   }
 
   onPointerMove(sx: number, sy: number, pointerId = 1) {
@@ -520,6 +529,7 @@ export class InteractionController {
     if (this.anim.busy(id)) return false;
     const v = w.vessels[id];
     const prevSupport = isProp ? w.props[id].support : v.support; // antes de «grab», que lo borra
+    const underFunnel = isProp ? undefined : Object.values(w.vessels).find((f) => f.funnel?.dripTargetId === id);
     // Varilla/sonda dentro de un recipiente: se mueven dentro de él.
     const r = this.send({ type: 'grab', id });
     if (!r.ok) {
@@ -529,6 +539,8 @@ export class InteractionController {
     const pose = isProp ? w.props[id].pose : v.pose;
     // Herramienta levantada de una boca: el imán no la vuelve a acoplar ahí hasta que se aleje.
     if (prevSupport?.startsWith('mouth:')) this.disarmed = { toolId: id, targetId: prevSupport.slice(6) };
+    // Receptor sacado de debajo del embudo: al levantarlo queda junto a la espiga, pero no va a verter ahí.
+    this.pourDisarmed = underFunnel ? { sourceId: id, targetId: underFunnel.id } : null;
     // Recipiente con una herramienta en reposo sobre su boca: la herramienta no lo acompaña, queda al lado.
     if (!isProp) {
       for (const tid in w.vessels) {
@@ -807,7 +819,7 @@ export class InteractionController {
       if (empty) return target.type === 'REAGENT_BOTTLE' || liquidVolumeMl(target.mix, subs) > 0.5 ? 'aspirate' : null;
       return target.type === 'REAGENT_BOTTLE' ? null : 'align';
     }
-    if (tool.type === 'WASH_BOTTLE') return target.type === 'REAGENT_BOTTLE' || target.type === 'REAGENT_JAR' ? null : 'align';
+    if (tool.type === 'WASH_BOTTLE') return PISETA_TARGETS.has(target.type) ? 'align' : null;
     return null;
   }
 
@@ -954,12 +966,22 @@ export class InteractionController {
     // Si se está llevando a una zona de apoyo (placa, baño, gradilla, balanza…), eso tiene prioridad.
     const zoneNear = supportZones(w).some((z) => z.accepts(v) && !zoneOccupied(w, z.id, v.id) && Math.hypot(z.x - x, z.y - y) < z.snapR);
     if (zoneNear) return null;
+    const pd = this.pourDisarmed;
+    if (pd && (pd.sourceId !== v.id || !w.vessels[pd.targetId] || this.bodyGap(v, x, y, w.vessels[pd.targetId]) > POUR_RELEASE_CM)) this.pourDisarmed = null;
+    // Recipientes que reciben el goteo de un embudo: su boca queda bajo el cono, no se vierte en ellos desde arriba
+    // (así, al acercar la mezcla al embudo montado, el destino es el embudo y no el vaso que recoge el filtrado).
+    const underFunnel = new Set<string>();
+    for (const id in w.vessels) {
+      const r = w.vessels[id].funnel?.dripTargetId;
+      if (r) underFunnel.add(r);
+    }
     let best: Vessel | null = null;
     let bestGap = POUR_CAPTURE_CM;
     for (const id in w.vessels) {
       const t = w.vessels[id];
       if (id === v.id || !targets.includes(t.type) || t.integrity === 0 || t.tipped || t.support === 'glass_waste') continue;
-      if (t.support === `mouth:${v.id}`) continue;
+      if (t.support === `mouth:${v.id}` || underFunnel.has(id)) continue;
+      if (this.pourDisarmed?.sourceId === v.id && this.pourDisarmed.targetId === id) continue;
       const gap = this.bodyGap(v, x, y, t);
       if (gap < bestGap) {
         best = t;
@@ -1208,11 +1230,55 @@ export class InteractionController {
   startSqueeze(slow = false) {
     const w = this.w;
     const id = this.held?.id ?? this.host.getSelected();
-    if (!id || w.vessels[id]?.type !== 'WASH_BOTTLE') return;
+    const v = id ? w.vessels[id] : undefined;
+    if (!v || v.type !== 'WASH_BOTTLE') return;
+    // El chorro siempre debe ir a un recipiente: si la boquilla no está sobre ninguno, se acopla sola al más
+    // cercano; si no hay ninguno al alcance, no se aprieta (se avisa) en lugar de mojar la mesada.
+    if (!this.pisetaReady(v)) {
+      this.host.notify('info', 'hint.pisetaNoTarget');
+      return;
+    }
     this.squeezing = true;
     this.slowSqueeze = slow;
     this.squeezeSince = this.now;
     this.host.sound('squeeze');
+  }
+
+  /**
+   * Deja la piseta lista para echar agua en un recipiente: ya acoplada (en reposo o con el imán), con la boquilla
+   * sobre una boca, o acoplándola ahora al recipiente válido más cercano (a menos de PISETA_PRESS_REACH_CM).
+   */
+  private pisetaReady(v: Vessel): boolean {
+    if ((v.support ?? '').startsWith('mouth:')) return true;
+    if (this.magnet?.toolId === v.id && this.magnet.kind === 'align') return true;
+    const tip = this.toolTip(v)!;
+    if (this.receiverAt(tip.x, tip.y, tip.z, v.id)) return true;
+    const target = this.pisetaTargetNear(v);
+    if (!target) return false;
+    if (this.held?.id === v.id) {
+      // Sostenida: el imán la acopla (se aproxima en los próximos fotogramas).
+      this.magnet = { toolId: v.id, targetId: target.id, kind: 'align', ...this.magnetPose(v, target, 'align') };
+      this.alignHint(v);
+    } else this.rest(v, target.id, true);
+    return true;
+  }
+
+  /** Recipiente válido para la piseta más cercano a su cuerpo o a su boquilla, dentro del alcance de «apretar». */
+  private pisetaTargetNear(v: Vessel): Vessel | null {
+    const w = this.w;
+    let best: Vessel | null = null;
+    let bestGap = Infinity;
+    for (const id in w.vessels) {
+      const t = w.vessels[id];
+      if (id === v.id || t.integrity === 0 || t.tipped || t.support === 'glass_waste' || t.type === 'FILTER_PAPER') continue;
+      if (mouthOf(t).r <= 0 || this.magnetKind(v, t) !== 'align' || this.held?.id === id) continue;
+      const gap = this.magnetGap(v, v.pose.x, v.pose.y, t) + PISETA_BODY_CAPTURE_CM; // separación real de cuerpos/boquilla
+      if (gap < bestGap) {
+        best = t;
+        bestGap = gap;
+      }
+    }
+    return best && bestGap <= PISETA_PRESS_REACH_CM ? best : null;
   }
 
   stopSqueeze() {
