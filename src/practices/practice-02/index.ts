@@ -1,10 +1,10 @@
 import type { SimParams, World } from '../../simulation/entities/types';
 import { createWorld, type SimContext } from '../../simulation/world/world';
-import { buildWorldSpec, type PracticeMode } from './definition';
+import { buildWorldSpec, LABEL_TO_SUBSTANCE, type PracticeMode } from './definition';
 import { DEFAULT_PARAMS } from './params';
 import { SUBSTANCES } from './substances';
 
-export const CTX: SimContext = { subs: SUBSTANCES };
+export const CTX: SimContext = { subs: SUBSTANCES, labelToSubstance: LABEL_TO_SUBSTANCE };
 
 export interface PracticeOptions {
   mode: PracticeMode;

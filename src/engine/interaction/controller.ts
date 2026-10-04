@@ -6,6 +6,7 @@ import type { Pose, Vessel, World } from '../../simulation/entities/types';
 import type { Command } from '../../simulation/world/commands';
 import { liquidVolumeMl, particulateMassG } from '../../simulation/solutions/mixture';
 import { pourableSolidsG } from '../../simulation/world/world';
+import { tubeRefusesLoad } from '../../simulation/entities/tube';
 import { BENCH } from '../../practices/practice-02/definition';
 import { SHAPES, lipPoint, pourRate, rotateLocal, uprightLevelCm } from '../physics/geometry';
 import { type Animator, bell } from '../effects/animator';
@@ -15,7 +16,7 @@ import { mouthOf, supportZones, zoneById, zoneOccupied, type SupportZone } from 
 import type { EngineHost } from './host';
 import type { ViewAdapter } from './viewport';
 
-interface Held {
+export interface Held {
   id: string;
   isProp: boolean;
   offX: number;
@@ -55,6 +56,8 @@ const PISETA_NOZZLE: [number, number] = [5.5, 17.6];
 const MAGNET_TOOLS = new Set(['SPATULA', 'SCOOP', 'DROPPER', 'WASH_BOTTLE']);
 /** Tiempo que la punta debe quedarse sobre la boca antes de acoplarse (s). */
 const MAGNET_DWELL_S = 0.2;
+/** Pausa sobre un tubo con otro rótulo antes de avisar que la espátula no deposita ahí (s). */
+const REFUSED_WARN_DWELL_S = 0.45;
 /** Radio de atracción más allá del borde de la boca (cm). */
 const MAGNET_CAPTURE_CM = 1.5;
 /** Distancia más allá del radio de captura a partir de la cual una herramienta acoplada se suelta (cm). */
@@ -138,6 +141,8 @@ export class InteractionController {
   private magnet: { toolId: string; targetId: string; kind: MagnetKind; x: number; y: number; z: number } | null = null;
   /** Recipiente bajo la punta y desde cuándo (para exigir una breve pausa antes de acoplar). */
   private hoverTool: { targetId: string; since: number } | null = null;
+  private refusedWarned: string | null = null;
+  private refusedHover: { targetId: string; since: number } | null = null;
   /** Tras una acción, no se repite sobre el mismo recipiente hasta que la punta salga de él. */
   private disarmed: { toolId: string; targetId: string } | null = null;
   /** Vaso levantado de debajo de un embudo: no se acopla para verter en ese embudo hasta alejarlo. */
@@ -717,6 +722,7 @@ export class InteractionController {
     if (this.towelMagnet(v, h)) return true;
     // Punta «pretendida»: donde quedaría si la herramienta siguiera al puntero.
     const target = this.magnetTargetAt(v, h.tx, h.ty);
+    if (v.type === 'SPATULA') this.warnRefusedTube(v, target ? null : this.refusedTubeNear(v, h.tx, h.ty));
     if (this.disarmed && (this.disarmed.toolId !== v.id || this.disarmed.targetId !== target)) this.disarmed = null;
 
     let m = this.magnet?.toolId === v.id ? this.magnet : null;
@@ -812,7 +818,8 @@ export class InteractionController {
       const isSource = tool.type === 'SCOOP' ? target.type === 'ICE_BUCKET' : target.type === 'REAGENT_JAR' || target.type === 'VIAL';
       const load = tool.type === 'SCOOP' ? tool.mix.iceG : particulateMassG(tool.mix);
       if (isSource) return load < 0.001 ? 'scoop' : null; // cargada: no se mezcla con otro frasco
-      return load >= 0.001 && target.type !== 'ICE_BUCKET' ? 'tap' : null;
+      if (load < 0.001 || target.type === 'ICE_BUCKET' || this.tubeRefusal(tool, target)) return null;
+      return 'tap';
     }
     if (tool.type === 'DROPPER') {
       const empty = liquidVolumeMl(tool.mix, subs) < 0.01;
@@ -821,6 +828,39 @@ export class InteractionController {
     }
     if (tool.type === 'WASH_BOTTLE') return PISETA_TARGETS.has(target.type) ? 'align' : null;
     return null;
+  }
+
+  /** La espátula cargada no deposita en un tubo con otro rótulo (ni en uno sin rótulo si ya hay uno para su sustancia). */
+  private tubeRefusal(tool: Vessel, target: Vessel) {
+    if (tool.type !== 'SPATULA') return null;
+    return tubeRefusesLoad(this.w, target, tool.mix, this.host.runtime.ctx.labelToSubstance);
+  }
+
+  /** Tubo rechazado dentro del radio de captura de la punta (el imán no lo atrae, pero conviene decir por qué). */
+  private refusedTubeNear(tool: Vessel, x: number, y: number): string | null {
+    for (const id in this.w.vessels) {
+      const t = this.w.vessels[id];
+      if (t.type === 'TEST_TUBE' && t.integrity > 0 && this.magnetGap(tool, x, y, t) <= 0 && this.tubeRefusal(tool, t)) return id;
+    }
+    return null;
+  }
+
+  /**
+   * Aviso (una vez por tubo) de que ese tubo no corresponde a la muestra, si la espátula se detiene sobre él
+   * (pasar por encima camino al tubo correcto no avisa).
+   */
+  private warnRefusedTube(tool: Vessel, targetId: string | null) {
+    const refusal = targetId ? this.tubeRefusal(tool, this.w.vessels[targetId]) : null;
+    if (!refusal) {
+      this.refusedHover = null;
+      this.refusedWarned = null;
+      return;
+    }
+    if (this.refusedHover?.targetId !== targetId) this.refusedHover = { targetId: targetId!, since: this.now };
+    if (this.now - this.refusedHover.since >= REFUSED_WARN_DWELL_S && this.refusedWarned !== targetId) {
+      this.host.notify('warn', `cmd.${refusal}`);
+      this.refusedWarned = targetId;
+    }
   }
 
   /** Pose de acople (la misma desde la que parten las animaciones de cada acción). */
@@ -1225,6 +1265,43 @@ export class InteractionController {
     return null;
   }
 
+  // ───────────── Consultas y acciones para la demostración (mismas mecánicas que con el puntero) ─────────────
+
+  /** Origen que debe tener la herramienta para que su punta quede en (x, y). */
+  originForTip(id: string, x: number, y: number): { x: number; y: number } {
+    const v = this.w.vessels[id];
+    if (!v) return { x, y };
+    const tip = this.toolTipAt(v, 0, 0);
+    return { x: x - tip.x, y: y - tip.y };
+  }
+
+  /** Recipiente con el que la herramienta sostenida está alineada (gotero o piseta acoplados), si ya llegó. */
+  alignedTarget(toolId: string): string | null {
+    const m = this.magnet;
+    const v = this.w.vessels[toolId];
+    if (!m || m.toolId !== toolId || m.kind !== 'align' || !v) return null;
+    return Math.hypot(m.x - v.pose.x, m.y - v.pose.y, m.z - v.pose.z) < 0.4 ? m.targetId : null;
+  }
+
+  /** Recipiente cuya boca queda bajo la punta de la herramienta (boquilla de la piseta, punta de la espátula…). */
+  tipOver(id: string): string | null {
+    const v = this.w.vessels[id];
+    const tip = v ? this.toolTip(v) : null;
+    return tip ? this.receiverAt(tip.x, tip.y, tip.z, id) : null;
+  }
+
+  /** La herramienta está cargando, depositando, aspirando o animándose. */
+  busy(id: string): boolean {
+    return this.acting.has(id) || this.anim.busy(id);
+  }
+
+  /** Depositar la carga de la espátula en un recipiente (p. ej. devolver el exceso al frasco). */
+  tapInto(toolId: string, targetId: string) {
+    const v = this.w.vessels[toolId];
+    const t = this.w.vessels[targetId];
+    if (v && t) this.animTap(v, t);
+  }
+
   // ───────────── Piseta ─────────────
 
   startSqueeze(slow = false) {
@@ -1445,6 +1522,7 @@ export class InteractionController {
         this.animTap(v, w.vessels[target]);
         return;
       }
+      if (target && this.tubeRefusal(v, w.vessels[target])) this.host.notify('warn', `cmd.${this.tubeRefusal(v, w.vessels[target])}`);
       const towel = w.vessels.towel;
       if (v.type === 'SPATULA' && towel && Math.hypot(towel.pose.x - tip!.x, towel.pose.y - tip!.y) < 4.5) {
         this.cleanTool(v.id);

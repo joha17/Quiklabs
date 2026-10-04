@@ -1,7 +1,32 @@
 import type { SubstanceId, SubstanceTable } from '../substances/types';
-import type { Vessel, World } from './types';
+import type { Mixture, Vessel, World } from './types';
 import { dominantSubstance, liquidVolumeMl, oilMass, particulateMassG, substanceMass } from '../solutions/mixture';
 import { capacityG } from '../solutions/solubility';
+
+export type TubeRefusal = 'WRONG_TUBE' | 'USE_LABELED_TUBE';
+
+/**
+ * ¿Rechaza el tubo la carga de la espátula? Un tubo rotulado solo acepta la sustancia de su rótulo, y si ya hay un
+ * tubo rotulado para esa sustancia, los tubos sin rótulo tampoco la aceptan.
+ */
+export function tubeRefusesLoad(
+  w: World,
+  tube: Vessel,
+  load: Mixture,
+  labelToSubstance: Record<string, SubstanceId> | undefined,
+): TubeRefusal | null {
+  if (tube.type !== 'TEST_TUBE' || !labelToSubstance) return null;
+  const sample = dominantSubstance(load);
+  if (!sample) return null;
+  if (tube.label) {
+    const expected = labelToSubstance[tube.label];
+    return expected && expected !== sample ? 'WRONG_TUBE' : null;
+  }
+  const hasOwnTube = Object.values(w.vessels).some(
+    (v) => v.type === 'TEST_TUBE' && v.integrity > 0 && !!v.label && labelToSubstance[v.label] === sample,
+  );
+  return hasOwnTube ? 'USE_LABELED_TUBE' : null;
+}
 
 /** §4.2 — máquina de estados del tubo. */
 export type TubeState = 'EMPTY' | 'LABELED' | 'SAMPLE_ADDED' | 'WATER_ADDED' | 'MIXING' | 'SETTLING' | 'OBSERVABLE' | 'RECORDED';

@@ -17,6 +17,15 @@ export function nameOf(w: World, id: string): string {
   return id;
 }
 
+/** Nombre corto para la etiqueta fija sobre el objeto; el tubo añade su rótulo («Tubo 1 · NaCl»). */
+export function nameTag(w: World, id: string): string {
+  const k = `tag.${id}`;
+  const n = t(k);
+  const base = n !== k ? n : nameOf(w, id);
+  const label = w.vessels[id]?.type === 'TEST_TUBE' ? w.vessels[id].label : null;
+  return label ? `${base} · ${label}` : base;
+}
+
 const colorKey = (hex: number): 'yellow' | 'black' | 'white' | 'grey' => {
   const r = (hex >> 16) & 255;
   const g = (hex >> 8) & 255;

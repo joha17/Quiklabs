@@ -1,0 +1,926 @@
+{
+  "menu": {
+    "title": "Laboratorios virtuales de Química General I",
+    "lead": "Elige la práctica de laboratorio que vas a realizar. Cada una guarda su propio intento en este navegador.",
+    "listLabel": "Laboratorios disponibles",
+    "practice": "Práctica {{n}}",
+    "enter": "Entrar",
+    "enterLabel": "Entrar al laboratorio: {{title}}",
+    "back": "Laboratorios",
+    "inProgress": "Intento guardado ({{mode}}, {{min}} min)",
+    "submitted": "Intento entregado",
+    "note": "Los simuladores funcionan en el navegador (WebGL 2), con ratón, pantalla táctil o teclado. No se envía información a ningún servidor.",
+    "labs": {
+      "p2": {
+        "title": "Clasificación de la materia y técnicas de separación",
+        "subtitle": "Propiedades físicas de elementos y compuestos; separación de carbón y KNO₃.",
+        "points": [
+          "Parte A: seis sustancias en tubos de ensayo (estado, color, olor, solubilidad).",
+          "Parte B: disolución, filtración, evaporación y cristalización.",
+          "Balanza, placa calefactora, embudo, baño de hielo."
+        ],
+        "duration": "35–55 min"
+      },
+      "p3": {
+        "title": "Mechero de Bunsen y prueba de cationes a la llama",
+        "subtitle": "Encendido seguro, combustión completa e incompleta, y coloración de la llama por cationes.",
+        "points": [
+          "Inspección, encendido, regulación y apagado del mechero; partes identificables.",
+          "Cápsula de porcelana en llama amarilla y en llama azul (hollín).",
+          "Li⁺, Na⁺, K⁺, Ca²⁺, Cu²⁺ y Ba²⁺ con asas de nicromio, vidrio de cobalto e incógnita."
+        ],
+        "duration": "35–50 min"
+      }
+    }
+  },
+  "p3": {
+    "app": {
+      "title": "Práctica 3 — Mechero de Bunsen y prueba de cationes a la llama",
+      "short": "Práctica 3 · Mechero",
+      "subtitle": "Combustión completa e incompleta, emisión atómica y uso del vidrio azul de cobalto",
+      "kicker": "Laboratorio 3D"
+    },
+    "intro": {
+      "lead": "Inspecciona, conecta, enciende, regula y apaga un mechero de Bunsen de verdad: las válvulas, el aire, la posición de la muestra, la contaminación del asa y el vidrio de cobalto cambian lo que ves. No hay botones «llama amarilla / llama azul» ni «Siguiente».",
+      "modules": [
+        "A. Reconocimiento, encendido, regulación y apagado del mechero.",
+        "B. Combustión incompleta y completa con la cápsula de porcelana.",
+        "C. Pruebas de Li⁺, Na⁺, K⁺, Ca²⁺, Cu²⁺ y Ba²⁺ con asas de nicromio.",
+        "D. Mezcla Na⁺/K⁺ con y sin vidrio azul de cobalto.",
+        "E. Identificación de una disolución incógnita."
+      ],
+      "duration": "Duración estimada: 35–50 min.",
+      "controlsList": [
+        "Arrastra un objeto para tomarlo. Mientras lo sostienes, la rueda (o Q / E, o ▲ ▼) sube o baja su altura: así colocas el asa o la cápsula en la zona de la llama que quieras.",
+        "Válvulas: arrastra hacia arriba/abajo la perilla del mechero (aguja), el collar de aire o la palanca de la llave de mesa; la rueda sobre ellas las gira poco a poco. También hay controles deslizantes en el panel inferior. Con el encendedor en la mano, la rueda abre o cierra la aguja; las teclas [ ] regulan la aguja y , . el aire.",
+        "Encendedor: llévalo junto a la boca del mechero y mantén el clic derecho (o P, o «Accionar chispero») mientras abres la válvula de aguja lentamente.",
+        "Pinza: acerca la punta al borde frontal de la cápsula y pulsa el clic derecho (o «Sujetar»). Soltar sobre la placa refractaria deja la cápsula apoyada.",
+        "Asa: acércala a la boca de un tubo y entra sola (imán); al alejarla, sale con la muestra. Llévala a la llama y ajusta la altura. Devuélvela a su ranura del soporte.",
+        "Vidrio de cobalto: «Sostener frente a la vista» o la tecla G lo colocan entre tus ojos (la cámara) y la llama sin soltar el asa; solo filtra lo que realmente queda detrás del vidrio.",
+        "Teclado: Tab para enfocar el laboratorio, ← → para elegir objeto, Intro tomar/soltar, flechas mover, Q/E altura, P acción, Esc cancelar; 1–5 estaciones, J/L/I/K cámara, +/− zoom."
+      ],
+      "teacher": "Opciones docentes",
+      "fuel": "Combustible",
+      "loopMode": "Asas de nicromio",
+      "atomizer": "Habilitar atomizadores (modo opcional, se evalúa aparte)",
+      "scenarios": "Escenarios de error",
+      "seedHelp": "La semilla fija la incógnita (número, identidad e intensidad) y la variabilidad del intento. La identidad no cambia al recargar."
+    },
+    "mode": {
+      "PRACTICE_desc": "Retroalimentación que explica lo que observas y qué revisar.",
+      "GUIDED_desc": "Pasos de cada etapa, pistas y regla visible junto a la llama.",
+      "EVALUATION_desc": "Sin pistas ni correcciones hasta la entrega; válvulas descritas por su posición, no en %.",
+      "DEBUG_desc": "Docente: gas, aire, temperatura, CO, hollín, espectros, contaminación y botón de detener."
+    },
+    "fuel": {
+      "PROPANE": "Propano (C₃H₈) — predeterminado",
+      "BUTANE": "Butano (C₄H₁₀) — variante docente"
+    },
+    "loopMode": {
+      "DEDICATED": "Asas dedicadas (una por disolución) — predeterminado",
+      "SHARED": "Asa compartida con estación de limpieza (HCl)"
+    },
+    "scenario": {
+      "CRACKED_HOSE": "Manguera agrietada (fuga a detectar en la inspección)",
+      "CONTAMINATED_LOOP": "Asa del KCl contaminada con sodio",
+      "DRAFT": "Corriente de aire en el laboratorio",
+      "POOR_VENTILATION": "Ventilación general deficiente"
+    },
+    "ppe": {
+      "lead": "Antes de trabajar con la llama: pulsa cada elemento para ponértelo. Sin ellos no se puede encender el mechero.",
+      "coat": "Bata abotonada y mangas ajustadas",
+      "goggles": "Gafas de seguridad",
+      "hair": "Cabello recogido, sin ropa suelta",
+      "shoes": "Calzado cerrado",
+      "note": "Ubica también el extintor, la manta ignífuga y el corte de gas antes de encender."
+    },
+    "station": {
+      "A": "Mechero",
+      "B": "Cápsula de porcelana",
+      "C": "Cationes (tubos y asas)",
+      "D": "Observación a la altura de la llama",
+      "E": "Limpieza y residuos"
+    },
+    "zone": {
+      "burner": "Mechero y gas",
+      "capsule": "Combustión (cápsula)",
+      "cations": "Cationes y observación",
+      "cleaning": "Limpieza",
+      "safety": "Seguridad"
+    },
+    "stage": {
+      "INTRO": "Inicio",
+      "PPE_CHECK": "Equipo de protección",
+      "PPE_AND_SAFETY": "Seguridad: ubicar extintor, manta y corte; ventilar",
+      "BURNER_INSPECTION": "Inspección de manguera y mechero",
+      "PARTS_IDENTIFICATION": "Identificación de partes",
+      "IGNITION_SETUP": "Encendido",
+      "YELLOW_FLAME": "Llama amarilla (aire cerrado)",
+      "FIRST_CAPSULE_TEST": "Primera cápsula (llama amarilla)",
+      "BLUE_FLAME_ADJUSTMENT": "Llama azul (abrir el aire)",
+      "SECOND_CAPSULE_TEST": "Segunda cápsula (llama azul)",
+      "CATION_SETUP": "Comprobación de asas",
+      "KNOWN_CATION_TESTS": "Pruebas de cationes conocidos",
+      "SODIUM_POTASSIUM_COMPARISON": "Mezcla Na⁺/K⁺ y vidrio de cobalto",
+      "UNKNOWN_TEST": "Incógnita",
+      "BURNER_SHUTDOWN": "Apagado del mechero",
+      "NOTEBOOK": "Libreta y preguntas",
+      "SUBMISSION": "Entrega",
+      "REVIEW": "Revisión"
+    },
+    "guide": {
+      "PPE_AND_SAFETY": [
+        "Selecciona el extintor, la manta ignífuga y el botón «Corte de gas» y pulsa «Ubicar» en cada uno.",
+        "Enciende la extracción (interruptor de la pared o el panel de seguridad)."
+      ],
+      "BURNER_INSPECTION": [
+        "Selecciona la manguera y pulsa «Inspeccionar manguera». Si está agrietada, ciérrala y reemplázala.",
+        "Selecciona el mechero y pulsa «Inspeccionar»: confirma que llave de mesa, aguja y collar de aire están cerrados.",
+        "Conecta la manguera a la entrada de gas y mantenla lejos de donde estará la llama."
+      ],
+      "PARTS_IDENTIFICATION": [
+        "Abre «Partes» en la barra superior.",
+        "Elige una etiqueta y haz clic sobre la pieza correspondiente del mechero o de la llave de mesa."
+      ],
+      "IGNITION_SETUP": [
+        "Collar de aire cerrado.",
+        "Abre la llave de gas de la mesa.",
+        "Lleva el encendedor junto a la boca y acciónalo (clic derecho / P).",
+        "Mientras chispea, abre LENTAMENTE la válvula de aguja hasta que encienda."
+      ],
+      "YELLOW_FLAME": [
+        "Ajusta el gas hasta que la llama mida cerca de 10 cm (usa la regla junto al mechero).",
+        "Observa: color, luminosidad, forma, estabilidad y sonido."
+      ],
+      "FIRST_CAPSULE_TEST": [
+        "Toma la pinza y sujeta la cápsula limpia por el borde frontal.",
+        "Coloca la base de la cápsula en la zona luminosa de la llama unos 10 s.",
+        "Retírala y déjala sobre la placa refractaria. Observa la base."
+      ],
+      "BLUE_FLAME_ADJUSTMENT": [
+        "Abre poco a poco el collar de aire: amarilla → mixta → azul.",
+        "Ajusta el gas hasta una llama azul de dos conos de unos 10 cm.",
+        "La región más caliente está justo sobre la punta del cono interno."
+      ],
+      "SECOND_CAPSULE_TEST": [
+        "Espera a que la cápsula se enfríe (menos de 45 °C) y límpiala con el paño hasta quitar el hollín.",
+        "Con la pinza, colócala en la llama azul el mismo tiempo y retírala a la placa.",
+        "Compara: ¿hay hollín nuevo? ¿se calentó más?"
+      ],
+      "CATION_SETUP": [
+        "Observa los tubos: todos son incoloros salvo el CuCl₂ (azul verdoso pálido).",
+        "Lleva un asa limpia a la llama azul sin cargarla: la llama no debe cambiar de color. Si cambia, está contaminada."
+      ],
+      "KNOWN_CATION_TESTS": [
+        "Deja enfriar el asa y acércala a la boca de SU tubo: entra sola y se carga.",
+        "Llévala a la región caliente, junto a la punta del cono interno, y observa el color.",
+        "Repite con el vidrio de cobalto frente a la vista.",
+        "Registra color de la disolución, sin filtro, con filtro e intensidad, y devuelve el asa a su ranura."
+      ],
+      "SODIUM_POTASSIUM_COMPARISON": [
+        "Prueba la mezcla NaCl + KCl sin filtro: domina el amarillo del sodio.",
+        "Repite mirando a través del vidrio de cobalto: aparece el lila del potasio."
+      ],
+      "UNKNOWN_TEST": [
+        "Usa el asa de la incógnita. Observa sin y con filtro.",
+        "Compara con tus resultados y registra identidad, confianza y justificación en la libreta."
+      ],
+      "BURNER_SHUTDOWN": [
+        "Cierra el collar de aire.",
+        "Cierra la válvula de aguja.",
+        "Cierra la llave de gas de la mesa.",
+        "Inspecciona el mechero: sin llama, sin sonido y sin flujo. Déjalo enfriar."
+      ],
+      "NOTEBOOK": [
+        "Completa los Cuadros 3.2 y 3.3 con lo que observaste y responde las preguntas.",
+        "Deja el material caliente en su soporte y entrega."
+      ]
+    },
+    "hud": {
+      "parts": "Partes",
+      "speedNote": "La aceleración se suspende mientras manipulas o hay emisión de color."
+    },
+    "a11y": {
+      "canvas": "Laboratorio 3D de la Práctica 3: mechero, cápsula, asas, tubos y vidrio de cobalto"
+    },
+    "safety": {
+      "title": "Seguridad",
+      "co": "CO (detector)",
+      "gas": "Gas combustible",
+      "vent": "Ventilación",
+      "supply": "Suministro",
+      "extractionOn": "extracción encendida",
+      "extractionOff": "solo ventilación general",
+      "supplyOn": "abierto",
+      "supplyOff": "cortado",
+      "shutoff": "Corte de gas",
+      "extraction": "Extracción",
+      "alarm": "Alarma",
+      "note": "El CO es incoloro e inodoro: solo lo detecta el sensor. El humo negro es hollín, no CO."
+    },
+    "flame": {
+      "off": "Mechero apagado, sin flujo de gas.",
+      "gasNoFlame": "Sale gas sin llama.",
+      "flashback": "Retroceso: la llama arde dentro del cañón. Cierra el gas.",
+      "lit": "Llama {{color}}, {{h}} cm, {{cones}}, {{stab}}.",
+      "twoCones": "dos conos definidos",
+      "coneForming": "cono interno poco definido",
+      "noCones": "sin conos",
+      "stable": "estable",
+      "unstable": "inestable",
+      "state": {
+        "IGNITING": "encendiéndose",
+        "YELLOW_LUMINOUS": "amarilla luminosa",
+        "TRANSITIONAL": "amarilla con base azul",
+        "BLUE_STABLE": "azul",
+        "LIFTED": "levantada de la boca",
+        "FLASHBACK": "en retroceso"
+      }
+    },
+    "valve": {
+      "closed": "cerrada",
+      "almostClosed": "casi cerrada",
+      "quarter": "un cuarto",
+      "half": "media apertura",
+      "mostly": "casi abierta",
+      "open": "abierta"
+    },
+    "temp": {
+      "cool": "a temperatura manipulable",
+      "warm": "tibio (precaución)",
+      "hot": "caliente: usar pinza",
+      "veryHot": "muy caliente"
+    },
+    "phase": {
+      "COOL_CLEAN": "fría y limpia",
+      "SAMPLE_LOADING": "cargando muestra",
+      "LOADED": "cargada (húmeda)",
+      "ENTERING_FLAME": "entrando a la llama",
+      "WATER_EVAPORATING": "evaporando el agua",
+      "EMITTING": "emitiendo color",
+      "DEPLETED_HOT": "muestra agotada, caliente",
+      "COOLING": "enfriándose",
+      "COOL_CONTAMINATED": "fría, con residuos",
+      "CLEANING": "en limpieza"
+    },
+    "obj": {
+      "burner": "Mechero de Bunsen",
+      "gasTap": "Llave de gas de la mesa",
+      "hose": "Manguera de gas",
+      "lighter": "Encendedor largo",
+      "ruler": "Regla de altura (escala temporal)",
+      "soapBottle": "Agua jabonosa",
+      "tile": "Placa refractaria",
+      "capsule": "Cápsula de porcelana",
+      "tongs": "Pinza para crisol",
+      "cloth": "Paño de limpieza",
+      "glass": "Vidrio azul de cobalto",
+      "rack": "Gradilla",
+      "loopHolder": "Soporte de asas",
+      "tube": "Tubo «{{label}}»",
+      "loopFor": "Asa de nicromio ({{label}})",
+      "loopShared": "Asa de nicromio (compartida)",
+      "rinseBeaker": "Vaso con agua destilada",
+      "waste": "Residuos de sales",
+      "hclVial": "Vial de HCl concentrado",
+      "extinguisher": "Extintor",
+      "blanket": "Manta ignífuga",
+      "emergencyStop": "Corte de gas de emergencia",
+      "extractor": "Extracción",
+      "coDetector": "Detector de CO y gas",
+      "atomizer": "Atomizador ({{label}})",
+      "loop": "Asa de nicromio",
+      "backdrop": "Pantalla oscura de observación"
+    },
+    "kind": {
+      "capsule": "la cápsula",
+      "glass": "el vidrio",
+      "burner": "el mechero"
+    },
+    "desc": {
+      "valves": "aguja {{needle}}, aire {{air}}",
+      "tap": "llave {{v}}",
+      "supplyCut": "suministro cortado",
+      "hoseConnected": "conectada",
+      "hoseLoose": "desconectada",
+      "hoseCrack": "grieta detectada",
+      "hoseHot": "caliente",
+      "sootBlack": "base ennegrecida",
+      "sootGray": "película gris",
+      "sootNone": "sin hollín",
+      "inTongs": "en la pinza",
+      "inFlame": "en la llama",
+      "residue": "con residuos",
+      "spilled": "derramado",
+      "solution": "{{ml}} mL de disolución",
+      "glassAligned": "alineado entre tu vista y la llama",
+      "glassHeld": "sostenido (no alineado con la llama)",
+      "glassIdle": "en la mesada",
+      "sparking": "chispeando",
+      "hclOpen": "abierto",
+      "hclClosed": "cerrado",
+      "extractionOn": "encendida",
+      "extractionOff": "apagada",
+      "detector": "CO {{co}} ppm · gas {{gas}} mL"
+    },
+    "part": {
+      "base": "Base",
+      "gasInlet": "Entrada lateral de gas",
+      "hose": "Manguera / conexión",
+      "needleValve": "Válvula reguladora de gas (aguja)",
+      "airInlets": "Entradas de aire",
+      "airCollar": "Collar regulador de aire",
+      "barrel": "Cañón (tubo de mezcla)",
+      "mouth": "Boca del cañón",
+      "tableValve": "Llave de gas de la mesa"
+    },
+    "partGeo": {
+      "base": "Pieza ancha y pesada que apoya en la mesada",
+      "gasInlet": "Espiga metálica de costado, junto a la base, donde llega la manguera",
+      "hose": "Tubo flexible anaranjado",
+      "needleValve": "Perilla negra al frente, sobre la base",
+      "airInlets": "Ranuras oscuras en la parte baja del tubo",
+      "airCollar": "Anillo dorado que gira en la parte baja del tubo",
+      "barrel": "Tubo metálico vertical",
+      "mouth": "Extremo superior abierto del tubo",
+      "tableValve": "Palanca amarilla en la canaleta de la pared"
+    },
+    "parts": {
+      "title": "Identificación de partes",
+      "lead": "Elige una etiqueta y luego haz clic sobre la pieza en el modelo 3D.",
+      "pointNow": "Ahora señala en el modelo: {{part}}",
+      "keyboard": "Señalar sin ratón (por su forma y posición)",
+      "point": "Señalar"
+    },
+    "act": {
+      "title": "Acciones",
+      "none": "Selecciona o arrastra un objeto del laboratorio. Doble clic acerca la cámara.",
+      "raise": "Subir",
+      "lower": "Bajar",
+      "cancel": "Cancelar (Esc)",
+      "needle": "Válvula de aguja",
+      "air": "Collar de aire",
+      "table": "Llave de mesa",
+      "close": "Cerrar",
+      "valveLess": "Cerrar un poco: {{v}}",
+      "valveMore": "Abrir un poco: {{v}}",
+      "inspectBurner": "Inspeccionar mechero",
+      "inspectHose": "Inspeccionar manguera",
+      "connect": "Conectar manguera",
+      "disconnect": "Desconectar manguera",
+      "soap": "Prueba con agua jabonosa",
+      "replaceHose": "Reemplazar manguera",
+      "spark": "Accionar chispero (mantener)",
+      "clamp": "Sujetar cápsula",
+      "unclamp": "Soltar cápsula",
+      "clampReady": "En posición: puedes sujetar",
+      "clampAim": "Acerca la punta al borde frontal de la cápsula",
+      "wipe": "Limpiar con el paño",
+      "toHolder": "Devolver a su ranura",
+      "spareLoop": "Pedir asa nueva",
+      "observeSolution": "Observar la disolución",
+      "alignGlass": "Sostener frente a la vista (G)",
+      "cleanGlass": "Limpiar vidrio",
+      "alignment": "Llama detrás del vidrio: {{p}} %",
+      "hclOpen": "Abrir HCl (en la campana)",
+      "hclClose": "Cerrar HCl",
+      "extractOn": "Encender extracción",
+      "extractOff": "Apagar extracción",
+      "locate": "Ubicar",
+      "restore": "Restablecer suministro",
+      "extinguisher": "Usar extintor",
+      "blanket": "Usar manta ignífuga",
+      "firstAid": "Primeros auxilios (agua fría 10 min)",
+      "spray": "Pulverizar",
+      "glassToggle": "Vidrio frente a la vista (G)"
+    },
+    "hint": {
+      "keyboardHold": "Lo sostienes: flechas para moverlo, Q/E para la altura, P acción, Intro para soltar, Esc para cancelar.",
+      "gripMissed": "La pinza no alcanzó el borde de la cápsula: acerca la punta al borde frontal.",
+      "soapNear": "Acerca el agua jabonosa a la manguera o a sus conexiones."
+    },
+    "cmd": {
+      "CLOSE_GAS_FIRST": "Primero cierra el gas y apaga el mechero.",
+      "CLOSE_VALVES_FIRST": "Primero cierra la llave de mesa y la válvula de aguja.",
+      "INCIDENT": "Hay un incidente en curso: aplica la respuesta de emergencia.",
+      "PPE": "Ponte el equipo de protección.",
+      "NO_HCL": "En este modo no hay estación de HCl."
+    },
+    "block": {
+      "GAS_ACCUMULATION": "Se acumuló gas sin quemar cerca de la mesada. No se puede encender: cierra la llave de mesa y la válvula de aguja, ventila y reinicia la estación.",
+      "LEAK_FLAME_TEST": "Nunca se buscan fugas con una llama. Cierra el gas, ventila y usa agua jabonosa para localizar la fuga.",
+      "CO_HIGH": "El monóxido de carbono superó el límite de seguridad y se cortó el gas automáticamente. Ventila hasta que el detector baje y cierra las válvulas.",
+      "PPE": "No se puede encender sin el equipo de protección completo.",
+      "closeGas": "Cerrar llave y aguja",
+      "ventilate": "Encender extracción",
+      "reset": "Reiniciar la estación",
+      "resolve": "Registrar y continuar",
+      "ack_CLOSE_VALVES_FIRST": "Primero cierra la llave de mesa y la válvula de aguja.",
+      "ack_VENTILATE_FIRST": "Todavía hay gas o CO en el aire: ventila y espera.",
+      "ack_PPE": "Falta el equipo de protección.",
+      "ack_PENDING_SHUTOFF": "Primero corta el suministro de gas.",
+      "ack_PENDING_EXTINGUISHER": "Usa el extintor de CO₂ sobre el foco.",
+      "ack_PENDING_BLANKET": "Usa la manta ignífuga.",
+      "ack_PENDING_FIRST_AID": "Aplica primero los primeros auxilios.",
+      "inc_HOSE_FIRE": "Incidente: fuga de gas encendida junto a la manguera",
+      "incHelp_HOSE_FIRE": "1) Corte de gas de emergencia. 2) Extintor de CO₂. 3) Registra el incidente. La manguera dañada debe reemplazarse.",
+      "inc_BURN": "Incidente: quemadura por material caliente",
+      "incHelp_BURN": "El material caliente se toma con la pinza. Aplica primeros auxilios (agua fría corriente) y avisa al docente.",
+      "teacherTitle": "Simulación detenida por el docente",
+      "teacher": "El gas se cerró. La simulación está detenida.",
+      "teacherResume": "Reanudar"
+    },
+    "ev": {
+      "IGNITION_BLOCKED_PPE": "No se puede encender sin bata, gafas y cabello/ropa recogidos.",
+      "IGNITION_BLOCKED": "Encendido bloqueado hasta resolver la situación de seguridad.",
+      "IGNITION_BLOCKED_GAS": "Hay gas acumulado: el encendido se bloqueó. Cierra, ventila y reinicia la estación.",
+      "IGNITED": "El mechero encendió.",
+      "IGNITION_WITHOUT_PRECHECK": "Encendiste sin completar la inspección previa (extintor, manta, corte de gas, manguera, válvulas).",
+      "IGNITION_NO_EXTRACTION": "Encendiste con la extracción apagada: el CO y el calor se acumulan más.",
+      "GAS_BEFORE_SPARK": "El gas salió antes de que hubiera chispa en la boca: se acumula combustible. Primero el encendedor, luego la aguja.",
+      "IGNITION_AIR_OPEN": "Encendiste con el collar de aire abierto: la ignición es inestable y puede haber retroceso.",
+      "IGNITION_ABRUPT": "Abriste el gas demasiado rápido: llama inicial grande o separada de la boca.",
+      "IGNITION_UNSTABLE": "Con tanto aire, la llama no se ancla a la boca.",
+      "FLASHBACK": "Retroceso de llama: arde dentro del cañón (silbido). Cierra la válvula de aguja; luego cierra el aire y vuelve a encender.",
+      "FLASHBACK_PERSISTENT": "El retroceso continúa y el cañón se calienta mucho. Cierra el gas YA.",
+      "FLAME_LIFTED": "La llama se separó de la boca (demasiado aire o gas). Reduce el aire o el gas.",
+      "FLAME_BLOWN_OFF": "La llama se apagó por exceso de flujo: el gas sigue saliendo. Cierra la aguja.",
+      "FLAME_OUT_LOW_FLOW": "Con tan poco gas la llama se apagó, pero sigue saliendo gas. Cierra la aguja o vuelve a encender.",
+      "FLAME_OUT_DRAFT": "La corriente de aire apagó la llama: el gas sigue saliendo.",
+      "FLAME_OUT_MOVED": "Moviste el mechero encendido y la llama se apagó: el gas sigue saliendo. Cierra antes de mover.",
+      "FLAME_ROARING": "Llama ruidosa por exceso de aire.",
+      "FLAME_QUENCHED": "Demasiado aerosol enfrió la llama y la apagó.",
+      "BURNER_TIPPED": "El mechero se volcó. Corta el gas.",
+      "BURNER_MOVED_LIT": "No se mueve un mechero encendido.",
+      "GAS_SMELL": "Olor a gas: hay combustible sin quemar acumulándose.",
+      "GAS_ALARM": "Alarma de gas combustible. Cierra la llave y ventila.",
+      "GAS_ACCUMULATION": "Concentración de gas peligrosa: la estación se bloqueó.",
+      "GAS_FLOWING_UNLIT": "El gas lleva varios segundos saliendo sin llama. Cierra la llave y ventila.",
+      "CO_WARN": "El detector marca {{ppm}} ppm de CO (combustión incompleta y poca ventilación).",
+      "CO_ALARM": "Alarma de CO: {{ppm}} ppm. Abre el aire, ventila o apaga.",
+      "CO_AUTO_SHUTOFF": "CO en {{ppm}} ppm: corte automático del gas.",
+      "HOSE_CONNECTED": "Manguera conectada a la entrada de gas.",
+      "HOSE_DISCONNECTED": "Manguera desconectada.",
+      "HOSE_REMOVED_GAS_OPEN": "Retiraste la manguera con la llave abierta: fuga de gas. Cierra la llave de mesa.",
+      "HOSE_CRACK_FOUND": "La manguera tiene una grieta: no se usa. Ciérrala y reemplázala.",
+      "HOSE_OK": "Manguera sin grietas ni endurecimiento.",
+      "HOSE_REPLACED": "Manguera reemplazada. Vuelve a conectarla.",
+      "HOSE_NEAR_FLAME": "La manguera está cerca de la llama: aléjala.",
+      "HOSE_HEATING": "La manguera se está calentando. Cierra el gas y reubícala.",
+      "HOSE_DAMAGED": "La manguera se dañó por el calor y puede fugar. Corte de gas.",
+      "HOSE_FIRE": "¡Fuga encendida junto a la manguera!",
+      "SOAP_BUBBLES": "Se forman burbujas: hay una fuga en ese punto.",
+      "SOAP_NO_BUBBLES": "Sin burbujas: no hay fuga detectable.",
+      "SOAP_NO_PRESSURE": "Sin presión de gas no se puede comprobar: abre la llave de mesa (sin llama) y repite.",
+      "LEAK_TEST_WITH_FLAME": "¡Nunca se buscan fugas con una llama!",
+      "BURNER_INSPECTED": "Mechero inspeccionado.",
+      "PART_IDENTIFIED": "Correcto: {{part}}.",
+      "PART_WRONG": "Esa pieza no es «{{answer}}».",
+      "BURN_HOT_OBJECT": "Quemadura simulada: tomaste {{obj}} a {{t}} °C con la mano.",
+      "HOT_TO_TOUCH": "Está tibio ({{t}} °C): mejor con la pinza.",
+      "GRIP_POOR": "Agarre descentrado: la cápsula podría resbalar.",
+      "CAPSULE_SLIPPED": "La cápsula resbaló de la pinza.",
+      "CAPSULE_SOOTED": "La base de la cápsula se ennegreció ({{mg}} mg de hollín).",
+      "CAPSULE_HEATED_CLEAN": "La cápsula se calentó sin depósito negro nuevo.",
+      "CAPSULE_OUT_OF_FLAME": "La cápsula estuvo fuera de la llama: casi no cambió.",
+      "CAPSULE_TOO_LONG": "La cápsula está demasiado tiempo en la llama y muy caliente.",
+      "CLEAN_HOT_CAPSULE": "La cápsula está a {{t}} °C: déjala enfriar antes de limpiarla.",
+      "CAPSULE_WIPED": "Limpieza parcial: aún queda hollín ({{left}} mg).",
+      "CAPSULE_CLEAN": "Cápsula limpia.",
+      "HOT_ON_BENCH": "Dejaste la cápsula caliente ({{t}} °C) sobre la mesada: va en la placa refractaria.",
+      "LOOP_CONTAMINATED_SIGNAL": "El asa produjo color antes de tocar la muestra: todavía tiene residuos (Na u otro). Límpiala o pide otra.",
+      "LOOP_CLEAN_CONFIRMED": "El asa no cambia el color de la llama: está limpia.",
+      "WRONG_LOOP": "Esa asa no corresponde a este tubo: contaminas la disolución y el asa.",
+      "HOT_LOOP_IN_TUBE": "Asa caliente ({{t}} °C) en el tubo: hierve, salpica y contamina la disolución. Déjala enfriar antes.",
+      "LOOP_SPUTTER": "Chisporroteo: el asa tomó demasiada muestra (vástago mojado). Sumerge solo el aro.",
+      "LOOPS_TOUCHED": "Dos asas se tocaron: intercambian residuos.",
+      "LOOP_WRONG_SLOT": "Esa no es la ranura del asa: se pueden mezclar.",
+      "LOOP_STORED_HOT": "Guardaste el asa todavía caliente.",
+      "SHARED_LOOP_NOT_CLEANED": "Usaste el asa en otra disolución sin limpiarla: contaminación cruzada.",
+      "HOT_LOOP_IN_HCL": "¡Asa caliente en el HCl! Salpicaduras y vapores. Deja enfriar antes de sumergir.",
+      "HOT_LOOP_IN_WATER": "Asa caliente en el agua de enjuague: salpica.",
+      "HCL_OPENED": "HCl abierto (dentro de la campana).",
+      "HCL_CLOSED": "HCl cerrado.",
+      "HCL_CLOSED_LID": "El vial está tapado: ábrelo para limpiar el asa.",
+      "HCL_OPEN_NEAR_FLAME": "Cierra el HCl antes de volver a la llama.",
+      "HCL_LEFT_OPEN": "El HCl lleva abierto más de un minuto: ciérralo.",
+      "GLASS_IN_FLAME": "El vidrio de cobalto no va dentro de la llama: se ensucia y puede romperse.",
+      "GLASS_CLEANED": "Vidrio limpio.",
+      "TUBE_SPILLED": "Se volcó un tubo: la disolución se perdió.",
+      "SPARE_LOOP": "Asa nueva lista junto al soporte.",
+      "EMERGENCY_SHUTOFF": "Corte de gas de emergencia activado.",
+      "SUPPLY_RESTORED": "Suministro de gas restablecido.",
+      "EXTINGUISHER_USED": "Extintor de CO₂ aplicado.",
+      "EXTINGUISHER_UNNEEDED": "No hay fuego: el extintor no se descarga sin necesidad.",
+      "BLANKET_USED": "Manta ignífuga aplicada.",
+      "BLANKET_UNNEEDED": "No hay fuego en ropa o cabello: la manta no es necesaria.",
+      "FIRST_AID": "Primeros auxilios: agua fría corriente sobre la zona y aviso al docente.",
+      "INCIDENT_RESOLVED": "Incidente registrado.",
+      "STATION_RESET": "Estación reiniciada.",
+      "ALARM_RAISED": "Alarma activada.",
+      "TABLE_CLOSED_FIRST": "Cerraste la llave de mesa antes que la aguja: el orden de la guía es aire → aguja → mesa.",
+      "TABLE_VALVE_LEFT_OPEN": "La válvula del mechero está cerrada pero la llave de la mesa sigue abierta.",
+      "ATOMIZER_MISSED": "El aerosol no pasó por la llama ({{hit}} %): contamina el área.",
+      "ATOMIZER_NO_FLAME": "Sin llama, el aerosol solo moja el área.",
+      "ATOMIZER_TOO_CLOSE": "Atomizador demasiado cerca: enfría y deforma la llama.",
+      "ATOMIZER_TOWARD_PERSON": "¡No se pulveriza hacia personas!",
+      "TEACHER_STOP": "El docente detuvo la simulación."
+    },
+    "cap": {
+      "spark": "chispa",
+      "ignite": "encendido suave",
+      "click": "clic",
+      "sizzle": "chisporroteo",
+      "metal": "metal",
+      "porcelain": "porcelana",
+      "glass": "vidrio",
+      "alert": "alarma",
+      "spray": "pulverización",
+      "hiss": "siseo de gas",
+      "flashback": "silbido de retroceso"
+    },
+    "live": {
+      "yellowSoot": "La llama amarilla y el depósito negro indican que el combustible no recibe suficiente oxígeno.",
+      "yellowTest": "Con llama amarilla, su luz y el hollín ocultan la emisión: regula una llama azul antes de las pruebas.",
+      "innerCone": "La muestra está dentro del cono interno, la zona más fría: súbela hacia la punta del cono interno.",
+      "mixFilter": "Sin el vidrio, el amarillo del sodio domina. El filtro de cobalto atenúa esa región del espectro y deja ver la señal del potasio.",
+      "residualSoot": "La cápsula todavía tenía hollín de la primera prueba. Límpiala después de enfriarla para que la comparación sea válida.",
+      "coVent": "El CO sube: enciende la extracción o abre el aire (combustión más completa)."
+    },
+    "color": {
+      "amarillo": "amarillo",
+      "amarillo_anaranjado": "amarillo anaranjado",
+      "anaranjado": "anaranjado",
+      "rojo_anaranjado": "rojo ladrillo / anaranjado rojizo",
+      "rojo": "rojo",
+      "carmin": "rojo carmín",
+      "lila": "lila / morado pálido",
+      "violeta": "violeta",
+      "azul": "azul",
+      "verde_azulado": "verde azulado",
+      "verde": "verde",
+      "amarillo_verdoso": "verde manzana / amarillo verdoso",
+      "oscura": "muy atenuado / oscuro",
+      "sin_cambio": "sin cambio",
+      "sin_color": "sin color visible",
+      "blanquecino": "blanquecino"
+    },
+    "spec": {
+      "title": "Espectro de la emisión",
+      "teacher": "Vista espectral ampliada (docente)",
+      "legend": "Línea continua: sin filtro · discontinua: a través del vidrio de cobalto. Escala de raíz cuadrada.",
+      "region": "Región cromática: {{r}}",
+      "violet": "violeta",
+      "blue": "azul",
+      "green": "verde",
+      "yellow": "amarillo",
+      "orange": "naranja",
+      "red": "rojo"
+    },
+    "cation": {
+      "Li+": "Li⁺ (litio)",
+      "Na+": "Na⁺ (sodio)",
+      "K+": "K⁺ (potasio)",
+      "Ca2+": "Ca²⁺ (calcio)",
+      "Cu2+": "Cu²⁺ (cobre)",
+      "Ba2+": "Ba²⁺ (bario)"
+    },
+    "nb": {
+      "t32": "Cuadro 3.2",
+      "t33": "Cuadro 3.3",
+      "questions": "Preguntas",
+      "unknown": "Incógnita",
+      "log": "Registro",
+      "row32": {
+        "initial": "Llama inicial (aire cerrado)",
+        "capsule1": "Primera cápsula, aire cerrado",
+        "airOpen": "Llama con aire abierto",
+        "capsule2": "Segunda cápsula, aire abierto"
+      },
+      "color": "Color",
+      "shape": "Forma / zonas",
+      "luminosity": "Luminosidad",
+      "soot": "Hollín en la cápsula",
+      "interpretation": "Interpretación",
+      "solution": "Disolución",
+      "solutionColor": "Color de la disolución",
+      "noFilter": "Color sin filtro",
+      "filter": "Color con vidrio de cobalto",
+      "intensity": "Intensidad / persistencia",
+      "observations": "Observaciones",
+      "observed": "probada",
+      "observedFilter": "con filtro",
+      "notObserved": "sin probar",
+      "check": "Revisar fila",
+      "checkWrong": "{{n}} campo(s) a revisar: vuelve a observar",
+      "unknownRow": "Incógnita N.º {{n}}",
+      "identity": "Identidad propuesta",
+      "confidence": "Grado de confianza",
+      "justification": "Justificación (comparación con tus patrones, con y sin filtro)",
+      "initial": "Respuesta inicial: {{id}} · correcciones: {{n}}",
+      "q1": "1. ¿Qué consecuencias tiene alterar el orden de encendido y de apagado?",
+      "q2": "2. ¿Por qué la combustión completa alcanza mayor temperatura?",
+      "q3": "3. Relaciona los niveles electrónicos discretos con el espectro de emisión.",
+      "q4": "4. ¿Qué identidad es posible para una emisión entre 500 y 530 nm? Justifica.",
+      "q5": "5. ¿De qué naturaleza es el ennegrecimiento de la cápsula?",
+      "q6": "6. ¿Qué función cumple el vidrio de cobalto en la mezcla Na/K?",
+      "q7": "7. Fuentes de error que observaste en TU intento."
+    },
+    "opt": {
+      "flameColor": {
+        "amarillo": "amarilla",
+        "amarillo_anaranjado": "amarilla anaranjada",
+        "amarilla_base_azul": "amarilla con base azul",
+        "azul": "azul",
+        "azul_palido": "azul pálida, casi invisible",
+        "incolora": "incolora"
+      },
+      "shape": {
+        "irregular": "irregular, ondulante, sin conos",
+        "dos_conos": "dos conos definidos",
+        "un_cono": "un cono poco definido",
+        "levantada": "separada de la boca"
+      },
+      "lum": {
+        "luminosa": "luminosa",
+        "poco_luminosa": "poco luminosa",
+        "no_luminosa": "no luminosa"
+      },
+      "soot": {
+        "negro": "depósito negro",
+        "gris_tenue": "película gris tenue",
+        "no": "sin depósito"
+      },
+      "solColor": {
+        "incolora": "incolora",
+        "azul_verdosa_palida": "azul verdosa pálida",
+        "amarillenta": "amarillenta",
+        "otro": "otro"
+      },
+      "int": {
+        "intensa_persistente": "intensa y persistente",
+        "intensa_breve": "intensa y breve",
+        "moderada": "moderada",
+        "debil": "débil",
+        "no_concluyente": "no concluyente"
+      },
+      "conf": {
+        "alta": "alta",
+        "media": "media",
+        "baja": "baja"
+      }
+    },
+    "flag": {
+      "safetyDone": "Ubicar elementos de seguridad y ventilar",
+      "inspected": "Inspeccionar manguera y mechero",
+      "partsDone": "Identificar las partes del mechero",
+      "ignited": "Encender el mechero",
+      "yellowDone": "Observar la llama amarilla",
+      "capsule1Done": "Primera cápsula en llama amarilla",
+      "blueDone": "Llama azul de dos conos",
+      "capsule2Done": "Segunda cápsula en llama azul",
+      "cationSetup": "Comprobar la limpieza de las asas",
+      "knownDone": "Probar los seis cationes conocidos",
+      "mixDone": "Mezcla Na/K con y sin vidrio de cobalto",
+      "unknownDone": "Probar e identificar la incógnita",
+      "shutdownDone": "Apagar el mechero",
+      "notebookDone": "Completar la libreta"
+    },
+    "submit": {
+      "lead": "Al entregar se evalúa el intento y ya no podrás modificarlo.",
+      "blocked": "No puedes entregar todavía:",
+      "b_FLAME_LIT": "El mechero sigue encendido.",
+      "b_TABLE_OPEN": "La llave de gas de la mesa está abierta.",
+      "b_NEEDLE_OPEN": "La válvula de aguja está abierta.",
+      "b_LEAK": "Hay una fuga de gas activa.",
+      "b_HCL_OPEN": "El HCl está abierto.",
+      "b_INCIDENT": "Hay un incidente sin resolver.",
+      "b_HOT_CAPSULE": "La cápsula caliente no está sobre la placa refractaria.",
+      "b_HOT_LOOP": "Un asa caliente no está en su soporte."
+    },
+    "settings": {
+      "reducedMotion": "Reducir movimiento (la llama conserva color, forma y altura)",
+      "colorAid": "Apoyo de visión cromática: espectro y nombre de la región tras registrar la observación"
+    },
+    "restored": {
+      "title": "Intento restaurado en estado seguro",
+      "text": "Al cerrar la pestaña el mechero estaba encendido. Por seguridad se cerró el gas, se apagó la llama y se soltaron los objetos. Las temperaturas, la contaminación y tu libreta se conservaron."
+    },
+    "debug": {
+      "stop": "⏹ Detener simulación",
+      "resume": "▶ Reanudar",
+      "unknown": "Incógnita N.º {{n}}: {{c}} (×{{k}})"
+    },
+    "comp": {
+      "p3safety": "Seguridad e inspección",
+      "p3burner": "Encendido, regulación y apagado",
+      "p3combustion": "Combustión y cápsula",
+      "p3loops": "Técnica de asas y contaminación",
+      "p3colors": "Registro de colores y uso del filtro",
+      "p3unknown": "Incógnita y análisis conceptual"
+    },
+    "item": {
+      "ppe": "Equipo de protección completo",
+      "locate": "Extintor, manta y corte de gas ubicados",
+      "hoseInspect": "Manguera inspeccionada (y defecto detectado si lo había)",
+      "precheckFirst": "Inspección previa completa antes del primer encendido",
+      "ventilation": "Llama siempre con extracción",
+      "hoseAway": "Manguera lejos de la llama",
+      "noCritical": "Sin quemaduras, búsqueda de fugas con llama ni encendido con gas acumulado",
+      "finalSafe": "Estado final seguro",
+      "parts": "Partes del mechero identificadas",
+      "ignitionOrder": "Secuencia de encendido de la guía",
+      "noFlashback": "Sin retroceso ni llama levantada",
+      "yellowHeight": "Llama amarilla de 10 ± 1 cm",
+      "blueCones": "Llama azul estable de dos conos",
+      "blueHeight": "Llama azul de 10 ± 1 cm",
+      "shutdownOrder": "Apagado: aire → aguja → mesa",
+      "shutdownConfirm": "Comprobación de ausencia de llama y flujo",
+      "cooled": "Mechero frío al entregar",
+      "capsule1": "Primera cápsula ennegrecida en llama amarilla",
+      "tongs": "Cápsula manipulada con pinza",
+      "cleanBetween": "Cápsula fría y limpia antes de la segunda prueba",
+      "capsule2": "Segunda cápsula sin hollín nuevo en llama azul",
+      "table32": "Cuadro 3.2 coherente",
+      "q5": "Naturaleza del ennegrecimiento (revisión docente)",
+      "cleanCheck": "Asas comprobadas en la llama antes de cargar",
+      "noWrongLoop": "Sin asas equivocadas ni contaminación cruzada",
+      "noTouch": "Asas sin tocarse entre sí",
+      "coolBeforeDip": "Asa fría antes de sumergirla",
+      "noOverload": "Carga de muestra adecuada (solo el aro)",
+      "pureSignals": "Señales sin contaminación dominante",
+      "loopsStored": "Asas devueltas a su soporte",
+      "observedAll": "Cationes observados con llama azul",
+      "filterMix": "Mezcla Na/K observada con y sin filtro",
+      "filterOthers": "Vidrio de cobalto usado en las demás sales",
+      "table33": "Cuadro 3.3 coincide con la referencia",
+      "coherence": "Lo registrado coincide con lo observado",
+      "q6": "Función del vidrio de cobalto (revisión docente)",
+      "unknownTested": "Incógnita probada con llama azul",
+      "unknownFilter": "Incógnita observada con filtro",
+      "unknownId": "Identidad correcta de la incógnita",
+      "unknownJustify": "Justificación (revisión docente)",
+      "questions": "Preguntas de análisis (revisión docente)"
+    },
+    "review": {
+      "title": "Revisión del intento — Práctica 3",
+      "detail": "detalle",
+      "teacher": "{{n}} respuesta(s) abierta(s) quedan para revisión docente.",
+      "capsules": "Cápsula de porcelana (Cuadro 3.2)",
+      "test": "Prueba",
+      "duration": "Tiempo en la llama",
+      "sootGain": "Hollín depositado",
+      "maxT": "T máx. de la cápsula",
+      "expected": "Esperado",
+      "exp_capsule1": "depósito negro de carbono (cambio físico superficial)",
+      "exp_capsule2": "se calienta más, sin depósito negro significativo",
+      "cations": "Prueba de llama (Cuadro 3.3)",
+      "seenNoFilter": "Observado sin filtro",
+      "seenFilter": "Observado con filtro",
+      "recorded": "Registrado (sin / con filtro)",
+      "reference": "Referencia (sin / con filtro)",
+      "unknown": "Incógnita:",
+      "note": "Los colores observados salen del modelo espectral de cada emisión (líneas y bandas, contaminación, vidrio de cobalto y sensibilidad visual), no de una tabla fija. Se aceptan descriptores equivalentes."
+    },
+    "demo": {
+      "ui": {
+        "watchHelp": "El simulador hace toda la práctica paso a paso, con explicaciones: mechero, cápsulas, cationes, vidrio de cobalto e incógnita. Después la haces tú.",
+        "partA": "A · Mechero",
+        "partB": "B · Combustión",
+        "partC": "C · Cationes",
+        "partD": "D · Mezcla Na/K",
+        "partE": "E · Incógnita y apagado",
+        "doneText": "Ya viste la práctica completa. Hazla tú: en modo Práctica recibes retroalimentación de lo que haces; en modo Guiado ves los pasos de cada etapa.",
+        "accelerated": "⏩ Tiempo acelerado ×{{x}} mientras se espera.",
+        "repeat": "Se repite igual con las demás sales (más rápido).",
+        "valvesClosed": "Llave de mesa, válvula de aguja y collar de aire: los tres cerrados antes de empezar.",
+        "height": "La regla junto al mechero marca {{h}} cm.",
+        "soot": "Base ennegrecida: {{mg}} mg de hollín (carbono). Es un depósito físico: la porcelana no cambió.",
+        "noSoot": "Sin hollín nuevo y más caliente ({{t}} °C): combustión completa.",
+        "cleanCheck": "Primero el asa vacía en la llama: si no cambia el color, está limpia.",
+        "load": "Al acercar el aro a la boca del tubo, entra solo y toma una gota de disolución.",
+        "seenNoFilter": "{{label}} sin filtro: {{c}}.",
+        "seenFilter": "{{label}} a través del vidrio de cobalto: {{c}}.",
+        "mix": "Sin el vidrio domina el amarillo del Na; el cobalto absorbe esa región y deja ver el lila del K.",
+        "unknownMatch": "La incógnita coincide con el patrón de {{label}}, sin y con filtro.",
+        "justify": "Mismo color que mi patrón de {{label}}, sin filtro y con vidrio de cobalto.",
+        "questionsYours": "Las preguntas de análisis de la libreta las respondes tú."
+      },
+      "steps": {
+        "ppe": {
+          "title": "Antes de empezar: seguridad",
+          "text": "Bata abotonada, gafas, cabello y ropa recogidos, calzado cerrado. La mano (puntero) muestra en cada paso dónde harías clic y qué llevarías."
+        },
+        "safety": {
+          "title": "Ubicar los elementos de emergencia",
+          "text": "Antes de encender se ubican el extintor, la manta ignífuga y el corte de gas, y se enciende la extracción."
+        },
+        "inspect": {
+          "title": "Inspeccionar manguera y mechero",
+          "text": "La manguera no debe tener grietas ni endurecimiento. En el mechero se confirma que la llave de mesa, la aguja y el collar de aire están cerrados."
+        },
+        "parts": {
+          "title": "Identificar las partes",
+          "text": "Base, entrada de gas, manguera, válvula de aguja, entradas y collar de aire, cañón, boca y llave de mesa: cada una se señala sobre el propio modelo."
+        },
+        "connect": {
+          "title": "Conectar y abrir la llave de mesa",
+          "text": "La manguera se encaja en la espiga lateral del mechero y se abre la llave de gas de la mesa. El aire sigue cerrado."
+        },
+        "ignite": {
+          "title": "Encender según la guía",
+          "text": "Primero la chispa junto a la boca y, mientras chispea, se abre LENTAMENTE la válvula de aguja. Con el aire cerrado, la llama inicial es amarilla."
+        },
+        "yellow": {
+          "title": "Llama amarilla de 10 cm",
+          "text": "Con la aguja se ajusta la altura a unos 10 cm (regla). La llama amarilla es luminosa, irregular y sin conos: combustión incompleta."
+        },
+        "capsule1": {
+          "title": "Primera cápsula: aire cerrado",
+          "text": "Con la pinza se sujeta la cápsula por el borde, se coloca su base en la zona luminosa unos 10 s y se deja sobre la placa refractaria."
+        },
+        "blue": {
+          "title": "Abrir el aire: llama azul",
+          "text": "El collar de aire se abre poco a poco: amarilla → con base azul → azul de dos conos. Al abrir el aire la llama se acorta, así que se reajusta el gas a 10 cm."
+        },
+        "clean": {
+          "title": "Enfriar y limpiar la cápsula",
+          "text": "La cápsula se deja enfriar sobre la placa (no se limpia caliente) y luego se le quita el hollín con el paño para que la comparación sea válida."
+        },
+        "capsule2": {
+          "title": "Segunda cápsula: llama azul",
+          "text": "La misma prueba en la llama azul: la cápsula se calienta más y no se ennegrece."
+        },
+        "solutions": {
+          "title": "Observar las disoluciones",
+          "text": "Todas son incoloras salvo el CuCl₂ (azul verdoso pálido): el color del tubo no basta para identificar el catión."
+        },
+        "known": {
+          "title": "Prueba de llama de cada sal",
+          "text": "Con el asa de cada disolución: comprobar que está limpia, cargarla, llevarla sobre la punta del cono interno, observar sin filtro y con el vidrio de cobalto, enfriarla y guardarla en su ranura."
+        },
+        "mix": {
+          "title": "Mezcla NaCl + KCl",
+          "text": "Sin filtro, el amarillo intenso del sodio oculta al potasio. A través del vidrio de cobalto aparece el lila del K."
+        },
+        "unknown": {
+          "title": "La incógnita",
+          "text": "Se prueba igual que los patrones y se compara su color, sin y con filtro, con los resultados propios."
+        },
+        "notebook": {
+          "title": "Registrar en la libreta",
+          "text": "Se anota lo que realmente se observó: Cuadro 3.2 (llamas y cápsulas), Cuadro 3.3 (colores de cada sal) y la identidad de la incógnita con su justificación."
+        },
+        "shutdown": {
+          "title": "Apagar el mechero",
+          "text": "Orden de la guía: cerrar el aire, cerrar la aguja y cerrar la llave de mesa. Se comprueba que no hay llama ni flujo y se deja enfriar todo antes de entregar."
+        }
+      }
+    }
+  },
+  "p3fb": {
+    "ppe": "Sin el EPP completo no se debe encender un mechero.",
+    "locate": "Antes de encender hay que ubicar extintor, manta y corte de gas ({{n}} de 3 ubicados).",
+    "hoseInspect": "La manguera se inspecciona antes de encender: una grieta produce fugas.",
+    "precheckFirst": "El primer encendido se hizo sin completar la inspección previa.",
+    "ventilation": "Se trabajó con llama sin extracción: el CO y el calor se acumulan.",
+    "hoseAway": "La manguera estuvo cerca de la llama: se calienta, se degrada y puede fugar.",
+    "noCritical": "Hubo una acción críticamente insegura (quemadura, fuga buscada con llama, encendido con gas acumulado o asa caliente en HCl).",
+    "finalSafe": "El estado final no era seguro: {{list}}.",
+    "parts": "Identificaste {{n}} de 9 partes del mechero.",
+    "ignitionOrder": "La secuencia de encendido de la guía es: aire cerrado → llave de mesa → chispa en la boca → aguja lentamente.",
+    "noFlashback": "Hubo retroceso o llama levantada: demasiado aire para el flujo de gas.",
+    "yellowHeight": "La llama amarilla no se mantuvo en 10 ± 1 cm: las pruebas son menos comparables.",
+    "blueCones": "No se logró una llama azul estable de dos conos.",
+    "blueHeight": "La llama azul no se ajustó a 10 ± 1 cm (al abrir el aire la llama se acorta: hay que subir el gas).",
+    "shutdownOrder": "El apagado de la guía es: cerrar aire → cerrar aguja → cerrar llave de mesa.",
+    "shutdownConfirm": "Tras apagar, conviene comprobar que no hay llama, sonido ni flujo.",
+    "cooled": "Se entregó con el mechero todavía caliente.",
+    "capsule1": "No hubo una exposición clara de la cápsula a la llama amarilla con depósito de hollín.",
+    "tongs": "La cápsula debe manipularse con pinza en todo momento.",
+    "cleanBetween": "La segunda prueba empezó con hollín de la primera: limpiar la cápsula fría antes de comparar.",
+    "capsule2": "La segunda cápsula ganó hollín: la llama no era azul o la prueba no fue en la llama azul.",
+    "table32": "El Cuadro 3.2 no coincide con lo esperado para llama amarilla/azul y las cápsulas.",
+    "q5": "Falta explicar la naturaleza del ennegrecimiento.",
+    "cleanCheck": "Comprobaste la limpieza de {{n}} de {{m}} asas usadas.",
+    "noWrongLoop": "Un asa entró a un tubo que no le correspondía: contamina el patrón y el asa.",
+    "noTouch": "Dos asas se tocaron y se transfirieron residuos.",
+    "coolBeforeDip": "Un asa caliente entró a un tubo o al HCl.",
+    "noOverload": "Se tomó demasiada muestra: chisporroteo y señal saturada.",
+    "pureSignals": "Al menos una observación tuvo contaminación dominante (por ejemplo, sodio).",
+    "loopsStored": "No todas las asas volvieron a su soporte.",
+    "observedAll": "Observaste con llama azul {{n}} de {{m}} disoluciones conocidas.",
+    "filterMix": "La mezcla Na/K debe observarse sin y con vidrio de cobalto.",
+    "filterOthers": "Usa el vidrio de cobalto también con las demás sales para comparar.",
+    "table33": "Registraste correctamente {{n}} de {{m}} filas del Cuadro 3.3.",
+    "coherence": "Lo registrado no coincide con lo que realmente observaste en algunas filas.",
+    "q6": "Falta explicar la función del vidrio de cobalto.",
+    "unknownTested": "La incógnita no se probó en llama azul.",
+    "unknownFilter": "La incógnita no se observó con el vidrio de cobalto.",
+    "unknownId": "La identidad de la incógnita no es correcta: compárala con tus patrones.",
+    "unknownJustify": "Falta justificar la identidad propuesta.",
+    "questions": "Respondiste {{n}} de 5 preguntas de análisis.",
+    "notLit": "No se llegó a encender el mechero: este criterio no se pudo demostrar.",
+    "loopsUnused": "No se usaron asas."
+  }
+}

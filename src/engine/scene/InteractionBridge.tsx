@@ -71,6 +71,7 @@ export function InteractionBridge() {
     const onDown = (e: PointerEvent) => {
       const p = rel(e);
       (host as HTMLElement).closest<HTMLElement>('.canvas-host')?.focus({ preventScroll: true });
+      if (lab.locked) return; // demostración: solo la cámara responde
       if (e.button === 2) {
         if (c.held) {
           c.secondaryDown();
@@ -86,6 +87,7 @@ export function InteractionBridge() {
       }
     };
     const onMove = (e: PointerEvent) => {
+      if (lab.locked) return;
       const p = rel(e);
       // Botones «acordados»: con el izquierdo pulsado, pulsar/soltar el derecho llega como pointermove (no pointerdown).
       if (e.button === 2) {
@@ -101,6 +103,7 @@ export function InteractionBridge() {
       c.onPointerMove(p.x, p.y, e.pointerId);
     };
     const onUp = (e: PointerEvent) => {
+      if (lab.locked) return;
       const p = rel(e);
       if (e.button === 2) {
         c.secondaryUp();
@@ -109,7 +112,7 @@ export function InteractionBridge() {
       c.onPointerUp(p.x, p.y, e.pointerId);
     };
     const onWheel = (e: WheelEvent) => {
-      if (c.onWheel(e.deltaY)) {
+      if (!lab.locked && c.onWheel(e.deltaY)) {
         e.preventDefault();
         e.stopPropagation();
       }

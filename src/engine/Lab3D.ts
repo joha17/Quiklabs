@@ -65,6 +65,14 @@ export class Lab3D {
   three: { gl: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.Camera } | null = null;
   /** Vista de cámara conservada si la escena se recrea (cambio de calidad, contexto restaurado). */
   savedView: { target: [number, number, number]; pos: [number, number, number] } | null = null;
+  /** Reproducción: pausa y velocidad aplicadas a TODO el fotograma (dominio, animaciones e interacción). */
+  playback = { paused: false, speed: 1 };
+  /** Se llama cada fotograma después de la interacción (lo usa la demostración para conducir la escena). */
+  onFrame: ((dt: number) => void) | null = null;
+  /** Mano de la demostración (cm de mesada; `down` = pulsando); null = oculta. */
+  demoCursor: { x: number; y: number; z: number; down: boolean } | null = null;
+  /** La demostración controla la escena: el puntero y el teclado del usuario no manipulan objetos (la cámara sí). */
+  locked = false;
   private frameCtx: FrameCtx | null = null;
   private frameStamp = -1;
 

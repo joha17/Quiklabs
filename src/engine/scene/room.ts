@@ -38,7 +38,8 @@ function instancedBoxes(size: [number, number, number], mat: THREE.Material, pos
   return m;
 }
 
-export function createRoom(q: QualityLevel): THREE.Group {
+/** `variant`: cartelería de la práctica (la sala y la mesada son las mismas). */
+export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' = 'p2'): THREE.Group {
   const g = new THREE.Group();
   const detail = QUALITY[q].roomDetail;
   const L = BENCH.length;
@@ -85,9 +86,10 @@ export function createRoom(q: QualityLevel): THREE.Group {
   g.add(instancedBoxes([3.6, 1.2, 1.2], new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.5 }), valves));
 
   // ── Estante de reactivos con frascos (instanciados) ──
+  // En la práctica del mechero no hay reactivos sobre la zona de la llama (§4.2): sin estante.
   const shelfMat = new THREE.MeshStandardMaterial({ color: 0xa47a52, roughness: 0.7 });
-  g.add(box(340, 1.5, 9, shelfMat, 160, 35, WALL_Z + 4.5));
-  if (detail) {
+  if (variant === 'p2') g.add(box(340, 1.5, 9, shelfMat, 160, 35, WALL_Z + 4.5));
+  if (detail && variant === 'p2') {
     const bodies: Array<[number, number, number]> = [];
     const caps: Array<[number, number, number]> = [];
     const cols: number[] = [];
@@ -125,7 +127,7 @@ export function createRoom(q: QualityLevel): THREE.Group {
   // ── Vitrinas superiores con material de vidrio ──
   const cabWood = new THREE.MeshStandardMaterial({ color: 0xb98d5f, roughness: 0.6 });
   const glassPane = new THREE.MeshPhysicalMaterial({ color: 0xdbe6ee, roughness: 0.05, transparent: true, opacity: 0.28, clearcoat: 1, depthWrite: false });
-  for (const [x0, x1] of [[-20, 120], [140, 300]]) {
+  for (const [x0, x1] of variant === 'p2' ? [[-20, 120], [140, 300]] : [[-20, 100]]) {
     const w = x1 - x0;
     const cx = (x0 + x1) / 2;
     g.add(box(w, 70, 2, cabWood, cx, 93, WALL_Z + 1));
@@ -164,8 +166,13 @@ export function createRoom(q: QualityLevel): THREE.Group {
     g.add(m);
   };
   poster(posterTexture('EPP', ['Bata · gafas', 'calzado cerrado'], '#1565c0', 'goggles'), 130, 75);
-  poster(posterTexture('COMBURENTE', ['KNO₃: lejos de', 'combustibles'], '#f2a900', 'ox'), 318, 60);
-  poster(posterTexture('PROHIBIDO', ['comer y beber'], '#d0021b', 'nofood'), 318, 92);
+  if (variant === 'p3') {
+    poster(posterTexture('GAS', ['Nunca buscar fugas', 'con una llama'], '#f2a900', 'ox'), 318, 60);
+    poster(posterTexture('HCl', ['solo dentro de', 'la campana'], '#d0021b', 'nofood'), 318, 92);
+  } else {
+    poster(posterTexture('COMBURENTE', ['KNO₃: lejos de', 'combustibles'], '#f2a900', 'ox'), 318, 60);
+    poster(posterTexture('PROHIBIDO', ['comer y beber'], '#d0021b', 'nofood'), 318, 92);
+  }
   poster(posterTexture('LAVAOJOS', ['de emergencia'], '#1e8e4e', 'eye'), 605, 60, 16, 22);
   const clock = new THREE.Mesh(new THREE.CircleGeometry(9, 40), new THREE.MeshStandardMaterial({ map: clockTexture(), roughness: 0.6 }));
   clock.position.set(336, 135, WALL_Z + 0.5);

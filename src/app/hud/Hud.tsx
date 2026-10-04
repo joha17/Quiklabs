@@ -25,6 +25,7 @@ export function Hud() {
   const toggleInventory = useLab((s) => s.toggleInventory);
   const notebookOpen = useLab((s) => s.notebookOpen);
   const inventoryOpen = useLab((s) => s.inventoryOpen);
+  const demo = useLab((s) => !!s.demo);
   const handMode = rt?.world.devices.hand.mode ?? 'HAND';
   const time = rt?.world.timeS ?? 0;
 
@@ -32,7 +33,9 @@ export function Hud() {
     <header className="hud" role="toolbar" aria-label="HUD">
       <span className="brand">{t('app.title')}</span>
       <span className="clock" aria-label={t('hud.time')} title={t('hud.time')}>⏱ {fmt(time)}</span>
-      <span className="stage-pill" aria-live="polite" title={t('hud.stage')}>{t(`stage.${st}`)}</span>
+      {demo
+        ? <span className="stage-pill demo-pill">▶ {t('demo.ui.kicker')}</span>
+        : <span className="stage-pill" aria-live="polite" title={t('hud.stage')}>{t(`stage.${st}`)}</span>}
       <span className="grow" />
       <nav className="group" aria-label={t('hud.stations')}>
         {STATIONS.map((s) => (
@@ -42,10 +45,12 @@ export function Hud() {
         ))}
       </nav>
       <div className="group">
-        <label className="sr-only" htmlFor="speed">{t('hud.speed')}</label>
-        <select id="speed" value={settings.timeScale} title={`${t('hud.speed')} — ${t('hud.speedNote')}`} onChange={(e) => setSettings({ timeScale: Number(e.target.value) })}>
-          {[1, 2, 5, 10].map((v) => <option key={v} value={v}>×{v}</option>)}
-        </select>
+        {!demo && <label className="sr-only" htmlFor="speed">{t('hud.speed')}</label>}
+        {!demo && (
+          <select id="speed" value={settings.timeScale} title={`${t('hud.speed')} — ${t('hud.speedNote')}`} onChange={(e) => setSettings({ timeScale: Number(e.target.value) })}>
+            {[1, 2, 5, 10].map((v) => <option key={v} value={v}>×{v}</option>)}
+          </select>
+        )}
         <button className="btn small" onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? `▶ ${t('hud.play')}` : `⏸ ${t('hud.pause')}`}</button>
       </div>
       <div className="group">
@@ -59,7 +64,7 @@ export function Hud() {
         <button className="btn small" aria-pressed={notebookOpen} onClick={toggleNotebook}>📓 {t('hud.notebook')}</button>
         <button className="btn small" onClick={() => setModal({ kind: 'settings' })}>⚙ {t('hud.settings')}</button>
         <button className="btn small" onClick={() => setModal({ kind: 'help' })}>? {t('hud.help')}</button>
-        <button className="btn small primary" onClick={() => setModal({ kind: 'submit' })}>{t('hud.submit')}</button>
+        {!demo && <button className="btn small primary" onClick={() => setModal({ kind: 'submit' })}>{t('hud.submit')}</button>}
       </div>
     </header>
   );

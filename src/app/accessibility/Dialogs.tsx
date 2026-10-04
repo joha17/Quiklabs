@@ -247,6 +247,7 @@ function SettingsDialog() {
       <label className="check"><input type="checkbox" checked={s.reducedMotion} onChange={(e) => set({ reducedMotion: e.target.checked })} /> {t('settings.reducedMotion')}</label>
       <label className="check"><input type="checkbox" checked={s.captions} onChange={(e) => set({ captions: e.target.checked })} /> {t('settings.captions')}</label>
       <label className="check"><input type="checkbox" checked={s.showZones} onChange={(e) => set({ showZones: e.target.checked })} /> {t('settings.zones')}</label>
+      <label className="check"><input type="checkbox" checked={s.showNames !== false} onChange={(e) => set({ showNames: e.target.checked })} /> {t('settings.names')}</label>
       <div className="field">
         <label htmlFor="vol">{t('settings.volume')}</label>
         <input id="vol" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => set({ volume: Number(e.target.value) })} />

@@ -50,6 +50,7 @@ export function ActionPanel() {
   const levelView = useLab((s) => s.levelView);
   const toast = useLab((s) => s.toast);
   const tiltTimer = useRef<number | null>(null);
+  const demo = useLab((s) => !!s.demo);
 
   if (!rt) return null;
   const w = rt.world;
@@ -192,7 +193,7 @@ export function ActionPanel() {
   if (w.bench.spillMl > 0.05) add('spill', <button className="btn" onClick={() => dispatch({ type: 'cleanSpill' })}>🧻 {t('act.cleanSpill')}</button>);
 
   return (
-    <section id="actions" className="actions" aria-label="Acciones">
+    <section id="actions" className={`actions${demo ? ' demo-locked' : ''}`} aria-label="Acciones" aria-disabled={demo || undefined}>
       <div className="desc" id="action-desc" aria-live="polite">
         {id ? <><strong>{nameOf(w, id)}</strong> — {describeObject(w, id).split(': ').slice(1).join(': ')}</> : t('act.none')}
       </div>

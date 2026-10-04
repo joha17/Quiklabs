@@ -1,4 +1,4 @@
-import type { SubstanceTable } from '../substances/types';
+import type { SubstanceId, SubstanceTable } from '../substances/types';
 import type { Mixture, Severity, SimEvent, Vessel, World } from '../entities/types';
 import {
   addAmounts, addMix, liquidVolumeMl, mixAmounts, pourInto, solidVolumeMl, takeAllFraction,
@@ -6,6 +6,8 @@ import {
 
 export interface SimContext {
   subs: SubstanceTable;
+  /** Rótulo de tubo → sustancia que le corresponde (la espátula solo deposita en el tubo de su sustancia). */
+  labelToSubstance?: Record<string, SubstanceId>;
 }
 
 const MAX_EVENTS = 3000;

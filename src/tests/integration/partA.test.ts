@@ -116,11 +116,29 @@ describe('§17.2-1 ruta ideal de la Parte A', () => {
 describe('§8 errores de la Parte A', () => {
   it('A1 tubo mal rotulado: el resultado sigue la sustancia real', () => {
     const w = newPracticeWorld({ mode: 'PRACTICE', seed: 1 });
-    const labels = tubeLabels('OIL_VEG');
-    [labels[3], labels[4]] = [labels[4], labels[3]];
-    partA(w, { labels });
+    partA(w);
+    // Re-rotular después de añadir las muestras (la espátula ya no deja depositar en un tubo con otro rótulo).
+    cmd(w, { type: 'label', vesselId: 't4', label: 'sacarosa' });
+    cmd(w, { type: 'label', vesselId: 't5', label: 'NaCl' });
     expect(status(w, 't4').errors).toContain('MISLABELED');
     expect(status(w, 't4').sample).toBe('NaCl');
+  });
+
+  it('la espátula solo deposita en el tubo rotulado con su sustancia', () => {
+    const w = newPracticeWorld({ mode: 'PRACTICE', seed: 1 });
+    const labels = tubeLabels('OIL_VEG');
+    for (let i = 0; i < 6; i++) cmd(w, { type: 'label', vesselId: `t${i + 1}`, label: labels[i] });
+    cmd(w, { type: 'label', vesselId: 't6', label: null });
+    cmd(w, { type: 'scoop', toolId: 'spatula', sourceId: 'jar_nacl' });
+    const load = w.vessels.spatula.mix.solid.NaCl ?? 0;
+    const wrong = cmd(w, { type: 'tapTool', toolId: 'spatula', targetId: 't1' });
+    expect(wrong).toMatchObject({ ok: false, code: 'WRONG_TUBE' });
+    // Sin rótulo tampoco, si ya existe el tubo de NaCl.
+    expect(cmd(w, { type: 'tapTool', toolId: 'spatula', targetId: 't6' })).toMatchObject({ ok: false, code: 'USE_LABELED_TUBE' });
+    expect(w.vessels.t1.mix.solid.NaCl ?? 0).toBe(0);
+    expect(w.vessels.spatula.mix.solid.NaCl).toBe(load); // la carga sigue en la espátula
+    expect(cmd(w, { type: 'tapTool', toolId: 'spatula', targetId: 't4' }).ok).toBe(true);
+    expect(w.vessels.t4.mix.solid.NaCl ?? 0).toBeGreaterThan(0);
   });
 
   it('A2 espátula sin limpiar: contaminación cruzada', () => {

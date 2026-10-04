@@ -1,0 +1,28 @@
+/* Práctica 3: piezas propias del HUD (mismos tokens de color y tipografía que la Práctica 2). */
+.p3-safety {
+  position: absolute; top: 0.6rem; right: 0.6rem; z-index: 14; width: min(270px, calc(100% - 1.2rem));
+  background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); padding: 0.5rem 0.7rem; font-size: 0.84rem;
+  display: grid; gap: 0.35rem; border-left: 4px solid var(--warn);
+}
+.p3-safety-head { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; }
+.p3-flame-line { color: var(--ink); font-weight: 600; }
+.p3-meters { display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.6rem; margin: 0; }
+.p3-meters dt { color: var(--ink-2); }
+.p3-meters dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+.p3-safety .row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+/* El panel de guía/partes pasa a la izquierda: a la derecha está el panel de seguridad. */
+.canvas-wrap.p3 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+.canvas-wrap.p3 .debug { top: auto; bottom: 0.6rem; left: 3.6rem; max-height: 55%; }
+.parts-grid { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.spectrum { margin: 0; display: grid; gap: 0.2rem; }
+.spectrum svg { width: min(320px, 70vw); height: auto; background: var(--panel-2); border-radius: 8px; }
+.spec-aid { display: inline-flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.teacher-opts { border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.7rem; }
+.teacher-opts summary { cursor: pointer; }
+.back-link { margin-bottom: 0.4rem; }
+@media (max-width: 760px) {
+  .p3-safety { top: auto; bottom: 3.6rem; width: min(250px, calc(100% - 1.2rem)); }
+  .canvas-wrap.p3 .guide { left: 0.6rem; }
+}
+/* En la demostración el panel de la demostración ocupa la izquierda: las partes se muestran abajo a la derecha. */
+.canvas-wrap.p3.demo .parts-panel { left: auto; right: 0.6rem; top: auto; bottom: 0.6rem; }

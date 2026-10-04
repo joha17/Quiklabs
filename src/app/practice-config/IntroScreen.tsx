@@ -17,6 +17,7 @@ export function IntroScreen() {
   const settings = useLab((s) => s.settings);
   const setSettings = useLab((s) => s.setSettings);
   const start = useLab((s) => s.start);
+  const startDemo = useLab((s) => s.startDemo);
   const resume = useLab((s) => s.resume);
   const [savedVersion, setSavedVersion] = useState(0);
   const saved = useMemo(() => loadAttempt(), [savedVersion]);
@@ -81,6 +82,10 @@ export function IntroScreen() {
             <button className="btn primary" style={{ minHeight: '2.8rem', fontSize: '1rem' }} onClick={() => start({ sameSeed: true })}>
               {t('intro.start')}
             </button>
+            <div className="demo-cta">
+              <button className="btn" style={{ minHeight: '2.6rem', fontSize: '0.98rem' }} onClick={startDemo}>▶ {t('demo.ui.watch')}</button>
+              <span className="hint">{t('demo.ui.watchHelp')}</span>
+            </div>
           </section>
         </div>
       </div>

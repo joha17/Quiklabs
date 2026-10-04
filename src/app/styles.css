@@ -162,6 +162,28 @@ textarea { width: 100%; resize: vertical; min-height: 3.2rem; }
 .zoom-ctrl { position: absolute; left: 0.6rem; bottom: 0.6rem; z-index: 14; display: grid; gap: 0.3rem; }
 .paused-badge { position: absolute; top: 0.6rem; left: 0.6rem; z-index: 14; background: var(--warn-soft); color: var(--warn); padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
 
+/* ── Demostración ── */
+.demo-panel { position: absolute; top: 0.6rem; left: 0.6rem; z-index: 16; width: min(380px, calc(100% - 1.2rem)); max-height: calc(100% - 1.2rem); overflow: auto; background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); padding: 0.7rem 0.9rem; font-size: 0.9rem; display: grid; gap: 0.45rem; border-left: 4px solid var(--accent); }
+.demo-panel h2 { margin: 0; font-size: 1.02rem; }
+.demo-panel p { margin: 0; color: var(--ink-2); line-height: 1.45; }
+.demo-panel progress { width: 100%; height: 6px; accent-color: var(--accent); }
+.demo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.demo-count { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.demo-note { background: var(--accent-soft); color: var(--ink) !important; border-radius: 8px; padding: 0.35rem 0.55rem; font-size: 0.85rem; }
+.demo-ctrl { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.demo-speed { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.82rem; color: var(--ink-2); }
+.demo-pill { background: var(--accent); color: var(--accent-ink); }
+.demo-cta { display: grid; gap: 0.25rem; }
+.actions.demo-locked { pointer-events: none; }
+/* Los avisos no tapan el panel de la demostración: van a su derecha si hay espacio. */
+@media (min-width: 980px) {
+  .canvas-wrap.demo .toasts { left: calc(380px + 1.4rem); transform: none; width: min(520px, calc(100% - 380px - 2.2rem)); }
+}
+.actions.demo-locked .btn { opacity: 0.75; }
+@media (max-width: 640px) {
+  .demo-panel { top: auto; bottom: 0.6rem; font-size: 0.85rem; max-height: 45%; }
+}
+
 /* ── Libreta ── */
 .tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
 .tab { padding: 0.3rem 0.6rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; font-size: 0.85rem; font-weight: 600; }

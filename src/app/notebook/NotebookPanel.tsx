@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLab } from '../store';
 import {
@@ -27,6 +27,11 @@ const HINTS: Record<string, string> = {
 export function NotebookPanel() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('t21');
+  // La demostración puede pedir una pestaña (p. ej. el Cuadro 2.2 al registrar los resultados).
+  const requested = useLab((s) => s.notebookTab);
+  useEffect(() => {
+    if (requested) setTab(requested);
+  }, [requested]);
   const nb = useLab((s) => s.notebook);
   const setNb = useLab((s) => s.setNotebook);
   const toggle = useLab((s) => s.toggleNotebook);

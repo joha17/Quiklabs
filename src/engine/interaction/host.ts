@@ -10,6 +10,10 @@ export interface EngineHost {
   sound(name: SoundName): void;
   reducedMotion(): boolean;
   guidedHints(): boolean;
+  /** Etiquetas de nombre siempre visibles sobre cada objeto. */
+  showNames(): boolean;
+  /** Texto corto de la etiqueta de nombre de un objeto (los tubos incluyen su rótulo). */
+  nameTag(id: string): string;
   onHeldChange?(id: string | null): void;
 }
 

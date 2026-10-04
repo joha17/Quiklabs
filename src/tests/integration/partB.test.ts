@@ -11,7 +11,7 @@ import { crystallize, evaporate, filter, heat, prepareSample, setupFilter, split
 import type { World } from '../../simulation/entities/types';
 import { evaluate } from '../../practices/practice-02/rubric';
 import { emptyNotebook } from '../../practices/practice-02/notebook';
-import { pourSolids, squeezeTo } from '../helpers';
+import { pourSolids, squeezeTo, weighOut } from '../helpers';
 
 function pourSolidsFromVial(w: World) {
   pourSolids(w, 'vial', 'beaker1', 0.3);
@@ -98,6 +98,13 @@ describe('§17.2 escenarios de error y recuperación', () => {
     const clean = w.vessels[spare].mix.solid.CARBON ?? 0;
     expect(clean).toBeLessThan(dirty * 0.05);
     expectConservation(w);
+  });
+
+  it('pesar la mezcla carbón + KNO₃ con la espátula no cuenta como contaminación cruzada', () => {
+    const w = newPracticeWorld({ mode: 'PRACTICE', seed: 3 });
+    weighOut(w, 'jar_mix', 2.5);
+    expect(w.evidence.crossContamination ?? 0).toBe(0);
+    expect(w.events.some((e) => e.code === 'CROSS_CONTAMINATION')).toBe(false);
   });
 
   it('el agua de humedecer el papel no cuenta como lavado del residuo', () => {

@@ -11,6 +11,7 @@ import { Dialogs } from '../accessibility/Dialogs';
 import { DebugPanel } from './DebugPanel';
 import { ZoomControls } from './ZoomControls';
 import { useTranslation } from 'react-i18next';
+import { DemoPanel } from '../demo/DemoPanel';
 
 export function LabScreen() {
   const { t } = useTranslation();
@@ -18,17 +19,19 @@ export function LabScreen() {
   const inventoryOpen = useLab((s) => s.inventoryOpen);
   const mode = useLab((s) => s.settings.mode);
   const paused = useLab((s) => s.paused);
+  const demo = useLab((s) => !!s.demo);
   return (
     <div className="lab">
       <a href="#actions" className="sr-only">{t('a11y.skip')}</a>
       <Hud />
       <div className="lab-main">
         {inventoryOpen ? <Inventory /> : <div />}
-        <div className="canvas-wrap">
+        <div className={`canvas-wrap${demo ? ' demo' : ''}`}>
           <LabCanvas />
-          {paused && <div className="paused-badge" role="status">{t('hud.paused')}</div>}
-          {mode === 'GUIDED' && <GuidePanel />}
-          {mode === 'DEBUG' && <DebugPanel />}
+          {paused && !demo && <div className="paused-badge" role="status">{t('hud.paused')}</div>}
+          {demo && <DemoPanel />}
+          {!demo && mode === 'GUIDED' && <GuidePanel />}
+          {!demo && mode === 'DEBUG' && <DebugPanel />}
           <ZoomControls />
           <Toasts />
           <SafetyBanner />

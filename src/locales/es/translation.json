@@ -94,6 +94,160 @@
     "tray": "Bandeja de tubos", "rack": "Gradilla", "balance": "Balanza digital (0,01 g)", "hotplate": "Plantilla calefactora", "rod": "Varilla de vidrio (agitador)",
     "probe": "Sonda de temperatura", "stand": "Soporte con aro", "watch_glass": "Vidrio de reloj", "tongs": "Pinza para material caliente"
   },
+  "demo": {
+    "ui": {
+      "watch": "Ver demostración",
+      "watchHelp": "El simulador hace toda la práctica paso a paso, con explicaciones. Después la haces tú.",
+      "panel": "Demostración",
+      "kicker": "Demostración",
+      "partA": "Parte A",
+      "partB": "Parte B",
+      "step": "Paso {{n}} de {{total}}",
+      "loading": "Preparando el laboratorio…",
+      "pause": "Pausar",
+      "play": "Continuar",
+      "speed": "Velocidad",
+      "skip": "Saltar paso",
+      "exit": "Salir",
+      "again": "Ver de nuevo",
+      "doneTitle": "¡Demostración terminada! Ahora hazlo tú",
+      "doneText": "Ya viste la práctica completa. Repítela tú solo: en modo Práctica recibes retroalimentación de lo que haces; en modo Guiado ves los pasos de cada etapa y las zonas de encaje.",
+      "tryPractice": "Hacerlo yo · modo Práctica",
+      "tryGuided": "Hacerlo yo · modo Guiado",
+      "accelerated": "⏩ Tiempo acelerado ×{{x}} mientras se espera.",
+      "repeat": "Se repite igual con los demás (más rápido).",
+      "cleanSpatula": "Entre una sustancia y otra, la espátula se limpia en el papel absorbente: así no se contaminan las muestras.",
+      "drops": "Unas 10 gotas (≈ 0,5 mL) bastan.",
+      "eyeLevel": "«Nivel del ojo»: el menisco se lee con la vista a su altura. Debe marcar 2,0 mL.",
+      "eyeLevel10": "Lectura a la altura del ojo: el menisco en 10,0 mL.",
+      "formulaYours": "La fórmula y la clasificación (elemento, compuesto o mezcla) las completas tú cuando hagas la práctica.",
+      "weighRepeat": "Se repite hasta llegar a 2,50 g (más rápido). Si una carga haría pasar de la masa, se devuelve al frasco.",
+      "weighDone": "Masa pesada: {{g}} g",
+      "power": "Potencia de la plantilla: {{pct}} %",
+      "hold": "Cerca de 92 °C se baja la potencia y se mantiene unos minutos, sin dejar de agitar.",
+      "fold_HALF": "1) Doblar a la mitad.",
+      "fold_QUARTER": "2) Doblar otra vez: en cuartos.",
+      "fold_OPEN_3_1": "3) Abrir en cono: tres capas de un lado y una del otro.",
+      "wetPaper": "Se humedece el papel con un poco de agua para que se adhiera al embudo.",
+      "aliquot": "Alícuota medida: {{ml}} mL",
+      "coolFirst": "Primero se deja enfriar el filtrado a temperatura ambiente; después se pasa al baño de hielo.",
+      "activitiesYours": "Las actividades de la libreta (preguntas) las respondes tú.",
+    "spill": "Algo salpicó la mesada: se seca llevando el papel absorbente al derrame."
+    },
+    "steps": {
+      "ppe": {
+        "title": "Antes de empezar: seguridad",
+        "text": "Bata abotonada, gafas de seguridad, cabello recogido y calzado cerrado. La mano (puntero) muestra en cada paso dónde harías clic y qué arrastrarías."
+      },
+      "rack": {
+        "title": "Colocar los tubos en la gradilla",
+        "text": "Se arrastra cada tubo de la bandeja a un hueco de la gradilla. Al soltarlo cerca del hueco, encaja solo."
+      },
+      "label": {
+        "title": "Rotular los tubos",
+        "text": "Se selecciona cada tubo y se usa «Rotular»: Zn, C, S, NaCl, sacarosa y aceite, en ese orden. El rótulo dice qué muestra va en cada tubo."
+      },
+      "samples": {
+        "title": "Agregar los sólidos con la espátula",
+        "text": "Sin soltar la espátula, se acerca la punta al frasco: se carga sola. Luego se acerca a la boca del tubo con el mismo rótulo y deposita la muestra (≈ 0,1 g)."
+      },
+      "oil": {
+        "title": "Agregar el aceite con el gotero",
+        "text": "Se acerca el gotero al frasco de aceite: aspira solo. Se lleva a la boca del tubo de aceite y cada clic derecho suelta una gota."
+      },
+      "water": {
+        "title": "Medir 2,0 mL de agua para cada tubo",
+        "text": "Se acerca la piseta a la probeta y se aprieta para llenarla hasta 2,0 mL (al final, apretando suave). Luego se acerca la probeta al tubo: se acopla y, manteniendo «Verter», se vacía en el tubo."
+      },
+      "shake": {
+        "title": "Agitar los tubos",
+        "text": "Cada tubo se agita unos segundos (botón «Agitar» o sacudiéndolo) para ver si la sustancia se disuelve. Después se deja reposar."
+      },
+      "observe": {
+        "title": "Observar y percibir el olor",
+        "text": "Se observa cada tubo: ¿se disolvió, sedimentó, flota o forma dos capas? El olor se percibe abanicando los vapores con la mano (👋 «Abanicar»), nunca oliendo directamente."
+      },
+      "notebookA": {
+        "title": "Registrar en la libreta (Cuadro 2.1)",
+        "text": "En la libreta se anota, para cada sustancia, el estado, el color, el olor y la solubilidad observados, con una evidencia breve."
+      },
+      "weigh": {
+        "title": "Pesar 2,50 g de la mezcla",
+        "text": "Se coloca el papel de pesada en la balanza y se pulsa «Tarar» (la balanza marca 0,00 g). Con la espátula se agrega la mezcla de carbón y KNO₃ hasta 2,50 g."
+      },
+      "transfer": {
+        "title": "Pasar la muestra al vaso",
+        "text": "Se acerca el papel de pesada al vaso 1: se acopla y, al inclinarlo con «Verter», la muestra cae al vaso."
+      },
+      "water10": {
+        "title": "Agregar 10,0 mL de agua",
+        "text": "Se miden 10,0 mL con la piseta y la probeta, leyendo el menisco a la altura del ojo, y se vierten en el vaso con la muestra."
+      },
+      "dissolve": {
+        "title": "Disolver con la varilla",
+        "text": "Se acerca la varilla de vidrio a la boca del vaso: entra sola. Se agita en círculos para empezar a disolver el KNO₃ (el carbón no se disuelve)."
+      },
+      "heat": {
+        "title": "Calentar con agitación",
+        "text": "El vaso se lleva a la plantilla y se coloca la sonda de temperatura. La potencia se sube poco a poco (25 → 45 → 60 %), agitando siempre, hasta cerca de 92 °C, y luego se mantiene."
+      },
+      "fold": {
+        "title": "Doblar el papel de filtro",
+        "text": "Se selecciona el papel de filtro y se usa «Doblar»: a la mitad, en cuartos y se abre en cono 3:1."
+      },
+      "mount": {
+        "title": "Armar el equipo de filtración",
+        "text": "El embudo va al aro del soporte; el papel doblado, dentro del embudo; y el vaso 2, debajo, con la espiga tocando su pared para que el filtrado no salpique."
+      },
+      "decant": {
+        "title": "Filtrar en caliente",
+        "text": "Se retiran la sonda y la varilla; la varilla se coloca en el embudo para guiar el líquido. El vaso caliente se toma con la pinza 🗜 y se vierte despacio, sin pasar el borde del papel: se espera cuando el embudo está lleno."
+      },
+      "wash": {
+        "title": "Lavar el residuo",
+        "text": "Se agregan 2,0 mL de agua al vaso 1, se agita y se vierte al embudo para arrastrar el KNO₃ que quedó. Luego se espera a que termine de gotear."
+      },
+      "split": {
+        "title": "Separar una alícuota de 2,0 mL",
+        "text": "Se agita el filtrado, se miden 2,0 mL con la probeta y se pasan a la cápsula de porcelana. El resto del filtrado se usará para cristalizar."
+      },
+      "evaporate": {
+        "title": "Evaporar en la cápsula",
+        "text": "La cápsula se cubre a medias con el vidrio de reloj (dejando una abertura), se calienta en la plantilla hasta que se evapora toda el agua y luego se deja enfriar."
+      },
+      "bath": {
+        "title": "Preparar el baño de hielo",
+        "text": "Se vierte agua de la jarra en el cristalizador y se agrega hielo con la pala."
+      },
+      "crystallize": {
+        "title": "Cristalizar el KNO₃",
+        "text": "Cuando el filtrado está a temperatura ambiente, el vaso 2 se coloca en el baño de hielo. Al enfriarse, el KNO₃ se vuelve menos soluble y forma cristales."
+      },
+      "notebookB": {
+        "title": "Registrar los resultados (Cuadro 2.2)",
+        "text": "Se anotan las observaciones, la masa obtenida y el aspecto del sólido de la evaporación y de los cristales."
+      }
+    },
+    "obs": {
+      "zn": "No se disuelve; queda en el fondo.",
+      "c": "No se disuelve; nube negra al agitar que luego sedimenta.",
+      "s": "No se disuelve; partículas que flotan.",
+      "nacl": "Se disuelve: disolución transparente.",
+      "sucrose": "Se disuelve: disolución transparente.",
+      "oil": "No se mezcla: dos capas, el aceite arriba.",
+      "evap": "Al evaporar el agua de la alícuota queda un sólido blanco en la cápsula.",
+      "evapLook": "Costra blanca, cristalina",
+      "cryst": "Al enfriar el filtrado en el baño de hielo aparecen cristales en el vaso.",
+      "crystLook": "Cristales blancos, alargados"
+    }
+  },
+  "tag": {
+    "jar_zn": "Zinc", "jar_graphite": "Grafito", "jar_s": "Azufre", "jar_nacl": "NaCl", "jar_sucrose": "Sacarosa", "bottle_oil": "Aceite",
+    "towel": "Papel absorbente", "cyl": "Probeta 10 mL", "piseta": "Piseta", "jar_mix": "Mezcla C + KNO₃", "vial": "Vial 2,50 g",
+    "beaker1": "Vaso 1 (50 mL)", "beaker2": "Vaso 2 (50 mL)", "funnel": "Embudo", "dish": "Cápsula", "bath": "Cristalizador",
+    "ice_bucket": "Hielo", "jar_kno3": "KNO₃ (semilla)", "waste_solid": "Residuos sólidos", "waste_liquid": "Residuos líquidos",
+    "balance": "Balanza", "hotplate": "Plantilla", "rod": "Varilla", "probe": "Sonda", "stand": "Soporte", "tongs": "Pinza"
+  },
   "type": {
     "BEAKER": "Vaso de precipitados (repuesto)", "FILTER_PAPER": "Papel de filtro (repuesto)", "TEST_TUBE": "Tubo de ensayo (repuesto)", "GRADUATED_CYLINDER": "Probeta de 10,0 mL (repuesto)", "PORCELAIN_DISH": "Cápsula de porcelana (repuesto)", "FUNNEL": "Embudo (repuesto)"
   },
@@ -132,6 +286,7 @@
     "captions": "Subtítulos de sonidos",
     "volume": "Volumen",
     "zones": "Mostrar zonas de encaje al arrastrar",
+    "names": "Mostrar el nombre de cada objeto",
     "quality": "Calidad gráfica",
     "qAUTO": "Automática (según rendimiento)",
     "qHIGH": "Alta (sombras finas, más detalle)",
@@ -506,6 +661,8 @@
     "SPATULA_FULL": "La espátula ya está cargada; deposítala primero.",
     "SOURCE_EMPTY": "El frasco está vacío.",
     "TOOL_EMPTY": "La herramienta está vacía.",
+    "WRONG_TUBE": "Ese tubo tiene otro rótulo: deposita la muestra en el tubo rotulado con su nombre.",
+    "USE_LABELED_TUBE": "Ya hay un tubo rotulado para esta sustancia: deposítala en ese tubo.",
     "NO_ICE": "No queda hielo.",
     "SCOOP_FULL": "La pala ya tiene hielo.",
     "SEALED": "No selles la cápsula: deja una abertura.",

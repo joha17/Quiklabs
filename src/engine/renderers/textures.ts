@@ -337,6 +337,57 @@ export function textSpriteTexture(text: string, color = '#ffffff'): THREE.Canvas
   return tex(c);
 }
 
+/** Etiqueta de nombre (píldora oscura con texto claro; borde ámbar si el objeto está seleccionado). Ancho según el texto. */
+export function nameTagTexture(text: string, selected = false): THREE.CanvasTexture {
+  const H = 64;
+  const font = `600 38px ${FONT}`;
+  const [, mg] = canvas(8, 8);
+  mg.font = font;
+  const W = Math.ceil(Math.min(900, mg.measureText(text).width + 36));
+  const [c, g] = canvas(W, H);
+  g.fillStyle = 'rgba(22, 28, 34, 0.82)';
+  g.strokeStyle = selected ? '#ffb000' : 'rgba(255, 255, 255, 0.35)';
+  g.lineWidth = selected ? 6 : 3;
+  g.beginPath();
+  g.roundRect(3, 3, W - 6, H - 6, (H - 6) / 2);
+  g.fill();
+  g.stroke();
+  g.font = font;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillStyle = selected ? '#ffe2a0' : '#f4f7fa';
+  g.fillText(text, W / 2, H / 2 + 1, W - 30);
+  return tex(c);
+}
+
+/** Puntero de la demostración (flecha con contorno; al pulsar, un anillo marca el clic). */
+export function demoPointerTexture(down: boolean): THREE.CanvasTexture {
+  const [c, g] = canvas(128, 128);
+  if (down) {
+    g.strokeStyle = 'rgba(255, 176, 0, 0.9)';
+    g.lineWidth = 7;
+    g.beginPath();
+    g.arc(30, 30, 24, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.beginPath();
+  g.moveTo(30, 30);
+  g.lineTo(30, 104);
+  g.lineTo(48, 86);
+  g.lineTo(62, 116);
+  g.lineTo(76, 110);
+  g.lineTo(62, 80);
+  g.lineTo(88, 80);
+  g.closePath();
+  g.fillStyle = '#ffffff';
+  g.strokeStyle = '#1d2329';
+  g.lineWidth = 6;
+  g.lineJoin = 'round';
+  g.stroke();
+  g.fill();
+  return tex(c);
+}
+
 /** Mano (abanicar) y cara tachada (oler directo), dibujadas con formas simples. */
 export function ghostTexture(kind: 'hand' | 'face'): THREE.CanvasTexture {
   const [c, g] = canvas(256, 256);

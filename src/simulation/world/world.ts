@@ -15,6 +15,7 @@ import { clamp } from '../core/math';
 import { hashRange, rand, randRange } from '../core/rng';
 import type { Command, FoldAction } from './commands';
 import { addRaw, bump, deliver, emit, spill, type SimContext } from './ops';
+import { tubeRefusesLoad } from '../entities/tube';
 import type { SubstanceTable } from '../substances/types';
 
 export type { SimContext };
@@ -393,6 +394,7 @@ export function dispatchMut(w: World, cmd: Command, ctx: SimContext): DispatchRe
       if (mixMassG(part) <= 0) return { ok: false, code: 'SOURCE_EMPTY' };
       if (tool.lastLoaded && tool.lastLoaded !== dominantSubstance(part) && mixMassG(tool.mix) > 0) {
         bump(w, 'dirtySpatulaUse');
+        tool.mixedLoad = true;
       }
       addRaw(tool, part);
       tool.lastLoaded = dominantSubstance(part);
@@ -406,16 +408,23 @@ export function dispatchMut(w: World, cmd: Command, ctx: SimContext): DispatchRe
       const load = mixMassG(tool.mix);
       const residue = tool.type === 'SPATULA' ? p.spatulaResidueG : 0;
       if (load <= residue * 1.05) return { ok: false, code: 'TOOL_EMPTY' };
-      const part = takeAllFraction(tool.mix, (load - residue) / load);
       const target = cmd.targetId ? w.vessels[cmd.targetId] ?? null : null;
+      if (target && tool.type === 'SPATULA') {
+        const refusal = tubeRefusesLoad(w, target, tool.mix, ctx.labelToSubstance);
+        if (refusal) return { ok: false, code: refusal };
+      }
+      const part = takeAllFraction(tool.mix, (load - residue) / load);
       if (target) {
         if (target.type === 'TEST_TUBE' && target.mix.waterG > 0.1 && !hasSample(target.mix)) target.waterBeforeSample = true;
+        // Contaminación cruzada: restos de otra sustancia en la espátula. Una muestra que ya es mezcla (carbón + KNO₃)
+        // tiene varios componentes, pero no está contaminada.
         const kinds = Object.keys(mixAmounts(part)).filter((k) => k !== 'H2O' && (mixAmounts(part)[k as keyof Amounts] ?? 0) > 0.0015);
-        if (kinds.length > 1) {
+        if (tool.mixedLoad && kinds.length > 1) {
           bump(w, 'crossContamination');
           emit(w, 'CROSS_CONTAMINATION', 'WARN', { vesselId: target.id });
         }
       }
+      tool.mixedLoad = false;
       deliver(w, part, tool.temperatureC, target, ctx, 'tool-miss');
       emit(w, 'TOOL_DEPOSIT', 'INFO', { vesselId: target?.id, params: { g: Math.round(mixMassG(part) * 1000) / 1000 } });
       return { ok: true };
@@ -428,6 +437,7 @@ export function dispatchMut(w: World, cmd: Command, ctx: SimContext): DispatchRe
       if (towel) addRaw(towel, part);
       else spill(w, part, ctx, 'clean');
       tool.lastLoaded = null;
+      tool.mixedLoad = false;
       bump(w, `clean:${tool.id}`);
       emit(w, 'TOOL_CLEANED', 'INFO', { vesselId: tool.id });
       return { ok: true };

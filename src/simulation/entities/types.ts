@@ -168,6 +168,8 @@ export interface Vessel {
   maxParticulateG: number;
   /** Para herramientas (espátula/gotero): sustancia de la última carga. */
   lastLoaded?: SubstanceId | null;
+  /** La carga actual se tomó con restos de OTRA sustancia (espátula sin limpiar): depositarla contamina. */
+  mixedLoad?: boolean;
   /** El recipiente se considera "nuevo/limpio" de repuesto. */
   spare?: boolean;
 }

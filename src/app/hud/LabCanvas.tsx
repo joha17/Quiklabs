@@ -8,8 +8,9 @@ import type { EngineHost } from '../../engine/interaction/host';
 import { useLab } from '../store';
 import { t } from '../i18n';
 import { liveFeedback } from '../feedback';
-import { nameOf } from '../describe';
+import { nameOf, nameTag } from '../describe';
 import { STATIONS } from '../../practices/practice-02/definition';
+import { launchDemo } from '../demo';
 
 /** Monta la escena 3D y la conecta con el estado de la aplicación. */
 export function LabCanvas() {
@@ -33,12 +34,20 @@ export function LabCanvas() {
       },
       reducedMotion: () => useLab.getState().settings.reducedMotion,
       guidedHints: () => useLab.getState().settings.mode === 'GUIDED',
+      showNames: () => useLab.getState().settings.showNames !== false,
+      nameTag: (id) => nameTag(runtime.world, id),
       onHeldChange: (id) => useLab.getState().setHeld(id),
     };
     const q = useLab.getState().settings.quality;
     const l = new Lab3D(host, q && q !== 'AUTO' ? q : 'MEDIUM');
     return l;
   }, [runtime]);
+
+  // Demostración: el director conduce esta escena (se detiene al salir o al recrear el laboratorio).
+  useEffect(() => {
+    if (!lab || !useLab.getState().demo) return;
+    return launchDemo(lab);
+  }, [lab]);
 
   useEffect(() => {
     if (!lab) return;
@@ -55,7 +64,7 @@ export function LabCanvas() {
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (!lab || e.target !== e.currentTarget) return;
-    if (lab.controller.onKeyDown(e.key, e.shiftKey)) {
+    if (!lab.locked && lab.controller.onKeyDown(e.key, e.shiftKey)) {
       e.preventDefault();
       return;
     }
@@ -76,7 +85,7 @@ export function LabCanvas() {
     e.preventDefault();
   };
   const onKeyUp = (e: React.KeyboardEvent) => {
-    if (lab?.controller.onKeyUp(e.key)) e.preventDefault();
+    if (lab && !lab.locked && lab.controller.onKeyUp(e.key)) e.preventDefault();
   };
 
   return (

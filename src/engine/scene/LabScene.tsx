@@ -17,23 +17,36 @@ import { VesselBody, PropBody } from './Bodies';
 import { CameraRig } from './CameraRig';
 import { InteractionBridge } from './InteractionBridge';
 import { Effects3D } from '../effects/Effects3D';
+import { NameTags3D } from '../effects/NameTags3D';
+import { DemoCursor3D } from '../effects/DemoCursor3D';
 import { useLab } from '../../app/store';
+
+/** Pasos por fotograma como máximo al reproducir acelerado (demostración). */
+const MAX_SUBSTEPS = 24;
 
 /** Avance del dominio (paso fijo), interacción y animaciones: el primer suscriptor de cada fotograma. */
 function Driver() {
   const lab = useLab3D();
   useFrame((_, dtRaw) => {
-    const dt = Math.min(dtRaw, 0.1);
+    const pb = lab.playback;
+    if (pb.paused) return;
+    // Reproducción más rápida = varios pasos normales por fotograma (no un paso más largo): así acoples, vertidos y
+    // la piseta se comportan igual a cualquier velocidad. Más lenta = paso más corto.
+    const n = pb.speed > 1 ? Math.min(MAX_SUBSTEPS, Math.round(pb.speed)) : 1;
+    const dt = Math.min(dtRaw, 0.1) * (pb.speed > 1 ? 1 : pb.speed);
     const rt = lab.runtime;
-    // La aceleración de tiempo se suspende mientras se vierte o se aprieta la piseta (precisión de medida).
-    const busy = Object.keys(rt.world.pours).length > 0 || lab.controller.squeezing;
-    const scale = rt.timeScale;
-    if (busy) rt.timeScale = 1;
-    rt.advance(dt);
-    rt.timeScale = scale;
     lab.animator.reduced = lab.host.reducedMotion();
-    lab.animator.update(dt);
-    lab.controller.frame(dt);
+    for (let i = 0; i < n; i++) {
+      // La aceleración de tiempo se suspende mientras se vierte o se aprieta la piseta (precisión de medida).
+      const busy = Object.keys(rt.world.pours).length > 0 || lab.controller.squeezing;
+      const scale = rt.timeScale;
+      if (busy) rt.timeScale = 1;
+      rt.advance(dt);
+      rt.timeScale = scale;
+      lab.animator.update(dt);
+      lab.controller.frame(dt);
+      lab.onFrame?.(dt);
+    }
     const w = rt.world;
     const boiling = Object.values(w.vessels).some((v) => v.support === 'hotplate' && v.mix.waterG > 0 && v.temperatureC > 99) ? 1 : 0;
     lab.audio.ambient(w.devices.hotplate.powerPct, boiling);
@@ -41,7 +54,7 @@ function Driver() {
   return null;
 }
 
-function Environment() {
+export function Environment() {
   const { gl, scene } = useThree();
   useEffect(() => {
     const pmrem = new THREE.PMREMGenerator(gl);
@@ -58,7 +71,7 @@ function Environment() {
 }
 
 /** Luz direccional con sombra que sigue a la estación visible (sombras nítidas en un área acotada). */
-function Lights({ q }: { q: QualityLevel }) {
+export function Lights({ q }: { q: QualityLevel }) {
   const light = useRef<THREE.DirectionalLight>(null);
   const { controls } = useThree() as unknown as { controls: { target: THREE.Vector3 } | null };
   const p = QUALITY[q];
@@ -92,8 +105,8 @@ function Lights({ q }: { q: QualityLevel }) {
   );
 }
 
-function Room({ q }: { q: QualityLevel }) {
-  const room = useMemo(() => createRoom(q), [q]);
+export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' }) {
+  const room = useMemo(() => createRoom(q, variant), [q, variant]);
   return (
     <>
       <primitive object={room} />
@@ -198,6 +211,8 @@ export function LabScene({ lab }: { lab: Lab3D }) {
           <Objects />
         </Physics>
         <Effects3D />
+        <NameTags3D />
+        <DemoCursor3D />
         <CameraRig />
         <InteractionBridge />
         <PerfProbe onQuality={setAuto} />

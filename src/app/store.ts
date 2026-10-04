@@ -31,6 +31,7 @@ export interface Settings {
   captions: boolean;
   volume: number;
   showZones: boolean;
+  showNames: boolean;
   quality: QualitySetting;
 }
 
@@ -40,6 +41,20 @@ export interface Toast {
   text: string;
   at: number;
 }
+
+/** Estado visible de la demostración automática (el director vive en app/demo). */
+export interface DemoUi {
+  index: number;
+  total: number;
+  key: string;
+  part: 'A' | 'B';
+  note: string | null;
+  done: boolean;
+  speed: number;
+}
+
+/** Semilla fija de la demostración: siempre se ve la misma práctica. */
+const DEMO_SEED = 20261003;
 
 export type Modal =
   | null
@@ -70,11 +85,18 @@ interface LabState {
   evaluation: Evaluation | null;
   submitted: boolean;
   notebookOpen: boolean;
+  /** Pestaña de la libreta pedida desde fuera (demostración); null = la que elija el usuario. */
+  notebookTab: 't21' | 't22' | 'activities' | 'log' | null;
   inventoryOpen: boolean;
   savedAt: number | null;
+  /** Demostración en curso (null = intento normal). */
+  demo: DemoUi | null;
 
   setSettings(p: Partial<Settings>): void;
   start(opts?: { sameSeed?: boolean }): void;
+  /** Abre el laboratorio en modo demostración: el simulador hace la práctica completa paso a paso. */
+  startDemo(): void;
+  setDemo(p: Partial<DemoUi>): void;
   resume(saved: SavedAttempt): void;
   confirmPpe(): void;
   dispatch(cmd: Command): DispatchResult;
@@ -112,6 +134,7 @@ const DEFAULT_SETTINGS: Settings = {
   captions: true,
   volume: 0.4,
   showZones: false,
+  showNames: true,
   quality: 'AUTO',
 };
 
@@ -139,8 +162,10 @@ export const useLab = create<LabState>()((set, get) => ({
   evaluation: null,
   submitted: false,
   notebookOpen: false,
+  notebookTab: null,
   inventoryOpen: false,
   savedAt: null,
+  demo: null,
 
   setSettings(p) {
     set({ settings: { ...get().settings, ...p } });
@@ -165,9 +190,36 @@ export const useLab = create<LabState>()((set, get) => ({
     actor.send({ type: 'START' });
     set({
       screen: 'lab', settings, runtime: rt, attemptId: id, notebook: emptyNotebook(), ppeConfirmed: false, selected: null, held: null,
-      toasts: [], captions: [], evaluation: null, submitted: false, modal: { kind: 'ppe' }, paused: true, levelView: false,
+      toasts: [], captions: [], evaluation: null, submitted: false, modal: { kind: 'ppe' }, paused: true, levelView: false, demo: null,
+      notebookOpen: false, notebookTab: null,
     });
     rt.paused = true;
+  },
+
+  startDemo() {
+    const s = get().settings;
+    // Mundo del modo Práctica (con balanza), sin guardar ni evaluar: es solo para ver cómo se hace.
+    const world = newPracticeWorld({ mode: 'PRACTICE', seed: DEMO_SEED, oilProfile: s.oilProfile });
+    const rt = new LabRuntime(world, 'demo');
+    rt.timeScale = 2;
+    bindRuntime(rt);
+    actor?.stop();
+    actor = createActor(practiceMachine);
+    bindActor();
+    actor.start();
+    actor.send({ type: 'START' });
+    actor.send({ type: 'PPE_CONFIRMED' });
+    set({
+      screen: 'lab', runtime: rt, attemptId: 'demo', notebook: emptyNotebook(), ppeConfirmed: true, selected: null, held: null,
+      toasts: [], captions: [], evaluation: null, submitted: false, modal: null, paused: false, levelView: false,
+      notebookOpen: false, notebookTab: null, inventoryOpen: false,
+      demo: { index: -1, total: 0, key: '', part: 'A', note: null, done: false, speed: 1 },
+    });
+  },
+
+  setDemo(p) {
+    const d = get().demo;
+    if (d) set({ demo: { ...d, ...p } });
   },
 
   resume(saved) {
@@ -265,6 +317,9 @@ export const useLab = create<LabState>()((set, get) => ({
     if (get().levelView !== on) set({ levelView: on });
   },
   setPaused(p) {
+    // En la demostración se detiene TODO (escena, mano y simulación), no solo el dominio.
+    const stg = get().stage;
+    if (get().demo && stg) stg.playback.paused = p;
     const rt = get().runtime;
     if (rt) rt.paused = p;
     set({ paused: p });
@@ -283,11 +338,12 @@ export const useLab = create<LabState>()((set, get) => ({
 
   backToIntro() {
     get().save();
-    set({ screen: 'intro', modal: null });
+    set({ screen: 'intro', modal: null, demo: null });
   },
 
   save() {
     const s = get();
+    if (s.demo) return; // la demostración no se guarda como intento
     const rt = s.runtime;
     if (!rt) return;
     const ok = saveAttempt({
@@ -335,7 +391,7 @@ export function startBackgroundLoops(): () => void {
   const b = setInterval(tickWorkflow, 1000);
   const c = setInterval(() => {
     const st = useLab.getState();
-    if (st.screen === 'lab' && st.ppeConfirmed) st.save();
+    if (st.screen === 'lab' && st.ppeConfirmed && !st.demo) st.save();
   }, 5000);
   const onHide = () => {
     const st = useLab.getState();

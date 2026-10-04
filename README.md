@@ -33,6 +33,7 @@ npm run lint       # ESLint (regla de arquitectura: simulation/ no importa Three
 | Guiado | Pasos de la etapa actual, zonas de encaje visibles, pista tras dos revisiones, vial prepesado de 2,50 g. |
 | Evaluación | Sin pistas ni correcciones hasta la entrega (sí alertas de seguridad). |
 | Docente (depuración) | Panel con masas, fases, concentraciones, saturación, temperaturas, balance y eventos. |
+| Demostración | Botón «Ver demostración» en la portada: el simulador hace la práctica completa, paso a paso y con explicaciones, usando los mismos gestos que el estudiante. Pausa, velocidad y saltar paso; al final, «Hacerlo yo» en modo Práctica o Guiado. No se guarda ni se evalúa. |
 
 ## Controles
 
@@ -70,6 +71,7 @@ src/
 │   ├── interaction/  Gestos → comandos (arrastre, inclinación, vertido, agitación, herramientas).
 │   └── effects/      Animaciones de acción, partículas, chorro, vapor, audio.
 ├── app/          React: HUD, acciones, libreta, diálogos, revisión, persistencia, i18n, store (Zustand).
+│   └── demo/     Demostración automática: director (mano virtual), guion de la práctica y panel.
 ├── practices/practice-02/
 │                 definición (inventario y disposición), instruments.ts (perfiles de cristalería),
 │                 sustancias y curvas, parámetros, máquina XState, evidencia, rúbrica, resultados y errores.
@@ -100,3 +102,10 @@ Documentación adicional: [docs/DECISIONES.md](docs/DECISIONES.md), [docs/SUPUES
 El intento (mundo, libreta, semilla, registro de acciones, estado del flujo) se guarda en `localStorage`
 cada 5 s y al ocultar la pestaña. Al reanudar se restaura **en pausa**. No hay servidor ni cuentas.
 El registro y la libreta se pueden exportar en JSON desde la libreta y la pantalla de revisión.
+
+## Práctica 3 — Mechero de Bunsen y prueba de cationes a la llama
+
+La aplicación abre con un **menú de laboratorios**; desde ahí se entra a la Práctica 2 o a la Práctica 3
+(también por enlace directo: `#p2`, `#p3`). La Práctica 3 usa la misma pila (R3F + Rapier, XState, Zustand,
+i18next) y la misma estructura (dominio puro → comandos → escena), con modos Práctica, Guiado, Evaluación y Docente.
+Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA3.md](docs/PRACTICA3.md).
