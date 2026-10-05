@@ -4,6 +4,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { openPanel } from './auth';
 
 type Pt = { x: number; y: number };
 type AnyState = any;
@@ -16,7 +17,7 @@ const ml = (v: AnyState) => (v.bulk.volL + v.plume.volL) * 1000;
 async function startP4(page: Page) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Reacciones químicas/ }).click();
   await page.waitForFunction(() => !!(window as AnyState).__p4);
   await page.evaluate(() => (window as AnyState).__p4.getState().setSettings({ quality: 'MEDIUM', seed: 4343, mode: 'PRACTICE' }));
@@ -71,7 +72,7 @@ async function carryTo(page: Page, x: number, y: number) {
 test('el menú abre la Práctica 4; portada y laboratorio sin violaciones graves de accesibilidad', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Reacciones químicas/ }).click();
   await expect(page.getByRole('heading', { name: 'Reacciones químicas', level: 1 })).toBeVisible();
   let results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();

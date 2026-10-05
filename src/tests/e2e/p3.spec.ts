@@ -4,6 +4,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { openPanel } from './auth';
 
 type Pt = { x: number; y: number };
 type AnyState = any;
@@ -15,8 +16,8 @@ const st = (page: Page) => page.evaluate(() => JSON.parse(JSON.stringify((window
 async function startP3(page: Page, mode: 'PRACTICE' | 'GUIDED' | 'EVALUATION' = 'PRACTICE') {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  // Menú de laboratorios → Práctica 3.
+  // Panel (con sesión) → Práctica 3.
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Mechero/ }).click();
   await page.waitForFunction(() => !!(window as AnyState).__p3);
   await page.evaluate((m) => (window as AnyState).__p3.getState().setSettings({ quality: 'MEDIUM', seed: 4242, mode: m }), mode);
@@ -67,6 +68,7 @@ async function screenOf(page: Page, x: number, y: number, z: number): Promise<Pt
 test('el menú lista los laboratorios y abre cada uno', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Laboratorios virtuales de Química General I' })).toBeVisible();
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Clasificación/ }).click();
   await expect(page.getByRole('button', { name: 'Comenzar intento' })).toBeVisible();
   await page.getByRole('button', { name: '← Laboratorios' }).click();

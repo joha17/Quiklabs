@@ -1,13 +1,20 @@
-// Cloudflare Workers: sitio estático (Vite → dist/). Sin código de servidor.
+// Cloudflare Workers: sitio estático (Vite → dist/) + API de la plataforma en /api (worker/index.ts).
 {
   "name": "quiklabs",
   "compatibility_date": "2026-10-01",
+  "main": "worker/index.ts",
   // Compila antes de desplegar: `wrangler deploy` (también el de Workers Builds) genera dist/ con Vite.
   "build": {
     "command": "npm run build"
   },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Solo /api pasa por el Worker; el resto lo sirven los archivos estáticos directamente.
+    "run_worker_first": ["/api/*"]
+  },
+  // Datos de la beta (un documento JSON en el espacio KV «quiklabs-data»).
+  "kv_namespaces": [{ "binding": "DATA", "id": "0c36cba98f28457ca73cf498ddc1ad95" }]
+  // Secreto de sesión: `npx wrangler secret put SESSION_SECRET` (en local, archivo .dev.vars).
 }

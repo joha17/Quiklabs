@@ -10,7 +10,7 @@
  * No usa React: la página le pasa la vista (dos estaciones y la mezcla), el puntero y los mL de NaOH.
  */
 import * as THREE from 'three';
-import { InkKit, PALETTE, lathe, liquidProfile } from './ink';
+import { DARK_PALETTE, InkKit, LIGHT_PALETTE, lathe, liquidProfile, type Palette } from './ink';
 import { phenolphthaleinPink, titrationPH, TITRATION } from './titration';
 
 export type CamKey = 'hero' | 'statement' | 'gallery' | 'titration' | 'labs' | 'features' | 'value' | 'how' | 'teachers' | 'end';
@@ -61,7 +61,8 @@ export class LabBackdrop {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(30, 1, 0.5, 1200);
-  private kit = new InkKit();
+  private pal: Palette;
+  private kit: InkKit;
   private timer = new THREE.Timer();
   private raf = 0;
   private running = false;
@@ -86,14 +87,12 @@ export class LabBackdrop {
   private flaskSurfaceY = 0;
   private titrX = 95;
 
-  constructor(private canvas: HTMLCanvasElement, private reducedMotion: boolean) {
+  constructor(private canvas: HTMLCanvasElement, private reducedMotion: boolean, private dark = false) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setClearColor(0x000000, 0);
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d2c6, 1.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
-    sun.position.set(-30, 60, 40);
-    this.scene.add(sun);
+    this.pal = dark ? DARK_PALETTE : LIGHT_PALETTE;
+    this.kit = new InkKit(this.pal);
     this.build();
     this.resize();
   }
@@ -114,6 +113,38 @@ export class LabBackdrop {
   setTitration(ml: number) {
     this.ml = THREE.MathUtils.clamp(ml, 0, TITRATION.maxMl);
     this.dirty = true;
+  }
+
+  /** Cambia entre papel crema (claro) y plano técnico (oscuro): se rehace la escena; la valoración conserva sus mL. */
+  setTheme(dark: boolean) {
+    if (dark === this.dark) return;
+    this.dark = dark;
+    this.clearScene();
+    this.pal = dark ? DARK_PALETTE : LIGHT_PALETTE;
+    this.kit = new InkKit(this.pal);
+    this.build();
+    this.resize();
+  }
+
+  private clearScene() {
+    this.disposeTree();
+    this.scene.clear();
+    this.drops = [];
+    this.ripples = [];
+    this.spin = [];
+    this.bob = [];
+    this.flames = [];
+    this.streamDrops = [];
+  }
+
+  private disposeTree() {
+    this.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      m.geometry?.dispose();
+      const mat = m.material as THREE.Material | THREE.Material[] | undefined;
+      if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+      else mat?.dispose();
+    });
   }
 
   resize() {
@@ -147,13 +178,7 @@ export class LabBackdrop {
 
   dispose() {
     this.stop();
-    this.scene.traverse((o) => {
-      const m = o as THREE.Mesh;
-      m.geometry?.dispose();
-      const mat = m.material as THREE.Material | THREE.Material[] | undefined;
-      if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
-      else mat?.dispose();
-    });
+    this.disposeTree();
     this.timer.dispose();
     this.renderer.dispose();
   }
@@ -244,7 +269,7 @@ export class LabBackdrop {
 
   private updateTitration() {
     const pink = phenolphthaleinPink(titrationPH(this.mlShown));
-    const c = new THREE.Color(PALETTE.white).lerp(new THREE.Color(PALETTE.pink), pink);
+    const c = new THREE.Color(this.pal.white).lerp(new THREE.Color(this.pal.pink), pink);
     this.flaskLiquid.mat.color.copy(c);
     // Bureta: baja el nivel de NaOH (35 mL ≈ 24 cm de tubo).
     const frac = 1 - this.mlShown / TITRATION.maxMl;
@@ -252,7 +277,7 @@ export class LabBackdrop {
   }
 
   private spawnDrop(delay: number) {
-    const m = this.kit.solid(new THREE.SphereGeometry(0.32, 14, 10), PALETTE.white, { outline: 0.05, edges: false });
+    const m = this.kit.solid(new THREE.SphereGeometry(0.32, 14, 10), this.pal.white, { outline: 0.05, edges: false });
     m.position.set(this.titrX, this.buretteTipY, 0);
     m.visible = false;
     this.scene.add(m);
@@ -265,7 +290,7 @@ export class LabBackdrop {
       const a = (i / 32) * Math.PI * 2;
       pts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
     }
-    const ring = this.kit.polyline(pts, 2, phenolphthaleinPink(titrationPH(this.mlShown + 0.6)) > 0.2 ? PALETTE.pink : PALETTE.ink, true);
+    const ring = this.kit.polyline(pts, 2, phenolphthaleinPink(titrationPH(this.mlShown + 0.6)) > 0.2 ? this.pal.pink : this.pal.ink, true);
     ring.position.set(this.titrX, this.flaskSurfaceY + 0.05, 0);
     this.scene.add(ring);
     this.ripples.push({ obj: ring, age: 0 });
@@ -282,6 +307,10 @@ export class LabBackdrop {
   // ───────────────────────────── Construcción ─────────────────────────────
 
   private build() {
+    this.scene.add(new THREE.HemisphereLight(this.pal.sky, this.pal.ground, this.dark ? 1.25 : 1.6));
+    const sun = new THREE.DirectionalLight(0xffffff, this.dark ? 1.1 : 1.4);
+    sun.position.set(-30, 60, 40);
+    this.scene.add(sun);
     this.buildHero();
     this.buildTitration(this.titrX);
     this.buildBench(150);
@@ -349,7 +378,7 @@ export class LabBackdrop {
     return { group: g, mesh, mat };
   }
 
-  private disc(r: number, x: number, y: number, z: number, color: number = PALETTE.white) {
+  private disc(r: number, x: number, y: number, z: number, color: number = this.pal.disc) {
     const m = new THREE.Mesh(new THREE.CircleGeometry(r, 64), new THREE.MeshBasicMaterial({ color }));
     m.position.set(x, y, z);
     this.scene.add(m);
@@ -357,7 +386,7 @@ export class LabBackdrop {
   }
 
   /** Cuadrícula de puntos y cruces «×» (decoración de la referencia). */
-  private dots(x: number, y: number, z: number, cols: number, rows: number, step = 1.1, color: number = PALETTE.grey) {
+  private dots(x: number, y: number, z: number, cols: number, rows: number, step = 1.1, color: number = this.pal.grey) {
     const pos: number[] = [];
     for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (((i * 7 + j * 3) % 5) !== 0) pos.push(x + i * step, y - j * step, z);
     const geo = new THREE.BufferGeometry();
@@ -366,7 +395,7 @@ export class LabBackdrop {
     this.scene.add(pts);
   }
 
-  private cross(x: number, y: number, z: number, s = 0.5, color: number = PALETTE.teal) {
+  private cross(x: number, y: number, z: number, s = 0.5, color: number = this.pal.teal) {
     const g = new THREE.Group();
     g.add(this.kit.polyline([new THREE.Vector3(-s, -s, 0), new THREE.Vector3(s, s, 0)], 2, color));
     g.add(this.kit.polyline([new THREE.Vector3(-s, s, 0), new THREE.Vector3(s, -s, 0)], 2, color));
@@ -375,7 +404,7 @@ export class LabBackdrop {
     this.bob.push({ obj: g, y, amp: 0.4, speed: 0.7 + Math.random() * 0.5, phase: Math.random() * 6 });
   }
 
-  private ring(x: number, y: number, z: number, r: number, color: number = PALETTE.ink) {
+  private ring(x: number, y: number, z: number, r: number, color: number = this.pal.ink) {
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i < 40; i++) {
       const a = (i / 40) * Math.PI * 2;
@@ -397,17 +426,17 @@ export class LabBackdrop {
     this.dots(-24, -18, -6, 4, 6);
     this.cross(14, 6, -2);
     this.cross(19, -4, -3);
-    this.cross(-16, 14, -4, 0.45, PALETTE.coral);
+    this.cross(-16, 14, -4, 0.45, this.pal.coral);
     this.cross(26, 2, -5);
     this.ring(17, 10, -3, 0.7);
-    this.ring(24, -10, -4, 1.1, PALETTE.teal);
+    this.ring(24, -10, -4, 1.1, this.pal.teal);
     // Matraz gigante que entra por la esquina y vierte (como el brazo robótico de la referencia).
     const flask = this.erlenmeyer(3.2);
     flask.group.position.set(24, 22, -4);
     flask.group.rotation.z = 2.25;
     flask.group.rotation.y = -0.25;
     // Un poco de líquido dentro, junto a la boca.
-    const fl = this.liquid([[0.001, 6.4], [1.02, 6.9], [1.02, 9.9]], 9.9, PALETTE.teal);
+    const fl = this.liquid([[0.001, 6.4], [1.02, 6.9], [1.02, 9.9]], 9.9, this.pal.teal);
     fl.group.position.y = 0;
     flask.group.add(fl.group);
     this.scene.add(flask.group);
@@ -418,7 +447,7 @@ export class LabBackdrop {
     const bk = this.beaker(2.1);
     bk.group.position.set(6, -26, 0);
     this.scene.add(bk.group);
-    const liq = this.liquid(bk.inner, 3, PALETTE.teal);
+    const liq = this.liquid(bk.inner, 3, this.pal.teal);
     liq.group.scale.setScalar(2.1);
     liq.group.position.copy(bk.group.position);
     this.scene.add(liq.group);
@@ -430,9 +459,9 @@ export class LabBackdrop {
       new THREE.Vector3(6, -24.5, 0),
     ]);
     const tube = new THREE.TubeGeometry(this.streamCurve, 64, 0.32, 10, false);
-    this.scene.add(this.kit.solid(tube, PALETTE.teal, { outline: 0.05, edges: false }));
+    this.scene.add(this.kit.solid(tube, this.pal.teal, { outline: 0.05, edges: false }));
     for (let i = 0; i < 6; i++) {
-      const d = this.kit.solid(new THREE.SphereGeometry(0.42, 14, 10), PALETTE.tealLight, { outline: 0.05, edges: false });
+      const d = this.kit.solid(new THREE.SphereGeometry(0.42, 14, 10), this.pal.tealLight, { outline: 0.05, edges: false });
       this.scene.add(d);
       this.streamDrops.push({ obj: d, u: i / 6 });
     }
@@ -443,10 +472,10 @@ export class LabBackdrop {
     g.position.x = x;
     this.scene.add(g);
     // Soporte universal: base, varilla y pinza.
-    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(18, 1, 10), PALETTE.steel, { outline: 0.06 }), -3, 0.5, 0));
-    g.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.4, 0.4, 46, 20), PALETTE.steel, { outline: 0.05, edges: false }), -9, 23.5, -2));
-    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(9.4, 1.2, 1.4), PALETTE.teal, { outline: 0.05 }), -4.4, 34, -1.2));
-    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(1.6, 1.6, 1.6), PALETTE.teal, { outline: 0.05 }), -9, 34, -2));
+    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(18, 1, 10), this.pal.steel, { outline: 0.06 }), -3, 0.5, 0));
+    g.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.4, 0.4, 46, 20), this.pal.steel, { outline: 0.05, edges: false }), -9, 23.5, -2));
+    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(9.4, 1.2, 1.4), this.pal.teal, { outline: 0.05 }), -4.4, 34, -1.2));
+    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(1.6, 1.6, 1.6), this.pal.teal, { outline: 0.05 }), -9, 34, -2));
     // Bureta de 50 mL: tubo de vidrio, NaOH incoloro adentro, llave coral y punta.
     const burette = new THREE.Group();
     burette.position.set(0, 18, 0);
@@ -459,14 +488,14 @@ export class LabBackdrop {
       burette.add(this.kit.polyline([new THREE.Vector3(-w / 2, y, 0.64), new THREE.Vector3(w / 2, y, 0.64)], 1.4));
     }
     const nl = new THREE.Group();
-    const naoh = this.liquid([[0.001, 0], [0.5, 0], [0.5, 24]], 24, PALETTE.white, 24);
+    const naoh = this.liquid([[0.001, 0], [0.5, 0], [0.5, 24]], 24, this.pal.white, 24);
     nl.add(naoh.group);
     nl.position.y = 0.6;
     burette.add(nl);
     this.buretteLiquid = nl;
     // Llave y punta.
-    burette.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.55, 0.55, 2.6, 20), PALETTE.coral, { outline: 0.05, edges: false }), 0, -0.6, 0, [0, 0, Math.PI / 2]));
-    burette.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.5, 2.2, 0.5), PALETTE.coral, { outline: 0.04 }), 1.6, -0.6, 0));
+    burette.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.55, 0.55, 2.6, 20), this.pal.coral, { outline: 0.05, edges: false }), 0, -0.6, 0, [0, 0, Math.PI / 2]));
+    burette.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.5, 2.2, 0.5), this.pal.coral, { outline: 0.04 }), 1.6, -0.6, 0));
     const tipGeo = lathe([[0.12, -3.2], [0.5, -1.2], [0.62, 0]], 24);
     burette.add(new THREE.Mesh(tipGeo, this.kit.glass()));
     burette.add(this.kit.edges(tipGeo, 25));
@@ -477,7 +506,7 @@ export class LabBackdrop {
     fl.group.position.set(0, 1, 0);
     g.add(fl.group);
     const level = 2.6;
-    const liq = this.liquid(fl.inner, level, PALETTE.white);
+    const liq = this.liquid(fl.inner, level, this.pal.white);
     liq.group.scale.setScalar(1.25);
     liq.group.position.set(0, 1, 0);
     g.add(liq.group);
@@ -488,8 +517,8 @@ export class LabBackdrop {
     this.disc(5, x - 20, 8, -12);
     this.dots(x + 9, 40, -6, 5, 7);
     this.cross(x + 8, 12, -2);
-    this.cross(x - 14, 30, -3, 0.45, PALETTE.coral);
-    this.ring(x + 14, 6, -3, 0.9, PALETTE.teal);
+    this.cross(x - 14, 30, -3, 0.45, this.pal.coral);
+    this.ring(x + 14, 6, -3, 0.9, this.pal.teal);
   }
 
   private buildBench(x: number) {
@@ -501,37 +530,37 @@ export class LabBackdrop {
     for (let i = -40; i <= 40; i += 5) {
       pos.push(i, 0, -40, i, 0, 40, -40, 0, i, 40, 0, i);
     }
-    const gl = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)), new THREE.LineBasicMaterial({ color: PALETTE.grey }));
+    const gl = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)), new THREE.LineBasicMaterial({ color: this.pal.grey }));
     g.add(gl);
     // Mesada.
-    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(46, 1.6, 18), PALETTE.white, { outline: 0.07 }), 0, 9.2, 0));
-    for (const [px, pz] of [[-21, -7], [21, -7], [-21, 7], [21, 7]]) g.add(this.place(this.kit.solid(new THREE.BoxGeometry(1.4, 8.4, 1.4), PALETTE.steel, { outline: 0.05 }), px, 4.2, pz));
+    g.add(this.place(this.kit.solid(new THREE.BoxGeometry(46, 1.6, 18), this.pal.white, { outline: 0.07 }), 0, 9.2, 0));
+    for (const [px, pz] of [[-21, -7], [21, -7], [-21, 7], [21, 7]]) g.add(this.place(this.kit.solid(new THREE.BoxGeometry(1.4, 8.4, 1.4), this.pal.steel, { outline: 0.05 }), px, 4.2, pz));
     const top = 10;
     // Mechero de Bunsen encendido.
     const bun = new THREE.Group();
     bun.position.set(-12, top, -2);
-    bun.add(this.kit.solid(lathe([[0.001, 0], [3, 0], [3, 0.5], [1, 1.4], [0.001, 1.4]], 40), PALETTE.steel, { outline: 0.05, edges: 30 }));
-    bun.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.6, 0.6, 9, 24), PALETTE.steel, { outline: 0.05, edges: false }), 0, 5.6, 0));
-    bun.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.78, 0.78, 1.3, 24), PALETTE.teal, { outline: 0.05, edges: false }), 0, 2.6, 0));
+    bun.add(this.kit.solid(lathe([[0.001, 0], [3, 0], [3, 0.5], [1, 1.4], [0.001, 1.4]], 40), this.pal.steel, { outline: 0.05, edges: 30 }));
+    bun.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.6, 0.6, 9, 24), this.pal.steel, { outline: 0.05, edges: false }), 0, 5.6, 0));
+    bun.add(this.place(this.kit.solid(new THREE.CylinderGeometry(0.78, 0.78, 1.3, 24), this.pal.teal, { outline: 0.05, edges: false }), 0, 2.6, 0));
     const flame = new THREE.Group();
     flame.position.y = 10.1;
-    const outer = new THREE.Mesh(lathe([[0.001, 0], [0.62, 0.5], [0.72, 2.4], [0.45, 5], [0.001, 7.2]], 32), new THREE.MeshBasicMaterial({ color: PALETTE.flame, transparent: true, opacity: 0.55, depthWrite: false }));
-    const inner = new THREE.Mesh(lathe([[0.001, 0], [0.44, 0.3], [0.3, 1.7], [0.001, 2.6]], 24), new THREE.MeshBasicMaterial({ color: PALETTE.flameCore, transparent: true, opacity: 0.9, depthWrite: false }));
+    const outer = new THREE.Mesh(lathe([[0.001, 0], [0.62, 0.5], [0.72, 2.4], [0.45, 5], [0.001, 7.2]], 32), new THREE.MeshBasicMaterial({ color: this.pal.flame, transparent: true, opacity: 0.55, depthWrite: false }));
+    const inner = new THREE.Mesh(lathe([[0.001, 0], [0.44, 0.3], [0.3, 1.7], [0.001, 2.6]], 24), new THREE.MeshBasicMaterial({ color: this.pal.flameCore, transparent: true, opacity: 0.9, depthWrite: false }));
     flame.add(outer, inner, this.kit.edges(outer.geometry, 80, 1.5));
     bun.add(flame);
     this.flames.push(flame);
     // Manguera coral.
     const hose = new THREE.CatmullRomCurve3([new THREE.Vector3(0.6, 1.2, 0), new THREE.Vector3(4, 1.4, 1), new THREE.Vector3(7, 0.6, 5), new THREE.Vector3(9, 0.6, 9)]);
-    bun.add(this.kit.solid(new THREE.TubeGeometry(hose, 40, 0.4, 10, false), PALETTE.coral, { outline: 0.05, edges: false }));
+    bun.add(this.kit.solid(new THREE.TubeGeometry(hose, 40, 0.4, 10, false), this.pal.coral, { outline: 0.05, edges: false }));
     g.add(bun);
     // Gradilla con tubos de colores: CaCO₃ blanco, Fe(OH)₃ pardo, Cu²⁺ azul, Fe³⁺ amarillo, fenolftaleína rosa.
     const rack = new THREE.Group();
     rack.position.set(6, top, -1);
-    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(17, 0.8, 4.4), PALETTE.yellow, { outline: 0.05 }), 0, 0.4, 0));
-    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(17, 0.6, 4.4), PALETTE.yellow, { outline: 0.05 }), 0, 6.2, 0));
-    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.6, 6.2, 4.4), PALETTE.yellow, { outline: 0.05 }), -8.2, 3.3, 0));
-    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.6, 6.2, 4.4), PALETTE.yellow, { outline: 0.05 }), 8.2, 3.3, 0));
-    const colors = [0xf2f0ea, 0xb5642a, 0x3d8fe0, 0xf3c13a, PALETTE.pink];
+    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(17, 0.8, 4.4), this.pal.yellow, { outline: 0.05 }), 0, 0.4, 0));
+    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(17, 0.6, 4.4), this.pal.yellow, { outline: 0.05 }), 0, 6.2, 0));
+    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.6, 6.2, 4.4), this.pal.yellow, { outline: 0.05 }), -8.2, 3.3, 0));
+    rack.add(this.place(this.kit.solid(new THREE.BoxGeometry(0.6, 6.2, 4.4), this.pal.yellow, { outline: 0.05 }), 8.2, 3.3, 0));
+    const colors = [0xf2f0ea, 0xb5642a, 0x3d8fe0, 0xf3c13a, this.pal.pink];
     colors.forEach((c, i) => {
       const tt = this.testTube();
       const tg = new THREE.Group();
@@ -547,7 +576,7 @@ export class LabBackdrop {
     const bk = this.beaker(1);
     bk.group.position.set(17, top, 4);
     g.add(bk.group);
-    const bl = this.liquid(bk.inner, 3.4, PALETTE.pink);
+    const bl = this.liquid(bk.inner, 3.4, this.pal.pink);
     bl.group.position.copy(bk.group.position);
     g.add(bl.group);
     const er = this.erlenmeyer(0.9);
@@ -590,8 +619,8 @@ export class LabBackdrop {
     this.disc(5, x - 16, -2, -12);
     this.dots(x - 18, 26, -8, 5, 6);
     this.cross(x - 10, 2, -2);
-    this.cross(x + 18, 14, -3, 0.5, PALETTE.coral);
-    this.ring(x + 2, 24, -3, 0.9, PALETTE.teal);
+    this.cross(x + 18, 14, -3, 0.5, this.pal.coral);
+    this.ring(x + 2, 24, -3, 0.9, this.pal.teal);
     this.ring(x - 14, 10, -2, 0.6);
   }
 
@@ -603,7 +632,7 @@ export class LabBackdrop {
 
   private bond(a: THREE.Vector3, b: THREE.Vector3, r = 0.2) {
     const len = a.distanceTo(b);
-    const m = this.kit.solid(new THREE.CylinderGeometry(r, r, len, 14), PALETTE.white, { outline: 0.04, edges: false });
+    const m = this.kit.solid(new THREE.CylinderGeometry(r, r, len, 14), this.pal.atomH, { outline: 0.04, edges: false });
     m.position.copy(a).add(b).multiplyScalar(0.5);
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
     return m;
@@ -616,9 +645,9 @@ export class LabBackdrop {
     const h1 = new THREE.Vector3(Math.sin(half), -Math.cos(half), 0).multiplyScalar(1.9);
     const h2 = new THREE.Vector3(-Math.sin(half), -Math.cos(half), 0).multiplyScalar(1.9);
     g.add(this.bond(o, h1), this.bond(o, h2));
-    g.add(this.atom(1, PALETTE.coral));
+    g.add(this.atom(1, this.pal.coral));
     for (const h of [h1, h2]) {
-      const a = this.atom(0.62, PALETTE.white);
+      const a = this.atom(0.62, this.pal.atomH);
       a.position.copy(h);
       g.add(a);
     }
@@ -631,9 +660,9 @@ export class LabBackdrop {
     const l = new THREE.Vector3(-2.1, 0, 0);
     const r = new THREE.Vector3(2.1, 0, 0);
     g.add(this.bond(l, r, 0.24));
-    g.add(this.atom(0.9, 0x3a4446));
+    g.add(this.atom(0.9, this.pal.carbon));
     for (const p of [l, r]) {
-      const a = this.atom(0.85, PALETTE.coral);
+      const a = this.atom(0.85, this.pal.coral);
       a.position.copy(p);
       g.add(a);
     }
@@ -651,7 +680,7 @@ export class LabBackdrop {
     // Na⁺ (pequeño, verde azulado) y Cl⁻ (grande, amarillo) alternan en los vértices del cubo.
     for (const p of pts) {
       const na = [p.x, p.y, p.z].filter((v) => v > 0).length % 2 === 0;
-      const a = this.atom(na ? 0.55 : 0.85, na ? PALETTE.teal : PALETTE.yellow);
+      const a = this.atom(na ? 0.55 : 0.85, na ? this.pal.teal : this.pal.yellow);
       a.position.copy(p);
       g.add(a);
     }

@@ -20,6 +20,8 @@ e2e-shots
 npm-debug.log*
 
 # Variables de entorno y secretos
+.dev.vars
+.wrangler
 .env
 .env.*
 !.env.example

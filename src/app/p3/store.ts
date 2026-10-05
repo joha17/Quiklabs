@@ -21,6 +21,7 @@ import type { QualitySetting } from '../../engine/quality';
 import { FlameRuntime } from './runtime';
 import { clearP3Attempt, loadP3Attempt, pushUnknownHistory, readUnknownHistory, saveP3Attempt, type SavedP3Attempt } from './persistence';
 import { p3EventFeedback } from './feedback';
+import { reportSubmission } from '../platform/report';
 
 export interface P3Settings {
   mode: P3Mode;
@@ -347,6 +348,8 @@ export const useP3 = create<P3State>()((set, get) => ({
     const evaluation = evaluateP3(rt.world, get().notebook, { ppeConfirmed: get().ppeConfirmed });
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
+    // Estudiantes: la entrega queda registrada en su curso (plataforma).
+    void reportSubmission('p3', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
   },
 
   backToIntro() {

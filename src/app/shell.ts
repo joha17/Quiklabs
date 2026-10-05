@@ -1,27 +1,32 @@
 /**
- * Selección de laboratorio (portada con el menú de prácticas). El laboratorio abierto se refleja en el hash de la
- * URL (#p2, #p3, #p4) para poder enlazarlo directamente y para que «atrás» del navegador vuelva al menú.
+ * Rutas de la aplicación en el hash de la URL: portada (sin hash), `#login`, `#panel` (panel según el rol) y los
+ * laboratorios (`#p2`, `#p3`, `#p4`). Así se pueden enlazar y «atrás» del navegador funciona.
  */
 import { create } from 'zustand';
 
 export type LabId = 'p2' | 'p3' | 'p4';
-const LABS: LabId[] = ['p2', 'p3', 'p4'];
+export type Route = LabId | 'login' | 'panel';
+const ROUTES: Route[] = ['p2', 'p3', 'p4', 'login', 'panel'];
 
-function fromHash(): LabId | null {
+export const isLab = (r: Route | null): r is LabId => r === 'p2' || r === 'p3' || r === 'p4';
+
+function fromHash(): Route | null {
   if (typeof window === 'undefined') return null;
   const h = window.location.hash.replace('#', '').replace('/', '');
-  return (LABS as string[]).includes(h) ? (h as LabId) : null;
+  return (ROUTES as string[]).includes(h) ? (h as Route) : null;
 }
 
 interface ShellState {
-  lab: LabId | null;
-  open(lab: LabId | null): void;
+  /** Ruta actual (null = portada). */
+  lab: Route | null;
+  open(route: Route | null): void;
 }
 
 export const useShell = create<ShellState>()((set) => ({
   lab: fromHash(),
   open(lab) {
     set({ lab });
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
     if (typeof window === 'undefined') return;
     const target = lab ? `#${lab}` : '';
     if (window.location.hash !== target) {

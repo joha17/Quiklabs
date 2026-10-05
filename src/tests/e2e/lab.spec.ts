@@ -10,6 +10,7 @@ import { mixAmounts } from '../../simulation/solutions/mixture';
 import { CTX } from '../../practices/practice-02';
 import type { World } from '../../simulation/entities/types';
 import type { Command } from '../../simulation/world/commands';
+import { loginAs } from './auth';
 
 type Pt = { x: number; y: number };
 type AnyState = any;
@@ -17,6 +18,7 @@ type AnyState = any;
 const PPE = ['Bata de laboratorio abotonada', 'Gafas de seguridad', 'Cabello recogido', 'Calzado cerrado'];
 
 async function startLab(page: Page, mode = 'PRACTICE') {
+  await loginAs(page);
   await page.goto('/#p2');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -141,6 +143,7 @@ test.describe('Laboratorio 3D', () => {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    await loginAs(page);
     await page.goto('/#p2');
     const axeIntro = await new AxeBuilder({ page }).analyze();
     expect(axeIntro.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([]);
@@ -153,6 +156,7 @@ test.describe('Laboratorio 3D', () => {
   });
 
   test('equipo de protección: botones con ilustración, accesibles y obligatorios', async ({ page }) => {
+    await loginAs(page);
     await page.goto('/#p2');
     await page.evaluate(() => localStorage.clear());
     await page.reload();

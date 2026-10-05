@@ -3,6 +3,7 @@
  * hecha correctamente, sin respaldos (todas las mecánicas respondieron) y en estado seguro.
  */
 import { expect, test } from '@playwright/test';
+import { openPanel } from './auth';
 
 type AnyState = any;
 
@@ -18,7 +19,7 @@ test('la demostración de la Práctica 3 se reproduce completa y deja la prácti
   });
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Mechero/ }).click();
   await page.waitForFunction(() => !!(window as AnyState).__p3);
   await page.evaluate(() => (window as AnyState).__p3.getState().setSettings({ quality: 'MEDIUM' }));

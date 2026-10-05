@@ -1,0 +1,576 @@
+{
+  "version": 1,
+  "license": {
+    "institution": "Universidad Nacional de Ciencias (demo)",
+    "validFrom": "2026-07-01T06:00:00.000Z",
+    "validTo": "2027-07-01T05:59:00.000Z",
+    "studentSeats": 120
+  },
+  "users": [
+    {
+      "id": "u_admin",
+      "role": "admin",
+      "email": "admin@quiklabs.example",
+      "name": "Administración Quiklabs",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$nMR5axfk82p9NGE33y1RnQ$oMOm6d1Ds9QZEKCVHQXD_9TIuTdxwX6eYdUeFrR6Ws0",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_doc01",
+      "role": "teacher",
+      "email": "laura.mendez@uni.example",
+      "name": "Dra. Laura Méndez Ruiz",
+      "code": "D-1042",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$pUm5L_Nh6Bk5-GJVZwclbg$nU8-yXidAoi7mYAg2gn81X9O29t_cAMfd2itRYC0wNg",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_doc02",
+      "role": "teacher",
+      "email": "carlos.rojas@uni.example",
+      "name": "Lic. Carlos Rojas Picado",
+      "code": "D-1077",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$19VbCaCcSJaqJV3-CpPB3w$sfd6uuBkYAebGVxWw_8ABER5XIaVm6yVbikyi3rAwao",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est01",
+      "role": "student",
+      "email": "valeria.solano@estudiante.uni.example",
+      "name": "Valeria Solano Mora",
+      "code": "B60101",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$5T_Hv9z19-3S9XaW2oNZ1A$VG3vCxtDbPnM2Wys2B2AYoqaP4YmdNu6Qma0PDVfaJ0",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est02",
+      "role": "student",
+      "email": "andres.jimenez@estudiante.uni.example",
+      "name": "Andrés Jiménez Castro",
+      "code": "B60102",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$bisytG18qMVVdB3zpN-Mcw$4vXOed35-FgPpwQiZ1rUI2I6ZRaYCU-ucgo-CL6R_Mo",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est03",
+      "role": "student",
+      "email": "mariajose.vargas@estudiante.uni.example",
+      "name": "María José Vargas Rojas",
+      "code": "B60103",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$ueXj5FxCOMupn-9fxhwUXA$eWobDpcHQ2h0-0i4t5x0RKmURqp_6PCQCZEeg25zQnE",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est04",
+      "role": "student",
+      "email": "diego.hernandez@estudiante.uni.example",
+      "name": "Diego Hernández Alfaro",
+      "code": "B60104",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$XxwN0XNvAypuT2aqvMtStA$JdcqpCSvxHvn-tSr0jshKeEkMsnSxZNX_c47LWYjZ6s",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est05",
+      "role": "student",
+      "email": "camila.araya@estudiante.uni.example",
+      "name": "Camila Araya Quesada",
+      "code": "B60105",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$Ej9ac2bl-62SeNQ_OExbug$a0FxioSE_YdmWRJMx5BI2YdeRVqc0USS34fIPDVg2fw",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est06",
+      "role": "student",
+      "email": "sebastian.mora@estudiante.uni.example",
+      "name": "Sebastián Mora Villalobos",
+      "code": "B60106",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$bRdsRjRRM74wlMGW5lswaw$-Pe7BXBON8HDQ6q-nhBVYTloPEzcOCsgdnV_iOhn_VY",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est07",
+      "role": "student",
+      "email": "daniela.chaves@estudiante.uni.example",
+      "name": "Daniela Chaves Brenes",
+      "code": "B60107",
+      "status": "suspended",
+      "passwordHash": "pbkdf2$sha256$30000$jNzoZ9WSq9ZHlq-xx4mmOA$QWZzMgWkHWJex_fx7RPBxaBAm0SAS3wIGirVkIuUUdQ",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est08",
+      "role": "student",
+      "email": "josepablo.ramirez@estudiante.uni.example",
+      "name": "José Pablo Ramírez Soto",
+      "code": "B60108",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$W2oxHOhhZSdpN8RvpLQIAA$S-jkUHJYtznI_E3awexa63TAXmxdMk7It3BNQl1YCyI",
+      "mustChangePassword": true,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est09",
+      "role": "student",
+      "email": "lucia.fernandez@estudiante.uni.example",
+      "name": "Lucía Fernández Pérez",
+      "code": "B50109",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$txMFJNA6-4xE8kYN5ffibA$7crsd14DJpeTUR82qDXvtiHB-fUNzVGOMJUQqDkbwqo",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "u_est10",
+      "role": "student",
+      "email": "mateo.calderon@estudiante.uni.example",
+      "name": "Mateo Calderón Ulate",
+      "code": "B60110",
+      "status": "active",
+      "passwordHash": "pbkdf2$sha256$30000$-Een4alieJNV6GTT-X8SCA$_RuOhtp7h7BLzKAhCOKwzhlRXDTVqixBEjyB1TOu74o",
+      "mustChangePassword": false,
+      "tokenVersion": 1,
+      "failedLogins": 0,
+      "lockedUntil": null,
+      "createdAt": "2026-07-01T06:00:00.000Z",
+      "lastLoginAt": null
+    }
+  ],
+  "courses": [
+    {
+      "id": "c_qg1_01",
+      "code": "QU-0100",
+      "name": "Química General I",
+      "term": "2026-II",
+      "group": "01",
+      "teacherIds": [
+        "u_doc01"
+      ],
+      "startsAt": "2026-08-10T06:00:00.000Z",
+      "endsAt": "2026-12-12T05:59:00.000Z",
+      "labs": [
+        {
+          "labId": "p2",
+          "opensAt": "2026-08-17T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "PRACTICE"
+        },
+        {
+          "labId": "p3",
+          "opensAt": "2026-09-07T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "PRACTICE"
+        },
+        {
+          "labId": "p4",
+          "opensAt": "2026-09-28T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "EVALUATION"
+        }
+      ],
+      "archived": false
+    },
+    {
+      "id": "c_qg1_02",
+      "code": "QU-0100",
+      "name": "Química General I",
+      "term": "2026-II",
+      "group": "02",
+      "teacherIds": [
+        "u_doc02"
+      ],
+      "startsAt": "2026-08-10T06:00:00.000Z",
+      "endsAt": "2026-12-12T05:59:00.000Z",
+      "labs": [
+        {
+          "labId": "p2",
+          "opensAt": "2026-08-17T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "PRACTICE"
+        },
+        {
+          "labId": "p3",
+          "opensAt": "2026-09-07T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "PRACTICE"
+        },
+        {
+          "labId": "p4",
+          "opensAt": "2026-10-12T06:00:00.000Z",
+          "closesAt": "2026-12-12T05:59:00.000Z",
+          "mode": "EVALUATION"
+        }
+      ],
+      "archived": false
+    },
+    {
+      "id": "c_qg1_2026i",
+      "code": "QU-0100",
+      "name": "Química General I",
+      "term": "2026-I",
+      "group": "01",
+      "teacherIds": [
+        "u_doc01"
+      ],
+      "startsAt": "2026-03-02T06:00:00.000Z",
+      "endsAt": "2026-07-04T05:59:00.000Z",
+      "labs": [],
+      "archived": false
+    }
+  ],
+  "enrollments": [
+    {
+      "id": "e01",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est01",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e02",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est02",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e03",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est03",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e04",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est04",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e05",
+      "courseId": "c_qg1_02",
+      "studentId": "u_est05",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e06",
+      "courseId": "c_qg1_02",
+      "studentId": "u_est06",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e07",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est07",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e08",
+      "courseId": "c_qg1_02",
+      "studentId": "u_est08",
+      "status": "active",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e09",
+      "courseId": "c_qg1_2026i",
+      "studentId": "u_est09",
+      "status": "completed",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    },
+    {
+      "id": "e10",
+      "courseId": "c_qg1_01",
+      "studentId": "u_est10",
+      "status": "withdrawn",
+      "enrolledAt": "2026-08-03T15:00:00.000Z",
+      "updatedAt": "2026-08-03T15:00:00.000Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "s01",
+      "userId": "u_est01",
+      "courseId": "c_qg1_01",
+      "labId": "p2",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s01",
+      "score": 0.91,
+      "durationS": 3219,
+      "submittedAt": "2026-08-28T20:14:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.9600000000000001,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.91,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.8300000000000001,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "userId": "u_est01",
+      "courseId": "c_qg1_01",
+      "labId": "p3",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s02",
+      "score": 0.86,
+      "durationS": 3174,
+      "submittedAt": "2026-09-18T19:02:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.91,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.86,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.78,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s03",
+      "userId": "u_est02",
+      "courseId": "c_qg1_01",
+      "labId": "p2",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s03",
+      "score": 0.74,
+      "durationS": 3066,
+      "submittedAt": "2026-08-29T01:40:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.79,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.74,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.66,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s04",
+      "userId": "u_est02",
+      "courseId": "c_qg1_01",
+      "labId": "p2",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s04",
+      "score": 0.82,
+      "durationS": 3138,
+      "submittedAt": "2026-09-02T22:11:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.87,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.82,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.74,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s05",
+      "userId": "u_est03",
+      "courseId": "c_qg1_01",
+      "labId": "p2",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s05",
+      "score": 0.95,
+      "durationS": 3255,
+      "submittedAt": "2026-08-27T16:30:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 1,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.95,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.87,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "userId": "u_est03",
+      "courseId": "c_qg1_01",
+      "labId": "p3",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s06",
+      "score": 0.79,
+      "durationS": 3111,
+      "submittedAt": "2026-09-20T18:45:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.8400000000000001,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.79,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.7100000000000001,
+          "weight": 0.3
+        }
+      ]
+    },
+    {
+      "id": "s07",
+      "userId": "u_est05",
+      "courseId": "c_qg1_02",
+      "labId": "p2",
+      "mode": "PRACTICE",
+      "attemptId": "seed-s07",
+      "score": 0.68,
+      "durationS": 3012,
+      "submittedAt": "2026-08-30T21:05:00.000Z",
+      "components": [
+        {
+          "key": "safety",
+          "score": 0.7300000000000001,
+          "weight": 0.2
+        },
+        {
+          "key": "procedure",
+          "score": 0.68,
+          "weight": 0.5
+        },
+        {
+          "key": "notebook",
+          "score": 0.6000000000000001,
+          "weight": 0.3
+        }
+      ]
+    }
+  ],
+  "audit": [
+    {
+      "id": "a_seed",
+      "at": "2026-07-01T06:00:00.000Z",
+      "actorId": "u_admin",
+      "action": "seed",
+      "detail": "Datos ficticios de la beta"
+    }
+  ]
+}

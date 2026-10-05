@@ -6,6 +6,7 @@ import type { World } from '../simulation/entities/types';
 import type { NotebookState } from '../practices/practice-02/notebook';
 import type { LabActionEvent } from './runtime';
 import type { Settings } from './store';
+import { scopedKey } from './platform/scope';
 
 export const SAVE_KEY = 'quiklabs.practica2.intento.v1';
 
@@ -25,7 +26,7 @@ export interface SavedAttempt {
 
 export function saveAttempt(a: SavedAttempt): boolean {
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(a));
+    localStorage.setItem(scopedKey(SAVE_KEY), JSON.stringify(a));
     return true;
   } catch {
     return false;
@@ -34,7 +35,7 @@ export function saveAttempt(a: SavedAttempt): boolean {
 
 export function loadAttempt(): SavedAttempt | null {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(scopedKey(SAVE_KEY));
     if (!raw) return null;
     const a = JSON.parse(raw) as SavedAttempt;
     if (a.version !== 1 || !a.world?.vessels) return null;
@@ -46,7 +47,7 @@ export function loadAttempt(): SavedAttempt | null {
 
 export function clearAttempt(): void {
   try {
-    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(scopedKey(SAVE_KEY));
   } catch {
     /* noop */
   }

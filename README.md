@@ -113,6 +113,17 @@ simulador (`public/landing/*.webp`), las prácticas con su botón de entrada, ca
 docentes. Textos en `src/locales/es/landing.json`; fuente Nunito local (`@fontsource-variable/nunito`). Sin WebGL la
 página funciona igual, sin la escena; con «reducir movimiento» la escena queda quieta.
 
+**Modo oscuro:** la portada sigue el modo del sistema y tiene un botón sol/luna que lo fija para toda la aplicación
+(`src/app/theme.ts`: `data-theme` en `<html>`, recordado en este navegador). En oscuro, la escena 3D se rehace como un
+«plano técnico»: papel casi negro verdoso, líneas claras y los mismos acentos.
+
+## Plataforma académica (beta)
+
+El acceso es por **licencia universitaria**: no hay registro; la administración crea las cuentas (o importa el padrón) y
+los estudiantes entran mientras estén matriculados. Roles: administración, docente y estudiante, cada uno con su panel.
+Backend en el mismo Worker de Cloudflare (Hono + KV, datos iniciales en `worker/seed/data.json`). Cuentas de prueba,
+módulos, desarrollo y despliegue: [docs/BETA.md](docs/BETA.md).
+
 ## Práctica 3 — Mechero de Bunsen y prueba de cationes a la llama
 
 La aplicación abre con un **menú de laboratorios**; desde ahí se entra a la Práctica 2 o a la Práctica 3

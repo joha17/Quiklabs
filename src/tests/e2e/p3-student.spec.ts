@@ -6,6 +6,7 @@
  * despachando comandos al dominio.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { openPanel } from './auth';
 
 type AnyState = any;
 type Pt = { x: number; y: number };
@@ -155,7 +156,7 @@ test('recorrido completo de un estudiante en la Práctica 3', async ({ page }) =
   // ── Menú → Práctica 3 → configuración → EPP ──
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Mechero/ }).click();
   await page.getByLabel(/Práctica/).first().check();
   await page.locator('#p3seed').fill('20261004');

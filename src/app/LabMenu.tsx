@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShell, type LabId } from './shell';
 import { tList } from './i18n';
@@ -14,8 +14,11 @@ interface LabCard {
   saved: { mode: string; minutes: number; submitted: boolean } | null;
 }
 
-/** Tarjetas de los laboratorios disponibles (en la página de inicio). El estudiante elige la práctica y entra a su configuración. */
-export function LabCards() {
+/**
+ * Tarjetas de los laboratorios. En la portada van «bloqueadas» (el botón lleva a iniciar sesión: el acceso es por
+ * licencia); en los paneles se muestran solo las prácticas que la cuenta puede abrir, con su botón de entrada.
+ */
+export function LabCards({ locked = false, only, extra }: { locked?: boolean; only?: LabId[]; extra?: (id: LabId) => ReactNode } = {}) {
   const { t } = useTranslation();
   const open = useShell((s) => s.open);
   const cards = useMemo<LabCard[]>(() => {
@@ -30,7 +33,7 @@ export function LabCards() {
   }, []);
   return (
     <ul className="lab-cards" aria-label={t('menu.listLabel')}>
-      {cards.map((c) => (
+      {cards.filter((c) => !only || only.includes(c.id)).map((c) => (
         <li key={c.id}>
           <article className="lab-card">
             <div className={`lab-card-art art-${c.id}`} aria-hidden="true"><span>{c.number}</span></div>
@@ -43,15 +46,22 @@ export function LabCards() {
               </ul>
               <div className="lab-card-meta">
                 <span>⏱ {t(`${c.key}.duration`)}</span>
-                {c.saved && (
+                {c.saved && !locked && (
                   <span className="saved-pill">
                     {c.saved.submitted ? t('menu.submitted') : t('menu.inProgress', { mode: t(`mode.${c.saved.mode}`), min: c.saved.minutes })}
                   </span>
                 )}
               </div>
-              <button className="btn primary" onClick={() => open(c.id)} aria-label={t('menu.enterLabel', { title: t(`${c.key}.title`) })}>
-                {t('menu.enter')} →
-              </button>
+              {extra?.(c.id)}
+              {locked ? (
+                <button className="btn primary" onClick={() => open('login')} aria-label={t('landing.labs.loginLabel', { title: t(`${c.key}.title`) })}>
+                  {t('landing.labs.login')} →
+                </button>
+              ) : (
+                <button className="btn primary" onClick={() => open(c.id)} aria-label={t('menu.enterLabel', { title: t(`${c.key}.title`) })}>
+                  {t('menu.enter')} →
+                </button>
+              )}
             </div>
           </article>
         </li>

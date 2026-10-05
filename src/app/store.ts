@@ -20,6 +20,7 @@ import { clearAttempt, loadAttempt, saveAttempt, type SavedAttempt } from './per
 import type { Lab3D } from '../engine/Lab3D';
 import type { QualitySetting } from '../engine/quality';
 import { eventFeedback } from './feedback';
+import { reportSubmission } from './platform/report';
 
 export interface Settings {
   mode: PracticeMode;
@@ -334,6 +335,8 @@ export const useLab = create<LabState>()((set, get) => ({
     const evaluation = evaluate(rt.world, get().notebook, { ppeConfirmed: get().ppeConfirmed, mode: get().settings.mode });
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
+    // Estudiantes: la entrega queda registrada en su curso (plataforma).
+    void reportSubmission('p2', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
   },
 
   backToIntro() {

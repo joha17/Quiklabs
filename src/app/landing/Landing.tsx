@@ -8,6 +8,9 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@fontsource-variable/nunito';
 import { LabCards } from '../LabMenu';
+import { useTheme } from '../theme';
+import { useShell } from '../shell';
+import { usePlatform } from '../platform/session';
 import i18n, { tList } from '../i18n';
 import type { CamKey, LabBackdrop } from './scene/LabBackdrop';
 import { EQUIVALENCE_ML, TITRATION, phenolphthaleinPink, titrationPH } from './scene/titration';
@@ -141,6 +144,16 @@ function TitrationCard({ ml, manual, onStep, onAuto }: { ml: number; manual: boo
 
 export function Landing() {
   const { t } = useTranslation();
+  const { dark, toggle } = useTheme();
+  const open = useShell((s) => s.open);
+  const signedIn = usePlatform((s) => !!s.me);
+  const goLogin = (e: MouseEvent) => {
+    e.preventDefault();
+    open(signedIn ? 'panel' : 'login');
+  };
+  const loginText = signedIn ? t('landing.nav.panel') : t('landing.nav.login');
+  const darkRef = useRef(dark);
+  darkRef.current = dark;
   const canvas = useRef<HTMLCanvasElement>(null);
   const backdrop = useRef<LabBackdrop | null>(null);
   const [scrollMl, setScrollMl] = useState(0);
@@ -180,7 +193,7 @@ export function Landing() {
     void import('./scene/LabBackdrop').then(({ LabBackdrop }) => {
       if (disposed) return;
       try {
-        bd = new LabBackdrop(el, reduced());
+        bd = new LabBackdrop(el, reduced(), darkRef.current);
       } catch {
         el.dataset.failed = 'true';
         return;
@@ -224,6 +237,10 @@ export function Landing() {
     backdrop.current?.setTitration(ml);
   }, [ml]);
 
+  useEffect(() => {
+    backdrop.current?.setTheme(dark);
+  }, [dark]);
+
   const scrollTo = (id: string) => (e: MouseEvent) => {
     e.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
@@ -236,14 +253,25 @@ export function Landing() {
       <header className="lp-nav">
         <a className="lp-brand" href="#top" onClick={scrollTo('top')} aria-label={t('landing.brand')}>
           <svg className="lp-logo" viewBox="0 0 40 40" aria-hidden="true">
-            <path d="M15 4h10v3h-1.5v9.5l9.6 16a3 3 0 0 1-2.6 4.5H9.5a3 3 0 0 1-2.6-4.5l9.6-16V7H15z" fill="#f8f7f4" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+            <path d="M15 4h10v3h-1.5v9.5l9.6 16a3 3 0 0 1-2.6 4.5H9.5a3 3 0 0 1-2.6-4.5l9.6-16V7H15z" fill="var(--paper-2)" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
             <path className="lp-logo-liquid" d="M12 25h16l4.4 7.4a1.5 1.5 0 0 1-1.3 2.3H8.9a1.5 1.5 0 0 1-1.3-2.3z" />
           </svg>
           <span>{t('landing.brand')}</span>
         </a>
         <nav aria-label={t('landing.nav.label')} className="lp-nav-links">
           <a className="lp-chip" href="#labs" onClick={scrollTo('labs')}>{t('landing.nav.labs')}</a>
-          <a className="lp-chip" href="#teachers" onClick={scrollTo('teachers')}>{t('landing.nav.teachers')}</a>
+          <a className="lp-chip lp-chip-hide-sm" href="#teachers" onClick={scrollTo('teachers')}>{t('landing.nav.teachers')}</a>
+          <a className="lp-chip lp-chip-ink" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{loginText}</a>
+          <button type="button" className="lp-chip lp-theme" onClick={toggle} aria-pressed={dark}
+            aria-label={t('landing.nav.dark')} title={dark ? t('landing.nav.toLight') : t('landing.nav.toDark')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {dark ? (
+                <><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7" /></>
+              ) : (
+                <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+              )}
+            </svg>
+          </button>
         </nav>
       </header>
 
@@ -260,8 +288,8 @@ export function Landing() {
           <Pills k="landing.hero.statement" className="lp-xl" />
           <p className="lp-lead"><strong>{t('landing.hero.leadStrong')}</strong> {t('landing.hero.lead')}</p>
           <div className="lp-ctas">
-            <a className="lp-btn lp-btn-teal" href="#labs" onClick={scrollTo('labs')}>{t('landing.hero.primary')} →</a>
-            <a className="lp-btn" href="#how" onClick={scrollTo('how')}>{t('landing.hero.secondary')}</a>
+            <a className="lp-btn lp-btn-teal" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{signedIn ? loginText : t('landing.hero.primary')} →</a>
+            <a className="lp-btn" href="#labs" onClick={scrollTo('labs')}>{t('landing.hero.secondary')}</a>
           </div>
         </section>
 
@@ -290,7 +318,11 @@ export function Landing() {
           <p className="lp-lead">{t('landing.labs.lead')}</p>
           <div className="lp-labs">
             <h3 className="lp-labs-title">{t('menu.title')}</h3>
-            <LabCards />
+            <LabCards locked />
+            <div className="lp-access">
+              <p>{t('landing.labs.access')}</p>
+              <a className="lp-btn lp-btn-teal" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{loginText} →</a>
+            </div>
             <p className="lp-note">{t('menu.note')}</p>
           </div>
         </section>
@@ -342,7 +374,7 @@ export function Landing() {
               <div className="lp-kicker">{t('landing.teachers.kicker')}</div>
               <Pills k="landing.teachers.title" id="lp-teach-title" />
               <p className="lp-lead">{t('landing.teachers.lead')}</p>
-              <a className="lp-btn lp-btn-light" href="#labs" onClick={scrollTo('labs')}>{t('landing.teachers.cta')} →</a>
+              <a className="lp-btn lp-btn-light" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{signedIn ? loginText : t('landing.teachers.cta')} →</a>
             </div>
             <ul className="lp-checks">
               {tList('landing.teachers.items').map((x) => <li key={x}>{x}</li>)}

@@ -1,0 +1,2 @@
+# Copiar a .dev.vars para `npm run dev:api`. En producción: npx wrangler secret put SESSION_SECRET
+SESSION_SECRET=cambie-esto-por-una-cadena-aleatoria-de-al-menos-32-caracteres

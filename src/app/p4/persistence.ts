@@ -6,6 +6,7 @@ import type { P4World } from '../../simulation/reaction-world/types';
 import type { P4Notebook } from '../../practices/practice-04/notebook';
 import type { Practice04Event } from './runtime';
 import type { P4Settings } from './store';
+import { scopedKey } from '../platform/scope';
 
 export const P4_SAVE_KEY = 'quiklabs.practica4.intento.v1';
 
@@ -24,7 +25,7 @@ export interface SavedP4Attempt {
 
 export function saveP4Attempt(a: SavedP4Attempt): boolean {
   try {
-    localStorage.setItem(P4_SAVE_KEY, JSON.stringify(a));
+    localStorage.setItem(scopedKey(P4_SAVE_KEY), JSON.stringify(a));
     return true;
   } catch {
     return false;
@@ -33,7 +34,7 @@ export function saveP4Attempt(a: SavedP4Attempt): boolean {
 
 export function loadP4Attempt(): SavedP4Attempt | null {
   try {
-    const raw = localStorage.getItem(P4_SAVE_KEY);
+    const raw = localStorage.getItem(scopedKey(P4_SAVE_KEY));
     if (!raw) return null;
     const a = JSON.parse(raw) as SavedP4Attempt;
     if (a.version !== 1 || a.world?.kind !== 'practice-04') return null;
@@ -45,7 +46,7 @@ export function loadP4Attempt(): SavedP4Attempt | null {
 
 export function clearP4Attempt(): void {
   try {
-    localStorage.removeItem(P4_SAVE_KEY);
+    localStorage.removeItem(scopedKey(P4_SAVE_KEY));
   } catch {
     /* noop */
   }

@@ -1,0 +1,90 @@
+/* Plataforma: login (estética de la portada) y paneles (tokens de la app: siguen el modo claro/oscuro). */
+.pf-auth, .pf { --pf-font: 'Nunito Variable', 'Nunito', 'Inter', system-ui, sans-serif; }
+
+/* ── Login y cambio de contraseña ── */
+.pf-auth { min-height: 100%; display: grid; place-items: center; padding: 2rem 16px; background: var(--bg); }
+.pf-auth-card { width: min(440px, 100%); background: var(--panel); border-radius: 24px; box-shadow: var(--shadow); padding: clamp(1.4rem, 4vw, 2.2rem); display: grid; gap: 0.9rem; border: 1px solid var(--line); }
+.pf-auth-card h1 { margin: 0; font-family: var(--pf-font); font-weight: 900; font-size: 1.9rem; letter-spacing: -0.02em; }
+.pf-auth-mark { font-family: var(--pf-font); font-weight: 900; font-size: 2.1rem; line-height: 0.85; letter-spacing: -0.03em; color: var(--ink); }
+.pf-auth-lead { margin: 0; color: var(--ink-2); line-height: 1.5; }
+.pf-auth-note { margin: 0; font-size: 0.88rem; color: var(--ink-2); line-height: 1.5; border-top: 1px solid var(--line); padding-top: 0.9rem; }
+.pf-auth-back { color: var(--ink-2); font-size: 0.9rem; font-weight: 600; text-decoration: none; justify-self: start; }
+.pf-auth-back:hover { color: var(--ink); text-decoration: underline; }
+.pf-form { display: grid; gap: 0.8rem; }
+.pf-form label, .pf-field { display: grid; gap: 0.3rem; font-weight: 600; font-size: 0.92rem; }
+.pf-form input, .pf-form select, .pf-inline-form input, .pf-inline-form select, .pf-filters input, .pf-filters select, .pf-enroll select, .pf-table input, .pf-table select, .pf-csv {
+  font: inherit; color: var(--ink); background: var(--panel-2); border: 1.5px solid var(--line); border-radius: 10px; padding: 0.55rem 0.7rem; min-height: 2.6rem;
+}
+.pf-form input:focus, .pf-inline-form input:focus, .pf-csv:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.pf-pass { display: flex; gap: 0.4rem; }
+.pf-pass input { flex: 1; min-width: 0; }
+.pf-submit { min-height: 2.9rem; font-size: 1.02rem; border-radius: 999px; }
+.pf-hint { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+.pf-narrow { max-width: 460px; }
+
+.pf-notice { border-radius: 12px; padding: 0.65rem 0.85rem; font-weight: 600; font-size: 0.92rem; }
+.pf-notice-error { background: var(--alert-soft); color: var(--alert); }
+.pf-notice-ok { background: var(--ok-soft); color: var(--ok); }
+.pf-notice-info { background: var(--accent-soft); color: var(--ink); }
+
+/* ── Paneles ── */
+.pf { min-height: 100%; background: var(--bg); }
+.pf-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 1rem; padding: 0.7rem 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.pf-brand { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--pf-font); font-weight: 900; font-size: 1.2rem; color: var(--ink); text-decoration: none; }
+.pf-brand svg { width: 28px; height: 28px; }
+.pf-top-title { color: var(--ink-2); font-weight: 700; }
+.pf-top-user { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+.pf-user { display: flex; align-items: center; gap: 0.45rem; font-size: 0.92rem; }
+.pf-role { display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.78rem; font-weight: 800; background: var(--accent-soft); color: var(--ink); }
+.pf-role-admin { background: #f6be18; color: #0f1b1d; }
+.pf-role-teacher { background: #2b8c88; color: #fff; }
+.pf-main { width: min(1200px, 100%); margin: 0 auto; padding: 1.4rem 16px 3rem; display: grid; gap: 1.2rem; }
+.pf-h1 { margin: 0; font-family: var(--pf-font); font-weight: 900; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.02em; }
+.pf-section { display: grid; gap: 0.8rem; }
+.pf-section h2, .pf-inline-form h2 { margin: 0.4rem 0 0; font-family: var(--pf-font); font-size: 1.3rem; }
+.pf-muted { color: var(--ink-2); margin: 0; font-size: 0.92rem; }
+.pf-empty { color: var(--ink-2); margin: 0; padding: 1rem; background: var(--panel); border-radius: 14px; border: 1px dashed var(--line); }
+.pf-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.8rem; }
+.pf-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.1rem; display: grid; gap: 0.4rem; }
+.pf-card h3 { margin: 0; font-size: 1.08rem; }
+.pf-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+.pf-list li { display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; font-size: 0.92rem; }
+.pf-tag { display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.78rem; font-weight: 700; background: var(--panel-2); color: var(--ink-2); margin-left: 0.35rem; }
+.pf-tag-ok { background: var(--ok-soft); color: var(--ok); }
+.pf-tag-bad { background: var(--alert-soft); color: var(--alert); }
+.pf-lab-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; font-size: 0.85rem; color: var(--ink-2); }
+.pf-lab-meta .pf-tag { margin-left: 0; }
+
+.pf-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; }
+.pf-tab { font: inherit; font-weight: 700; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 0.4rem 0.95rem; cursor: pointer; }
+.pf-tab.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+
+.pf-table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 14px; overflow: hidden; font-size: 0.92rem; }
+.pf-table th, .pf-table td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.pf-table th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-2); background: var(--panel-2); }
+.pf-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.pf-table tr.pf-dim td { color: var(--ink-2); }
+.pf-table tr.pf-selected td { background: var(--accent-soft); }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: flex-end; }
+.pf-detail { max-width: 28rem; overflow-wrap: anywhere; color: var(--ink-2); }
+.pf-row-end { display: flex; justify-content: flex-end; }
+
+.pf-inline-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1rem; }
+.pf-inline-form h2 { flex-basis: 100%; }
+.pf-inline-form label, .pf-enroll label { display: grid; gap: 0.25rem; font-weight: 600; font-size: 0.85rem; }
+.pf-filters, .pf-enroll { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; }
+.pf-filters input { flex: 1; min-width: 14rem; }
+.pf-grow { flex: 1; min-width: 16rem; }
+.pf-csv { width: 100%; font-family: ui-monospace, Consolas, monospace; font-size: 0.88rem; }
+.pf-temp { display: block; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.06em; padding: 0.7rem; text-align: center; background: var(--panel-2); border-radius: 12px; user-select: all; }
+
+.pf-stats { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.7rem; }
+.pf-stats > div { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 0.9rem 1rem; }
+.pf-stats dt { font-size: 0.85rem; color: var(--ink-2); font-weight: 700; }
+.pf-stats dd { margin: 0.25rem 0 0; font-family: var(--pf-font); font-weight: 900; font-size: 1.9rem; }
+
+@media (max-width: 640px) {
+  .pf-top { flex-wrap: wrap; }
+  .pf-top-title { display: none; }
+  .pf-user strong { display: none; }
+}

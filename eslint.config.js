@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'playwright-report', 'test-results'] },
+  { ignores: ['dist', 'node_modules', 'playwright-report', 'test-results', '.wrangler'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -16,6 +16,16 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
+  // Backend (Cloudflare Worker): sin React ni DOM; el núcleo tampoco depende de Cloudflare (se prueba en Node).
+  {
+    files: ['worker/**/*.ts'],
+    languageOptions: { globals: { ...globals.worker } },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-restricted-imports': ['error', { patterns: [{ group: ['react', 'react-dom', 'three', '**/src/**'], message: 'El Worker no depende de la interfaz.' }] }],
+    },
+  },
+  { files: ['worker/**/*.mjs'], languageOptions: { globals: { ...globals.node } } },
   // Las pruebas e2e leen el estado del navegador sin tipos.
   { files: ['src/tests/**/*.ts'], rules: { '@typescript-eslint/no-explicit-any': 'off' } },
   // Regla de arquitectura (§3.3): el dominio científico no puede importar Three.js, Rapier, React ni el motor.

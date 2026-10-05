@@ -14,8 +14,9 @@ export default defineConfig({
     // WebGL acelerado por hardware también en modo sin ventana (si no, se usa el rasterizador por software).
     launchOptions: { args: ['--use-angle=default', '--enable-gpu', '--ignore-gpu-blocklist'] },
   },
+  // Sitio + API (Worker) con KV local vacío en cada ejecución; wrangler compila primero (build.command).
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: `node -e "require('fs').rmSync('.wrangler/e2e',{recursive:true,force:true})" && npx wrangler dev --port 4173 --persist-to .wrangler/e2e --var SESSION_SECRET:${'e2e-'.padEnd(48, 'x')}`,
     url: 'http://localhost:4173',
     reuseExistingServer: true,
     timeout: 180_000,

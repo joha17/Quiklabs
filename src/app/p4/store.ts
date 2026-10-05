@@ -20,6 +20,7 @@ import type { QualitySetting } from '../../engine/quality';
 import { ReactionRuntime } from './runtime';
 import { clearP4Attempt, loadP4Attempt, saveP4Attempt, type SavedP4Attempt } from './persistence';
 import { p4EventFeedback } from './feedback';
+import { reportSubmission } from '../platform/report';
 
 export interface P4Settings {
   mode: P4Mode;
@@ -353,6 +354,8 @@ export const useP4 = create<P4State>()((set, get) => ({
     const evaluation = evaluateP4(rt.world, get().notebook, { ppeConfirmed: get().ppeConfirmed });
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
+    // Estudiantes: la entrega queda registrada en su curso (plataforma).
+    void reportSubmission('p4', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
   },
 
   backToIntro() {

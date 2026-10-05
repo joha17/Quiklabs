@@ -1,0 +1,208 @@
+/**
+ * Plataforma académica (beta): API real (Hono) sobre un KV en memoria, con los datos ficticios del repositorio y la
+ * fecha fija del 5 de octubre de 2026.
+ */
+import { describe, expect, it } from 'vitest';
+import { createApp, COOKIE } from '../../../worker/app';
+import { MemoryKv } from '../../../worker/core/store';
+import type { Db } from '../../../worker/core/types';
+import seedJson from '../../../worker/seed/data.json';
+
+const seed = seedJson as Db;
+const SECRET = 'x'.repeat(48);
+const PW = { admin: 'Admin#Quiklabs2026', teacher: 'Docente2026!', student: 'Quimica2026!' };
+const EMAIL = {
+  admin: 'admin@quiklabs.example',
+  laura: 'laura.mendez@uni.example',
+  carlos: 'carlos.rojas@uni.example',
+  valeria: 'valeria.solano@estudiante.uni.example',
+  camila: 'camila.araya@estudiante.uni.example',
+  daniela: 'daniela.chaves@estudiante.uni.example',
+  josepablo: 'josepablo.ramirez@estudiante.uni.example',
+  lucia: 'lucia.fernandez@estudiante.uni.example',
+  mateo: 'mateo.calderon@estudiante.uni.example',
+};
+
+function platform(nowIso = '2026-10-05T18:00:00.000Z') {
+  let now = new Date(nowIso);
+  const kv = new MemoryKv();
+  const app = createApp({ kv, secret: SECRET, seed, now: () => now });
+  const call = async (method: string, path: string, opts: { body?: unknown; cookie?: string; raw?: string; type?: string } = {}) => {
+    const headers: Record<string, string> = {};
+    if (opts.cookie) headers.cookie = `${COOKIE}=${opts.cookie}`;
+    if (opts.body !== undefined || opts.raw !== undefined) headers['content-type'] = opts.type ?? 'application/json';
+    const res = await app.request(`http://localhost/api${path}`, { method, headers, body: opts.raw ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined) });
+    const set = res.headers.get('set-cookie') ?? '';
+    const token = new RegExp(`${COOKIE}=([^;]*)`).exec(set)?.[1];
+    const json = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+    return { status: res.status, json: json as Record<string, unknown> & Array<Record<string, unknown>>, token };
+  };
+  const loginAs = async (email: string, password: string) => {
+    const r = await call('POST', '/auth/login', { body: { email, password } });
+    return { ...r, cookie: r.token! };
+  };
+  return { call, loginAs, setNow: (iso: string) => (now = new Date(iso)), kv };
+}
+
+describe('autenticación', () => {
+  it('no existe registro público: solo login', async () => {
+    const p = platform();
+    expect((await p.call('POST', '/auth/register', { body: { email: 'x@y.z', password: 'Abcdefghij1' } })).status).toBe(404);
+    expect((await p.call('POST', '/auth/signup', { body: {} })).status).toBe(404);
+  });
+
+  it('admin entra; contraseña o correo equivocados dan el mismo error; 5 fallos bloquean 15 min', async () => {
+    const p = platform();
+    const ok = await p.loginAs(EMAIL.admin, PW.admin);
+    expect(ok.status).toBe(200);
+    expect(ok.json.user).toMatchObject({ role: 'admin', email: EMAIL.admin });
+    expect(JSON.stringify(ok.json)).not.toContain('passwordHash');
+    expect((await p.call('POST', '/auth/login', { body: { email: 'nadie@uni.example', password: 'x' } })).json.error).toBe('INVALID_CREDENTIALS');
+    for (let i = 0; i < 5; i++) expect((await p.call('POST', '/auth/login', { body: { email: EMAIL.laura, password: 'mala' } })).json.error).toBe('INVALID_CREDENTIALS');
+    const locked = await p.call('POST', '/auth/login', { body: { email: EMAIL.laura, password: PW.teacher } });
+    expect(locked.status).toBe(423);
+    p.setNow('2026-10-05T18:16:00.000Z');
+    expect((await p.loginAs(EMAIL.laura, PW.teacher)).status).toBe(200);
+  });
+
+  it('estudiantes: solo con matrícula activa en un curso vigente; suspendidos no entran', async () => {
+    const p = platform();
+    expect((await p.loginAs(EMAIL.valeria, PW.student)).status).toBe(200);
+    expect((await p.loginAs(EMAIL.lucia, PW.student)).json.error).toBe('NOT_ENROLLED'); // curso 2026-I terminado
+    expect((await p.loginAs(EMAIL.mateo, PW.student)).json.error).toBe('NOT_ENROLLED'); // retirado
+    expect((await p.loginAs(EMAIL.daniela, PW.student)).json.error).toBe('ACCOUNT_SUSPENDED');
+    // El motivo solo se revela con la contraseña correcta.
+    expect((await p.loginAs(EMAIL.lucia, 'mala')).json.error).toBe('INVALID_CREDENTIALS');
+  });
+
+  it('primer ingreso: la contraseña asignada debe cambiarse antes de usar la plataforma', async () => {
+    const p = platform();
+    const s = await p.loginAs(EMAIL.josepablo, PW.student);
+    expect((s.json.user as { mustChangePassword: boolean }).mustChangePassword).toBe(true);
+    expect((await p.call('GET', '/student/courses', { cookie: s.cookie })).json.error).toBe('MUST_CHANGE_PASSWORD');
+    expect((await p.call('POST', '/auth/password', { cookie: s.cookie, body: { current: PW.student, next: 'corta1' } })).json.error).toBe('PASSWORD_TOO_SHORT');
+    const ch = await p.call('POST', '/auth/password', { cookie: s.cookie, body: { current: PW.student, next: 'NuevaClave2026' } });
+    expect(ch.status).toBe(200);
+    // La sesión anterior queda invalidada; la nueva ficha funciona.
+    expect((await p.call('GET', '/student/courses', { cookie: s.cookie })).json.error).toBe('SESSION_EXPIRED');
+    expect((await p.call('GET', '/student/courses', { cookie: ch.token })).status).toBe(200);
+    expect((await p.loginAs(EMAIL.josepablo, 'NuevaClave2026')).status).toBe(200);
+  });
+
+  it('las escrituras exigen JSON (protección CSRF) y la ficha alterada se rechaza', async () => {
+    const p = platform();
+    expect((await p.call('POST', '/auth/login', { raw: `email=${EMAIL.admin}&password=${PW.admin}`, type: 'application/x-www-form-urlencoded' })).status).toBe(415);
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    const forged = a.cookie.replace(/.$/, (ch) => (ch === 'A' ? 'B' : 'A'));
+    expect((await p.call('GET', '/admin/users', { cookie: forged })).status).toBe(401);
+    expect((await p.call('GET', '/admin/users')).status).toBe(401);
+  });
+});
+
+describe('roles y permisos', () => {
+  it('cada rol solo accede a sus rutas', async () => {
+    const p = platform();
+    const st = await p.loginAs(EMAIL.valeria, PW.student);
+    const te = await p.loginAs(EMAIL.laura, PW.teacher);
+    expect((await p.call('GET', '/admin/users', { cookie: st.cookie })).status).toBe(403);
+    expect((await p.call('GET', '/admin/users', { cookie: te.cookie })).status).toBe(403);
+    expect((await p.call('GET', '/teacher/courses', { cookie: st.cookie })).status).toBe(403);
+    expect((await p.call('GET', '/student/courses', { cookie: te.cookie })).status).toBe(403);
+  });
+
+  it('prácticas visibles según el curso y sus fechas de apertura', async () => {
+    const p = platform();
+    const labs = (r: { json: Record<string, unknown> }) => (r.json.labs as Array<{ labId: string }>).map((l) => l.labId).sort();
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p2', 'p3', 'p4']); // grupo 01
+    expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p2', 'p3']); // grupo 02: P4 abre el 12/10
+    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['p2', 'p3', 'p4']);
+  });
+});
+
+describe('administración', () => {
+  it('alta de docente y estudiante con contraseña temporal, matrícula y primer ingreso', async () => {
+    const p = platform();
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    const t = await p.call('POST', '/admin/users', { cookie: a.cookie, body: { role: 'teacher', email: 'Nueva.Docente@uni.example', name: 'MSc. Ana Solís', code: 'D-2001' } });
+    expect(t.status).toBe(201);
+    expect((t.json.user as { email: string }).email).toBe('nueva.docente@uni.example');
+    expect((await p.call('POST', '/admin/users', { cookie: a.cookie, body: { role: 'student', email: 'nueva.docente@uni.example', name: 'Duplicado' } })).json.error).toBe('EMAIL_TAKEN');
+    const s = await p.call('POST', '/admin/users', { cookie: a.cookie, body: { role: 'student', email: 'nuevo@estudiante.uni.example', name: 'Pedro Nuevo', code: 'C01234' } });
+    const sid = (s.json.user as { id: string }).id;
+    // Sin matrícula todavía no puede entrar.
+    expect((await p.loginAs('nuevo@estudiante.uni.example', s.json.temporaryPassword as string)).json.error).toBe('NOT_ENROLLED');
+    expect((await p.call('POST', '/admin/courses/c_qg1_02/enrollments', { cookie: a.cookie, body: { studentIds: [sid] } })).status).toBe(200);
+    const first = await p.loginAs('nuevo@estudiante.uni.example', s.json.temporaryPassword as string);
+    expect(first.status).toBe(200);
+    expect((first.json.user as { mustChangePassword: boolean }).mustChangePassword).toBe(true);
+    const audit = await p.call('GET', '/admin/audit', { cookie: a.cookie });
+    expect((audit.json as unknown as Array<{ action: string }>).map((e) => e.action)).toEqual(expect.arrayContaining(['user.create', 'enrollment.add']));
+  });
+
+  it('suspender, restablecer contraseña y no quedarse sin administradores', async () => {
+    const p = platform();
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    const v = await p.loginAs(EMAIL.valeria, PW.student);
+    expect((await p.call('PATCH', '/admin/users/u_est01', { cookie: a.cookie, body: { status: 'suspended' } })).status).toBe(200);
+    expect((await p.call('GET', '/student/courses', { cookie: v.cookie })).status).toBe(401); // sesión cerrada al suspender
+    expect((await p.call('PATCH', '/admin/users/u_est01', { cookie: a.cookie, body: { status: 'active' } })).status).toBe(200);
+    const reset = await p.call('POST', '/admin/users/u_est01/reset-password', { cookie: a.cookie, body: {} });
+    expect((await p.loginAs(EMAIL.valeria, PW.student)).json.error).toBe('INVALID_CREDENTIALS');
+    expect((await p.loginAs(EMAIL.valeria, reset.json.temporaryPassword as string)).status).toBe(200);
+    expect((await p.call('PATCH', '/admin/users/u_admin', { cookie: a.cookie, body: { role: 'teacher' } })).json.error).toBe('CANNOT_DEMOTE_SELF');
+  });
+
+  it('importa el padrón en CSV, matricula y respeta el cupo de la licencia', async () => {
+    const p = platform();
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    const csv = 'carné,nombre,correo\nC10001,Ana Prueba Uno,ana.uno@estudiante.uni.example\nC10002,Beto Prueba Dos,beto.dos@estudiante.uni.example\nD-1042,Laura,laura.mendez@uni.example\nfila incompleta';
+    const r = await p.call('POST', '/admin/users/import', { cookie: a.cookie, body: { csv, courseId: 'c_qg1_02' } });
+    expect((r.json.created as unknown[]).length).toBe(2);
+    expect(r.json.enrolled).toBe(2);
+    expect((r.json.skipped as Array<{ reason: string }>).map((x) => x.reason)).toEqual(['NOT_A_STUDENT', 'MISSING_FIELDS']);
+    const ov = await p.call('GET', '/admin/overview', { cookie: a.cookie });
+    const used = (ov.json.seats as { used: number }).used;
+    expect((await p.call('PATCH', '/admin/license', { cookie: a.cookie, body: { studentSeats: used - 1 } })).json.error).toBe('SEATS_BELOW_USAGE');
+    await p.call('PATCH', '/admin/license', { cookie: a.cookie, body: { studentSeats: used } });
+    expect((await p.call('POST', '/admin/courses/c_qg1_01/enrollments', { cookie: a.cookie, body: { studentIds: ['u_est10'] } })).json.error).toBe('NO_SEATS_LEFT');
+  });
+
+  it('licencia vencida: docentes y estudiantes no entran; el administrador sí', async () => {
+    const p = platform('2027-07-02T12:00:00.000Z');
+    expect((await p.loginAs(EMAIL.laura, PW.teacher)).json.error).toBe('LICENSE_INACTIVE');
+    expect((await p.loginAs(EMAIL.admin, PW.admin)).status).toBe(200);
+  });
+});
+
+describe('docentes y estudiantes', () => {
+  it('entregas: solo prácticas abiertas del propio curso; el docente ve el libro de calificaciones de su grupo', async () => {
+    const p = platform();
+    const v = await p.loginAs(EMAIL.valeria, PW.student);
+    const ok = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId: 'att-1', score: 0.88, components: [], durationS: 3100 } });
+    expect(ok.status).toBe(201);
+    // Reenviar el mismo intento lo reemplaza.
+    await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId: 'att-1', score: 0.9, components: [], durationS: 3200 } });
+    expect((await p.call('GET', '/student/submissions', { cookie: v.cookie })).json.filter((s) => s.labId === 'p4')).toHaveLength(1);
+    const c = await p.loginAs(EMAIL.camila, PW.student);
+    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { courseId: 'c_qg1_02', labId: 'p4', mode: 'EVALUATION', attemptId: 'x', score: 1, components: [], durationS: 1 } })).json.error).toBe('LAB_CLOSED');
+    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { courseId: 'c_qg1_01', labId: 'p2', mode: 'PRACTICE', attemptId: 'y', score: 1, components: [], durationS: 1 } })).json.error).toBe('NOT_ENROLLED');
+    const laura = await p.loginAs(EMAIL.laura, PW.teacher);
+    const gb = await p.call('GET', '/teacher/courses/c_qg1_01/gradebook', { cookie: laura.cookie });
+    const row = (gb.json.rows as Array<{ student: { id: string }; cells: Record<string, { best: number } | null> }>).find((r) => r.student.id === 'u_est01')!;
+    expect(row.cells.p4?.best).toBeCloseTo(0.9);
+    expect(row.cells.p2?.best).toBeCloseTo(0.91);
+    const carlos = await p.loginAs(EMAIL.carlos, PW.teacher);
+    expect((await p.call('GET', '/teacher/courses/c_qg1_01/gradebook', { cookie: carlos.cookie })).json.error).toBe('NOT_YOUR_COURSE');
+  });
+
+  it('el docente abre una práctica de su grupo y queda disponible para sus estudiantes', async () => {
+    const p = platform();
+    const carlos = await p.loginAs(EMAIL.carlos, PW.teacher);
+    const courses = await p.call('GET', '/teacher/courses', { cookie: carlos.cookie });
+    const course = (courses.json as unknown as Array<{ id: string; labs: Array<{ labId: string; opensAt: string }> }>)[0];
+    const labs = course.labs.map((l) => (l.labId === 'p4' ? { ...l, opensAt: '2026-10-05T06:00:00.000Z' } : l));
+    expect((await p.call('PUT', `/teacher/courses/${course.id}/labs`, { cookie: carlos.cookie, body: { labs } })).status).toBe(200);
+    const c = await p.loginAs(EMAIL.camila, PW.student);
+    expect((c.json.labs as Array<{ labId: string }>).map((l) => l.labId)).toContain('p4');
+  });
+});

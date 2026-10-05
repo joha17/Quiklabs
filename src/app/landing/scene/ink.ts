@@ -7,21 +7,41 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
-export const PALETTE = {
-  paper: 0xebe8e2,
-  white: 0xf8f7f4,
-  ink: 0x0f1b1d,
-  grey: 0xc9c6bf,
-  steel: 0xd9dad6,
-  teal: 0x2b8c88,
-  tealLight: 0x5fbcb3,
-  coral: 0xf05a4a,
-  yellow: 0xf6be18,
-  pink: 0xe2408a,
-  blue: 0x3d7fe0,
-  flame: 0x6aa8ff,
-  flameCore: 0x8ef0ff,
-} as const;
+export interface Palette {
+  /** Rellenos claros (vidrio, mesada, NaOH incoloro). */
+  white: number;
+  ink: number;
+  grey: number;
+  steel: number;
+  /** Círculos grandes del fondo. */
+  disc: number;
+  /** Hidrógeno y varillas de las moléculas. */
+  atomH: number;
+  carbon: number;
+  teal: number;
+  tealLight: number;
+  coral: number;
+  yellow: number;
+  pink: number;
+  blue: number;
+  flame: number;
+  flameCore: number;
+  /** Luz hemisférica: cielo y suelo. */
+  sky: number;
+  ground: number;
+}
+
+const ACCENTS = { teal: 0x2b8c88, tealLight: 0x5fbcb3, coral: 0xf05a4a, yellow: 0xf6be18, pink: 0xe2408a, blue: 0x3d7fe0, flame: 0x6aa8ff, flameCore: 0x8ef0ff };
+
+/** Papel crema con tinta casi negra (como la referencia). */
+export const LIGHT_PALETTE: Palette = {
+  ...ACCENTS, white: 0xf8f7f4, ink: 0x0f1b1d, grey: 0xc9c6bf, steel: 0xd9dad6, disc: 0xf8f7f4, atomH: 0xf8f7f4, carbon: 0x3a4446, sky: 0xffffff, ground: 0xd8d2c6,
+};
+
+/** Modo oscuro: «plano técnico» con líneas claras sobre papel casi negro verdoso; los acentos se mantienen. */
+export const DARK_PALETTE: Palette = {
+  ...ACCENTS, teal: 0x34a39d, tealLight: 0x6fd0c6, white: 0x22302f, ink: 0xe6e4dc, grey: 0x405052, steel: 0x2d3b3d, disc: 0x182426, atomH: 0xdcdad3, carbon: 0x5c686b, sky: 0xdfe8e6, ground: 0x223033,
+};
 
 /** Materiales de línea compartidos (necesitan la resolución del lienzo). */
 export class InkKit {
@@ -29,7 +49,7 @@ export class InkKit {
   private gradient: THREE.DataTexture;
   private hullMats = new Map<number, THREE.MeshBasicMaterial>();
 
-  constructor() {
+  constructor(readonly pal: Palette = LIGHT_PALETTE) {
     // Sombreado de dos tonos (relleno plano con una sombra suave), como una ilustración.
     const data = new Uint8Array([200, 200, 200, 255, 255, 255, 255, 255]);
     this.gradient = new THREE.DataTexture(data, 2, 1, THREE.RGBAFormat);
@@ -38,7 +58,7 @@ export class InkKit {
     this.gradient.needsUpdate = true;
   }
 
-  line(width = 2, color: number = PALETTE.ink, opacity = 1): LineMaterial {
+  line(width = 2, color: number = this.pal.ink, opacity = 1): LineMaterial {
     const m = new LineMaterial({ color, linewidth: width, transparent: opacity < 1, opacity, worldUnits: false });
     this.lineMats.push(m);
     return m;
@@ -56,7 +76,7 @@ export class InkKit {
   hull(thickness: number): THREE.MeshBasicMaterial {
     const hit = this.hullMats.get(thickness);
     if (hit) return hit;
-    const m = new THREE.MeshBasicMaterial({ color: PALETTE.ink, side: THREE.BackSide });
+    const m = new THREE.MeshBasicMaterial({ color: this.pal.ink, side: THREE.BackSide });
     m.onBeforeCompile = (s) => {
       s.uniforms.uThick = { value: thickness };
       s.vertexShader = `uniform float uThick;\n${s.vertexShader}`.replace('#include <begin_vertex>', 'vec3 transformed = position + normalize(normal) * uThick;');
@@ -70,8 +90,8 @@ export class InkKit {
   glass(opts: { tint?: number; alpha?: number } = {}): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
       uniforms: {
-        uFill: { value: new THREE.Color(opts.tint ?? PALETTE.white) },
-        uInk: { value: new THREE.Color(PALETTE.ink) },
+        uFill: { value: new THREE.Color(opts.tint ?? this.pal.white) },
+        uInk: { value: new THREE.Color(this.pal.ink) },
         uAlpha: { value: opts.alpha ?? 0.22 },
       },
       vertexShader: /* glsl */ `
@@ -118,7 +138,7 @@ export class InkKit {
   }
 
   /** Polilínea de 2 px (por ejemplo, graduaciones o el contorno de un círculo). */
-  polyline(points: THREE.Vector3[], width = 2, color: number = PALETTE.ink, closed = false): LineSegments2 {
+  polyline(points: THREE.Vector3[], width = 2, color: number = this.pal.ink, closed = false): LineSegments2 {
     const pos: number[] = [];
     const n = closed ? points.length : points.length - 1;
     for (let i = 0; i < n; i++) {

@@ -6,7 +6,12 @@
       "label": "Principal",
       "labs": "Laboratorios",
       "teachers": "Docentes",
-      "cta": "Entrar al laboratorio"
+      "cta": "Entrar al laboratorio",
+      "dark": "Modo oscuro",
+      "toDark": "Cambiar a modo oscuro",
+      "toLight": "Cambiar a modo claro",
+      "login": "Iniciar sesión",
+      "panel": "Mi panel"
     },
     "hero": {
       "wordmark": [
@@ -45,8 +50,8 @@
       ],
       "leadStrong": "Practicas con las manos, no con diapositivas.",
       "lead": "Mide, vierte, calienta y observa con reactivos simulados. Cada color, precipitado, burbuja o cambio de temperatura sale de lo que realmente hiciste: si te equivocas, lo ves pasar, y entiendes por qué.",
-      "primary": "Explorar los laboratorios",
-      "secondary": "Cómo funciona"
+      "primary": "Iniciar sesión",
+      "secondary": "Ver las prácticas"
     },
     "gallery": {
       "label": "Capturas del simulador",
@@ -86,7 +91,10 @@
           "pill": "white"
         }
       ],
-      "lead": "Cada práctica sigue la guía del curso: preparación, ensayo, registro y entrega. Repítela en modo Práctica, síguela paso a paso en modo Guiado o hazla en modo Evaluación, sin pistas."
+      "lead": "Cada práctica sigue la guía del curso: preparación, ensayo, registro y entrega. Tu docente las abre para tu grupo; las haces en modo Práctica, Guiado o Evaluación, y tu entrega queda registrada en el curso.",
+      "login": "Iniciar sesión para entrar",
+      "loginLabel": "Iniciar sesión para entrar: {{title}}",
+      "access": "El acceso es por licencia de tu universidad: la administración crea tu cuenta con el padrón de matrícula y puedes usar los laboratorios mientras estés matriculado en el curso."
     },
     "features": {
       "kicker": "Lo que hay debajo",
@@ -196,14 +204,14 @@
       ],
       "lead": "Quiklabs acompaña la práctica presencial: sirve para preparar la sesión, repetirla después o evaluarla cuando no hay laboratorio disponible.",
       "items": [
-        "Modo Docente con escenarios de error activables",
-        "Evaluación por evidencia con rúbrica ponderada",
-        "Semillas reproducibles: el mismo intento para todo el grupo",
-        "Exportación del registro y la libreta en JSON",
-        "Accesible: teclado, subtítulos y apoyo de visión cromática",
-        "Sin cuentas ni servidor: los intentos quedan en el dispositivo"
+        "Paneles para administración, docentes y estudiantes",
+        "Cuentas creadas por la administración con el padrón de matrícula (sin registro libre)",
+        "Acceso solo mientras dure la matrícula y la licencia",
+        "El docente abre y cierra cada práctica para su grupo",
+        "Libro de calificaciones con exportación a CSV",
+        "Accesible: teclado, subtítulos y apoyo de visión cromática"
       ],
-      "cta": "Ver las prácticas"
+      "cta": "Iniciar sesión"
     },
     "footer": {
       "tagline": "Laboratorios virtuales de química para estudiantes de Química General I.",
