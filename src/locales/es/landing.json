@@ -1,0 +1,242 @@
+{
+  "landing": {
+    "skip": "Saltar al contenido",
+    "brand": "Quiklabs",
+    "nav": {
+      "label": "Principal",
+      "labs": "Laboratorios",
+      "teachers": "Docentes",
+      "cta": "Entrar al laboratorio"
+    },
+    "hero": {
+      "wordmark": [
+        "QUIK",
+        "LABS"
+      ],
+      "kicker": "Laboratorios virtuales de química en 3D · Química General I",
+      "scroll": "Desliza para entrar al laboratorio",
+      "statement": [
+        {
+          "t": "Quiklabs",
+          "pill": "teal"
+        },
+        {
+          "t": "construye"
+        },
+        {
+          "t": "laboratorios",
+          "pill": "white"
+        },
+        {
+          "t": "de química",
+          "pill": "coral"
+        },
+        {
+          "t": "para que llegues al"
+        },
+        {
+          "t": "laboratorio real",
+          "pill": "ink"
+        },
+        {
+          "t": "sabiendo qué hacer.",
+          "muted": true
+        }
+      ],
+      "leadStrong": "Practicas con las manos, no con diapositivas.",
+      "lead": "Mide, vierte, calienta y observa con reactivos simulados. Cada color, precipitado, burbuja o cambio de temperatura sale de lo que realmente hiciste: si te equivocas, lo ves pasar, y entiendes por qué.",
+      "primary": "Explorar los laboratorios",
+      "secondary": "Cómo funciona"
+    },
+    "gallery": {
+      "label": "Capturas del simulador",
+      "title": [
+        {
+          "t": "Dentro del",
+          "pill": "ink"
+        },
+        {
+          "t": "simulador",
+          "pill": "yellow"
+        }
+      ],
+      "prev": "Imagen anterior",
+      "next": "Imagen siguiente",
+      "goTo": "Ver imagen {{n}}",
+      "flame": "Mechero de Bunsen: aire, gas y llama azul con dos conos.",
+      "na": "Prueba a la llama: el sodio pinta la llama de amarillo intenso.",
+      "yellow": "Llama luminosa: con el collar cerrado, la llama es amarilla y deja hollín.",
+      "pink": "Neutralización: la fenolftaleína se vuelve rosa cuando sobra NaOH.",
+      "rack": "Precipitación: CaCO₃ blanco, Fe(OH)₃ pardo y Cu²⁺ azul, con las cantidades que mezclaste.",
+      "nail": "Desplazamiento: el clavo de hierro se cubre de cobre en 10 minutos.",
+      "swirl": "Remolinos rosados donde cae el NaOH, antes de agitar."
+    },
+    "labs": {
+      "kicker": "Prácticas disponibles",
+      "title": [
+        {
+          "t": "Tus prácticas",
+          "pill": "coral"
+        },
+        {
+          "t": "ya están"
+        },
+        {
+          "t": "sobre la mesada",
+          "pill": "white"
+        }
+      ],
+      "lead": "Cada práctica sigue la guía del curso: preparación, ensayo, registro y entrega. Repítela en modo Práctica, síguela paso a paso en modo Guiado o hazla en modo Evaluación, sin pistas."
+    },
+    "features": {
+      "kicker": "Lo que hay debajo",
+      "title": [
+        {
+          "t": "Química de verdad",
+          "pill": "teal"
+        },
+        {
+          "t": "en cada gota",
+          "pill": "white"
+        }
+      ],
+      "items": [
+        {
+          "title": "Calculada, no animada",
+          "text": "pH con Kw, equilibrios del carbonato, Ksp, ley de Hess y Beer–Lambert. Si pones de más, el resultado cambia."
+        },
+        {
+          "title": "Seguridad que se practica",
+          "text": "Bata, gafas, campana, etanol lejos de la llama y residuos al contenedor correcto. Los errores tienen consecuencias simuladas, no reales."
+        },
+        {
+          "title": "Errores que enseñan",
+          "text": "Más de 30 errores por práctica: gotero contaminado, clavo oxidado, NaOH equivocado, derrames. La retroalimentación muestra tus cálculos."
+        },
+        {
+          "title": "Ecuaciones con sentido",
+          "text": "El editor valida por átomos y carga: moleculares, iónicas completas, netas y semirreacciones, con espectadores tachados."
+        }
+      ]
+    },
+    "value": {
+      "title": [
+        {
+          "t": "Los errores que en el"
+        },
+        {
+          "t": "laboratorio real",
+          "pill": "ink"
+        },
+        {
+          "t": "no te puedes",
+          "pill": "coral"
+        },
+        {
+          "t": "permitir."
+        }
+      ],
+      "text": "En el laboratorio real cada reactivo cuesta, cada minuto cuenta y algunos errores queman. Aquí puedes acercar el etanol al mechero, olvidar la pantalla del magnesio o tirar el cobre al desagüe, y ver qué habría pasado. Después, en el laboratorio de verdad, ya sabes por qué no se hace.",
+      "stats": [
+        {
+          "n": "3",
+          "label": "prácticas completas de Química General I"
+        },
+        {
+          "n": "+90",
+          "label": "errores simulados con consecuencia visible"
+        },
+        {
+          "n": "0",
+          "label": "reactivos desperdiciados"
+        },
+        {
+          "n": "100 %",
+          "label": "en el navegador, sin instalar nada"
+        }
+      ]
+    },
+    "how": {
+      "kicker": "Cómo funciona",
+      "title": [
+        {
+          "t": "Tres pasos,",
+          "pill": "yellow"
+        },
+        {
+          "t": "como en el laboratorio",
+          "pill": "white"
+        }
+      ],
+      "steps": [
+        {
+          "title": "Prepárate",
+          "text": "Elige la práctica, ponte el EPP y revisa la mesada: cada instrumento está donde lo dejaría el técnico."
+        },
+        {
+          "title": "Trabaja con tus manos",
+          "text": "Toma, vierte, gotea, agita y calienta con el ratón, el dedo o el teclado. La cámara te acerca al menisco para leer sin paralaje."
+        },
+        {
+          "title": "Registra y entrega",
+          "text": "Anota tus observaciones y ecuaciones en la libreta. La evaluación usa lo que hiciste, con tus cantidades reales."
+        }
+      ]
+    },
+    "teachers": {
+      "kicker": "Para docentes",
+      "title": [
+        {
+          "t": "Pensado para",
+          "pill": "teal"
+        },
+        {
+          "t": "el aula"
+        }
+      ],
+      "lead": "Quiklabs acompaña la práctica presencial: sirve para preparar la sesión, repetirla después o evaluarla cuando no hay laboratorio disponible.",
+      "items": [
+        "Modo Docente con escenarios de error activables",
+        "Evaluación por evidencia con rúbrica ponderada",
+        "Semillas reproducibles: el mismo intento para todo el grupo",
+        "Exportación del registro y la libreta en JSON",
+        "Accesible: teclado, subtítulos y apoyo de visión cromática",
+        "Sin cuentas ni servidor: los intentos quedan en el dispositivo"
+      ],
+      "cta": "Ver las prácticas"
+    },
+    "footer": {
+      "tagline": "Laboratorios virtuales de química para estudiantes de Química General I.",
+      "privacy": "Funciona en tu navegador. Tus intentos se guardan solo en este dispositivo.",
+      "copy": "© {{year}} Quiklabs"
+    },
+    "sim": {
+      "title": [
+        {
+          "t": "Un simulador",
+          "pill": "teal"
+        },
+        {
+          "t": "de verdad"
+        },
+        {
+          "t": "detrás de cada gota",
+          "pill": "white"
+        }
+      ],
+      "lead": "Desliza y la bureta agrega NaOH 0,10 M a 25,0 mL de HCl 0,10 M con fenolftaleína. El pH se calcula con los moles reales: incolora hasta la equivalencia y rosa en cuanto sobra base. En el laboratorio virtual es igual, con todo lo que hagas.",
+      "card": "Neutralización en vivo",
+      "acid": "HCl 0,10 M · 25,0 mL + fenolftaleína",
+      "added": "NaOH añadido",
+      "ph": "pH",
+      "eq": "equivalencia",
+      "colorless": "incolora",
+      "palePink": "rosa pálido",
+      "pink": "rosa intenso",
+      "less": "Quitar 0,5 mL",
+      "more": "Agregar 0,5 mL",
+      "auto": "Seguir el scroll",
+      "live": "NaOH {{ml}} mL, pH {{ph}}, {{color}}"
+    }
+  }
+}

@@ -5,6 +5,7 @@
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BENCH } from '../../practices/practice-02/definition';
 import type { QualityLevel } from '../quality';
 import { QUALITY } from '../quality';
@@ -13,6 +14,27 @@ import { clockTexture, epoxyTexture, floorTexture, labelTexture, posterTexture, 
 export const WALL_Z = -66.5;
 export const BENCH_EXT = BENCH.length + 75;
 export const FLOOR_Y = -88;
+/** Recinto cerrado de la sala (coordenadas de escena): paredes laterales, frontal, suelo y techo. */
+export const ROOM = { xMin: -130, xMax: BENCH_EXT + 130, zBack: WALL_Z, zFront: 235, yFloor: FLOOR_Y, yCeil: 190 } as const;
+const ROOM_W = ROOM.xMax - ROOM.xMin;
+const ROOM_CX = (ROOM.xMin + ROOM.xMax) / 2;
+const ROOM_D = ROOM.zFront - ROOM.zBack;
+const ROOM_CZ = (ROOM.zFront + ROOM.zBack) / 2;
+const CAM_MARGIN = 14;
+
+/**
+ * Mantiene la cámara dentro de la sala: no atraviesa paredes, suelo ni techo, y no baja de la mesada.
+ * Se llama en cada fotograma después de actualizar los controles orbitales.
+ */
+export function confineCamera(camera: THREE.Camera) {
+  const p = camera.position;
+  p.x = THREE.MathUtils.clamp(p.x, ROOM.xMin + CAM_MARGIN, ROOM.xMax - CAM_MARGIN);
+  p.y = THREE.MathUtils.clamp(p.y, 1, ROOM.yCeil - CAM_MARGIN);
+  p.z = THREE.MathUtils.clamp(p.z, ROOM.zBack + 4, ROOM.zFront - CAM_MARGIN);
+}
+
+/** Límites comunes de los controles orbitales: la cámara queda delante de la mesada, mirándola. */
+export const ORBIT_LIMITS = { minDistance: 10, maxDistance: 190, minAzimuthAngle: -1.25, maxAzimuthAngle: 1.25 } as const;
 
 function box(w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number, shadow = true): THREE.Mesh {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -39,39 +61,59 @@ function instancedBoxes(size: [number, number, number], mat: THREE.Material, pos
 }
 
 /** `variant`: cartelería de la práctica (la sala y la mesada son las mismas). */
-export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' = 'p2'): THREE.Group {
+export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' | 'p4' = 'p2'): THREE.Group {
   const g = new THREE.Group();
   const detail = QUALITY[q].roomDetail;
   const L = BENCH.length;
   const D = BENCH.depth;
 
   // ── Suelo ──
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(1600, 700), new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 0.85 }));
+  const floorTex = floorTexture();
+  floorTex.repeat.set(ROOM_W / 80, ROOM_D / 117);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W, ROOM_D), new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85 }));
   floor.rotation.x = -Math.PI / 2;
-  floor.position.set(300, FLOOR_Y, 150);
+  floor.position.set(ROOM_CX, FLOOR_Y, ROOM_CZ);
   floor.receiveShadow = true;
   g.add(floor);
 
   // ── Pared trasera: azulejos abajo, pintura arriba ──
-  const tiles = tileTexture();
-  tiles.repeat.set(1600 / 30, 30 / 15);
-  const tileWall = new THREE.Mesh(new THREE.PlaneGeometry(1600, 30), new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.35 }));
-  tileWall.position.set(300, 15, WALL_Z);
-  tileWall.receiveShadow = true;
-  const paint = new THREE.Mesh(new THREE.PlaneGeometry(1600, 160), new THREE.MeshStandardMaterial({ color: 0xe4ebe7, roughness: 0.95 }));
-  paint.position.set(300, 110, WALL_Z - 0.01);
-  paint.receiveShadow = true;
-  const lowWall = new THREE.Mesh(new THREE.PlaneGeometry(1600, 90), new THREE.MeshStandardMaterial({ color: 0xcfd6db, roughness: 0.95 }));
-  lowWall.position.set(300, -45, WALL_Z - 0.02);
-  g.add(tileWall, paint, lowWall);
-  // Moldura y techo
-  g.add(box(1600, 6, 1.5, new THREE.MeshStandardMaterial({ color: 0xc9d1cd }), 300, 187, WALL_Z + 0.7, false));
-  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(1600, 700), new THREE.MeshStandardMaterial({ color: 0xf2f4f5, roughness: 1 }));
+  // Las cuatro paredes comparten materiales: azulejos a la altura de la mesada, pintura arriba y zócalo abajo.
+  const paintMat = new THREE.MeshStandardMaterial({ color: 0xe4ebe7, roughness: 0.95 });
+  const lowMat = new THREE.MeshStandardMaterial({ color: 0xcfd6db, roughness: 0.95 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: 0xc9d1cd });
+  const skirtMat = new THREE.MeshStandardMaterial({ color: 0x8e979e, roughness: 0.7 });
+  /** Pared de ancho `w` centrada en (x, z), girada `ry` (la cara visible mira hacia dentro de la sala). */
+  const wall = (w: number, x: number, z: number, ry: number) => {
+    const wg = new THREE.Group();
+    const tileMap = tileTexture();
+    tileMap.repeat.set(w / 30, 30 / 15);
+    const tile = new THREE.Mesh(new THREE.PlaneGeometry(w, 30), new THREE.MeshStandardMaterial({ map: tileMap, roughness: 0.35 }));
+    tile.position.set(0, 15, 0);
+    const up = new THREE.Mesh(new THREE.PlaneGeometry(w, ROOM.yCeil - 30), paintMat);
+    up.position.set(0, (ROOM.yCeil + 30) / 2, -0.01);
+    const low = new THREE.Mesh(new THREE.PlaneGeometry(w, 30 - FLOOR_Y), lowMat);
+    low.position.set(0, (FLOOR_Y + 0) / 2, -0.02);
+    for (const m of [tile, up, low]) m.receiveShadow = true;
+    wg.add(tile, up, low);
+    wg.add(box(w, 6, 1.5, trimMat, 0, ROOM.yCeil - 3, 0.7, false));
+    wg.add(box(w, 8, 1.2, skirtMat, 0, FLOOR_Y + 4, 0.6, false));
+    wg.position.set(x, 0, z);
+    wg.rotation.y = ry;
+    g.add(wg);
+    return wg;
+  };
+  wall(ROOM_W, ROOM_CX, WALL_Z, 0);
+  const leftWall = wall(ROOM_D, ROOM.xMin, ROOM_CZ, Math.PI / 2);
+  const rightWall = wall(ROOM_D, ROOM.xMax, ROOM_CZ, -Math.PI / 2);
+  const frontWall = wall(ROOM_W, ROOM_CX, ROOM.zFront, Math.PI);
+  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W, ROOM_D), new THREE.MeshStandardMaterial({ color: 0xf2f4f5, roughness: 1 }));
   ceiling.rotation.x = Math.PI / 2;
-  ceiling.position.set(300, 190, 150);
+  ceiling.position.set(ROOM_CX, ROOM.yCeil, ROOM_CZ);
   g.add(ceiling);
-  // Paneles de luz en el techo
-  const lightPanels = instancedBoxes([60, 1, 30], new THREE.MeshBasicMaterial({ color: 0xffffff }), [-60, 100, 260, 420, 580, 740].map((x) => [x, 189.4, -10] as [number, number, number]));
+  // Paneles de luz en el techo (dos filas)
+  const panelPos: Array<[number, number, number]> = [];
+  for (const z of [-10, 130]) for (const x of [-60, 100, 260, 420, 580, 740]) panelPos.push([x, ROOM.yCeil - 0.6, z]);
+  const lightPanels = instancedBoxes([60, 1, 30], new THREE.MeshBasicMaterial({ color: 0xffffff }), panelPos);
   lightPanels.castShadow = false;
   g.add(lightPanels);
 
@@ -169,6 +211,9 @@ export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' = 'p2'): THREE.
   if (variant === 'p3') {
     poster(posterTexture('GAS', ['Nunca buscar fugas', 'con una llama'], '#f2a900', 'ox'), 318, 60);
     poster(posterTexture('HCl', ['solo dentro de', 'la campana'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'p4') {
+    poster(posterTexture('MAGNESIO', ['No mirar la luz', 'directamente'], '#f2a900', 'goggles'), 318, 60);
+    poster(posterTexture('RESIDUOS', ['Cu y Fe nunca', 'al desagüe'], '#d0021b', 'nofood'), 318, 92);
   } else {
     poster(posterTexture('COMBURENTE', ['KNO₃: lejos de', 'combustibles'], '#f2a900', 'ox'), 318, 60);
     poster(posterTexture('PROHIBIDO', ['comer y beber'], '#d0021b', 'nofood'), 318, 92);
@@ -243,8 +288,108 @@ export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' = 'p2'): THREE.
   g.add(instancedBoxes([52, 62, 1.2], cabMat, doors));
   g.add(instancedBoxes([18, 1.4, 1], new THREE.MeshStandardMaterial({ color: 0x8a939b, metalness: 0.7, roughness: 0.3 }), handles));
   g.add(box(BENCH_EXT + 12, 6, 2, new THREE.MeshStandardMaterial({ color: 0x2b3238 }), (BENCH_EXT - 12) / 2, FLOOR_Y + 3, -1, false));
+  addRoomFixtures(g, leftWall, rightWall, frontWall, detail);
   if (q !== 'HIGH') simplifyMaterials(g, q);
+  mergeStatic(g);
   return g;
+}
+
+/**
+ * La sala es estática: las mallas opacas que comparten material se fusionan en una sola (una llamada de dibujo por
+ * material en lugar de una por pieza), así cerrar la sala con paredes y accesorios no encarece el fotograma.
+ */
+function mergeStatic(g: THREE.Group) {
+  g.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
+  const groups = new Map<string, THREE.Mesh[]>();
+  g.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || (m as THREE.InstancedMesh).isInstancedMesh || Array.isArray(m.material) || m.material.transparent) return;
+    const key = `${m.material.uuid}:${m.castShadow}:${m.receiveShadow}`;
+    const list = groups.get(key) ?? [];
+    list.push(m);
+    groups.set(key, list);
+  });
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    const geos = list.map((m) => {
+      const geo = m.geometry.clone();
+      geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld));
+      for (const name of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(name)) geo.deleteAttribute(name);
+      return geo.index ? geo : geo.setIndex([...Array(geo.attributes.position.count).keys()]);
+    });
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((x) => x.dispose());
+    if (!merged) continue;
+    const mesh = new THREE.Mesh(merged, list[0].material);
+    mesh.castShadow = list[0].castShadow;
+    mesh.receiveShadow = list[0].receiveShadow;
+    for (const m of list) {
+      m.removeFromParent();
+      m.geometry.dispose();
+    }
+    g.add(mesh);
+  }
+}
+
+/**
+ * Detalles de las paredes laterales y frontal (coordenadas locales de cada pared: x a lo ancho, y arriba, la cara
+ * visible hacia +z): puerta, ventana con luz de día, pizarra, ducha de seguridad, botiquín y percheros con batas.
+ * Dan escala y cierran la sala para que la vista quede en la mesada.
+ */
+function addRoomFixtures(g: THREE.Group, left: THREE.Group, right: THREE.Group, front: THREE.Group, detail: boolean) {
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x5d6b78, roughness: 0.5, metalness: 0.3 });
+  // Puerta (pared izquierda), con ventanilla y barra antipánico.
+  const doorMat = new THREE.MeshStandardMaterial({ color: 0x7a8f9e, roughness: 0.55 });
+  const door = box(95, 210, 3, doorMat, 40, FLOOR_Y + 105, 1.5);
+  left.add(door, box(101, 4, 4, frameMat, 40, FLOOR_Y + 212, 1.5, false));
+  left.add(box(4, 214, 4, frameMat, -10, FLOOR_Y + 107, 1.5, false), box(4, 214, 4, frameMat, 90, FLOOR_Y + 107, 1.5, false));
+  const vision = new THREE.Mesh(new THREE.PlaneGeometry(22, 48), new THREE.MeshStandardMaterial({ color: 0xbfd6e4, roughness: 0.1, metalness: 0.2 }));
+  vision.position.set(40, FLOOR_Y + 160, 3.05);
+  left.add(vision, box(70, 4, 4, new THREE.MeshStandardMaterial({ color: 0xd8dde1, metalness: 0.8, roughness: 0.25 }), 40, FLOOR_Y + 100, 5, false));
+  const exit = new THREE.Mesh(new THREE.PlaneGeometry(34, 12), new THREE.MeshStandardMaterial({ map: labelTextureSafe(['SALIDA'], '#1d7a44'), roughness: 0.6 }));
+  exit.position.set(40, FLOOR_Y + 232, 0.4);
+  left.add(exit);
+  // Botiquín y extintor de pared (pared izquierda).
+  left.add(box(30, 30, 10, new THREE.MeshStandardMaterial({ color: 0xf4f6f7, roughness: 0.4 }), -110, 70, 5));
+  left.add(box(10, 2.6, 0.4, new THREE.MeshStandardMaterial({ color: 0xc8202c }), -110, 70, 10.3, false), box(2.6, 10, 0.4, new THREE.MeshStandardMaterial({ color: 0xc8202c }), -110, 70, 10.3, false));
+
+  // Ventanales con luz de día (pared derecha).
+  const sky = new THREE.MeshBasicMaterial({ color: 0xd9ecf7 });
+  for (const wx of [-80, 50]) {
+    const pane = new THREE.Mesh(new THREE.PlaneGeometry(110, 90), sky);
+    pane.position.set(wx, 105, 0.3);
+    right.add(pane);
+    right.add(box(116, 4, 6, frameMat, wx, 58, 3, false), box(116, 4, 6, frameMat, wx, 152, 3, false));
+    for (const dx of [-56, 0, 56]) right.add(box(3, 96, 5, frameMat, wx + dx, 105, 2.5, false));
+    right.add(box(124, 2, 14, new THREE.MeshStandardMaterial({ color: 0xeef1f3, roughness: 0.6 }), wx, 56, 7, false));
+  }
+  // Ducha de seguridad (pared derecha, junto al fregadero).
+  const showerMat = new THREE.MeshStandardMaterial({ color: 0x2f9e57, roughness: 0.5 });
+  right.add(box(4, 230, 4, showerMat, 120, FLOOR_Y + 115, 6), box(4, 4, 30, showerMat, 120, FLOOR_Y + 228, 20, false));
+  const head = new THREE.Mesh(new THREE.CylinderGeometry(12, 7, 6, 20), showerMat);
+  head.position.set(120, FLOOR_Y + 222, 34);
+  right.add(head);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(20, 26), new THREE.MeshStandardMaterial({ map: labelTextureSafe(['DUCHA DE', 'SEGURIDAD'], '#1d7a44'), roughness: 0.7 }));
+  sign.position.set(96, 120, 0.3);
+  right.add(sign);
+
+  // Pared frontal (detrás de la cámara): pizarra y percheros con batas.
+  const board = box(260, 110, 2, new THREE.MeshStandardMaterial({ color: 0xf7f9fa, roughness: 0.25 }), 0, 110, 1);
+  front.add(board, box(266, 4, 4, frameMat, 0, 167, 1.6, false), box(266, 4, 4, frameMat, 0, 53, 1.6, false), box(260, 3, 8, frameMat, 0, 52, 4, false));
+  if (detail) {
+    const coatMat = new THREE.MeshStandardMaterial({ color: 0xf5f6f2, roughness: 0.85 });
+    for (const cx of [230, 260, 290, 320]) {
+      front.add(box(3, 3, 8, frameMat, cx, 150, 4, false));
+      front.add(box(24, 70, 6, coatMat, cx, 112, 6));
+    }
+  }
+  void g;
+}
+
+/** Cartel de texto blanco sobre banda de color (reutiliza `labelTexture`). */
+function labelTextureSafe(lines: string[], band: string): THREE.Texture {
+  return labelTexture(lines, { band, w: 256, h: 96 });
 }
 
 /**

@@ -80,6 +80,24 @@ Registro de ambigüedades resueltas eligiendo la opción más simple y segura (�
 | 74 | Aviso del tubo equivocado | El aviso de la espátula sobre un tubo con otro rótulo exige detenerse 0,45 s encima: pasar por encima camino al tubo correcto no avisa. |
 | 60 | Desplazamiento por borde | Arrastrar un objeto a menos de 40 px del borde desplaza la cámara lateralmente (como en v2). |
 
+## Práctica 4 — Reacciones químicas
+
+| # | Tema | Decisión |
+|---|---|---|
+| P4-1 | 2.5D → 3D | Se usa la escena 3D de las Prácticas 2 y 3 (R3F + Rapier), sus perfiles de cristalería y su controlador de arrastre. |
+| P4-2 | Motor químico | Motor genérico en `simulation/chemistry` (especies explícitas, reacciones balanceadas como grado de avance, equilibrios rápidos, Ksp) en lugar de reglas por experimento: los errores (gotero contaminado, NaOH equivocado, tubo sucio) producen su química sin casos especiales. |
+| P4-3 | Mezcla espacial | Cada recipiente tiene dos celdas («bulk» y «pluma»): lo añadido reacciona primero localmente (remolino rosa, precipitado donde cae la gota) y se homogeneiza según la agitación medida en la escena. |
+| P4-4 | Fe(OH)₃ | Ksp del hidróxido amorfo (4·10⁻³⁸) y vía desde FeOH²⁺; con 1:1 en volumen el OH⁻ es limitante y queda Fe³⁺ amarillo en el sobrenadante, como pide la especificación. |
+| P4-5 | Mechero | Se reutiliza el mundo de la Práctica 3 como sub-mundo (`w.gas`) y sus vistas (`FlameView`, `HoseView`) con una fuente de datos inyectada; los eventos del gas se reenvían con `params.gas`. |
+| P4-6 | Ecuaciones | Se validan por átomos y carga con `parseFormula` (no por texto); H₃O⁺ equivale a H⁺ + H₂O; los iones complejos solo se presentan conceptualmente. |
+| P4-7 | Evidencia | Las etapas cumplidas quedan fijadas en el mundo (`stage:*`) cuando se observan: desechar los residuos al final no borra la evidencia de los experimentos. |
+| P4-8 | Desechos | Un vertido continuo al mismo contenedor es una sola disposición; la categoría depende de todo lo que tenía el recipiente (también el sedimento). El cobre y los sólidos nunca van al desagüe. |
+| P4-9 | Gotero contaminado | Al apretar la perilla dentro del frasco el resto de HCl pasa al frasco (`BOTTLE_CONTAMINATED`); con 0,25 mL de HCl 0,10 M solo se forma HCO₃⁻ (menos CaCO₃). El CO₂ aparece solo si el ácido supera al carbonato, como en la realidad. |
+| P4-10 | Luz del Mg | La escena limita la exposición de la cámara y oscurece la vista si se mira la cinta sin pantalla (`LOOK_DIRECT`). |
+| P4-11 | Demostración | Igual que en la Práctica 2: mano virtual sobre el controlador real; respaldos con el comando equivalente solo si un gesto no responde (se registran en consola). |
+| P4-12 | Sala cerrada y cámara | La sala (las tres prácticas) es un recinto cerrado con paredes laterales y frontal (puerta, ventanales, ducha de seguridad, pizarra, batas); `ROOM` en `engine/scene/room.ts`. La cámara no sale del recinto (`confineCamera`), no rodea por detrás de la mesada (azimut ±1,25 rad), no pasa de la vista casi cenital y se aleja como máximo 190 cm (`ORBIT_LIMITS`). Niebla leve hacia el fondo y viñeta suave para centrar la vista en la mesada. La geometría estática de la sala se fusiona por material (`mergeStatic`) para no superar el presupuesto de llamadas de dibujo. |
+| P4-13 | Página de inicio | Inspirada en mindrobotics.com: papel crema, tinta casi negra, acentos verde azulado/coral/amarillo, logotipo gigante «QUIK LABS», titulares con palabras en píldoras de color y una escena Three.js en dibujo lineal (relleno plano de dos tonos, casco invertido para la silueta, aristas de 2 px con `LineSegments2`, vidrio con borde de tinta por ángulo de visión) fija detrás del contenido. La cámara interpola entre vistas por sección (`data-cam`); la sección de la valoración es alta y pegajosa, y su avance fija los mL de NaOH. El modelo es el mismo que el de la Práctica 4 (balance de protones con Kw; fenolftaleína entre pH 8,2 y 10), con pruebas propias. La página tiene paleta propia (no sigue el modo oscuro del sistema; los laboratorios sí). Three.js se carga en un fragmento aparte. Las imágenes de la galería son capturas reales del simulador (demostraciones y escenas montadas con comandos del dominio). `LabCards` conserva los botones de entrada, así los enlaces `#p2`/`#p3`/`#p4` y las pruebas no cambian. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

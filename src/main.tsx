@@ -11,6 +11,8 @@ import { useShell } from './app/shell';
 (window as unknown as { __shell: typeof useShell }).__shell = useShell;
 // La Práctica 3 se carga al abrirla; su store se expone en cuanto existe (window.__p3).
 void import('./app/p3/store').then((m) => ((window as unknown as { __p3: unknown }).__p3 = m.useP3));
+// La Práctica 4 también se carga al abrirla (window.__p4).
+void import('./app/p4/store').then((m) => ((window as unknown as { __p4: unknown }).__p4 = m.useP4));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -30,6 +30,16 @@
           "Li⁺, Na⁺, K⁺, Ca²⁺, Cu²⁺ y Ba²⁺ con asas de nicromio, vidrio de cobalto e incógnita."
         ],
         "duration": "35–50 min"
+      },
+      "p4": {
+        "title": "Reacciones químicas",
+        "subtitle": "Neutralización, precipitación, desplazamiento metálico y combustión del magnesio con ecuaciones balanceadas.",
+        "points": [
+          "A: HCl + NaOH con fenolftaleína (pH, remolinos rosados, calor de neutralización).",
+          "B: precipitación de CaCO₃ y Fe(OH)₃ (reactivo limitante, iones espectadores).",
+          "C: Fe/Cu²⁺ con cronómetro, combustión del Mg con pantalla y MgO + agua."
+        ],
+        "duration": "45–65 min"
       }
     }
   },

@@ -4,12 +4,13 @@ import { startBackgroundLoops, useLab } from './store';
 import { IntroScreen } from './practice-config/IntroScreen';
 import { LabScreen } from './hud/LabScreen';
 import { ReviewScreen } from './review/ReviewScreen';
-import { LabMenu } from './LabMenu';
+import { Landing } from './landing/Landing';
 import { useShell } from './shell';
 
 const P3App = lazy(() => import('./p3/P3App'));
+const P4App = lazy(() => import('./p4/P4App'));
 
-/** Portada con el menú de laboratorios; cada práctica conserva su propio flujo (configuración → laboratorio → revisión). */
+/** Página de inicio con los laboratorios; cada práctica conserva su propio flujo (configuración → laboratorio → revisión). */
 export function App() {
   const lab = useShell((s) => s.lab);
   const open = useShell((s) => s.open);
@@ -21,7 +22,14 @@ export function App() {
       </Suspense>
     );
   }
-  return <LabMenu />;
+  if (lab === 'p4') {
+    return (
+      <Suspense fallback={<div className="scene-loading" role="status">…</div>}>
+        <P4App onBack={() => open(null)} />
+      </Suspense>
+    );
+  }
+  return <Landing />;
 }
 
 /** Práctica 2: clasificación de la materia y técnicas de separación. */

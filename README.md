@@ -103,9 +103,25 @@ El intento (mundo, libreta, semilla, registro de acciones, estado del flujo) se 
 cada 5 s y al ocultar la pestaña. Al reanudar se restaura **en pausa**. No hay servidor ni cuentas.
 El registro y la libreta se pueden exportar en JSON desde la libreta y la pantalla de revisión.
 
+## Página de inicio
+
+La aplicación abre con la **página de inicio de Quiklabs** (`src/app/landing/`). Detrás del contenido hay una escena
+**Three.js en dibujo lineal** (`scene/LabBackdrop.ts`) que la cámara recorre con el scroll: un matraz gigante vertiendo,
+una **valoración HCl/NaOH con fenolftaleína** cuyo pH se calcula de verdad (`scene/titration.ts`) y avanza con el
+scroll o con los botones de la tarjeta, una mesada isométrica y moléculas. Incluye una galería de capturas reales del
+simulador (`public/landing/*.webp`), las prácticas con su botón de entrada, capacidades, pasos y una sección para
+docentes. Textos en `src/locales/es/landing.json`; fuente Nunito local (`@fontsource-variable/nunito`). Sin WebGL la
+página funciona igual, sin la escena; con «reducir movimiento» la escena queda quieta.
+
 ## Práctica 3 — Mechero de Bunsen y prueba de cationes a la llama
 
 La aplicación abre con un **menú de laboratorios**; desde ahí se entra a la Práctica 2 o a la Práctica 3
 (también por enlace directo: `#p2`, `#p3`). La Práctica 3 usa la misma pila (R3F + Rapier, XState, Zustand,
 i18next) y la misma estructura (dominio puro → comandos → escena), con modos Práctica, Guiado, Evaluación y Docente.
 Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA3.md](docs/PRACTICA3.md).
+
+## Práctica 4 — Reacciones químicas
+
+Neutralización, precipitación (CaCO₃ y Fe(OH)₃), redox Fe/Cu²⁺ y combustión e hidratación del Mg, con editor de
+ecuaciones validado por átomos y carga, clasificación de residuos y demostración automática (`#p4`).
+Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA4.md](docs/PRACTICA4.md).

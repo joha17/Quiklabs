@@ -10,7 +10,7 @@ import { FlameAudio } from './audio';
 import { QUALITY, type QualityLevel } from '../quality';
 import { materials, type MaterialSet } from '../renderers/materials';
 import type { FlameWorld } from '../../simulation/flame-world/types';
-import { activeEmitters, flameBaseSpectrum, type EmitterView } from '../../simulation/flame-world/world';
+import { activeEmitters, flameBaseSpectrum, type EmitterView, type FlameContext } from '../../simulation/flame-world/world';
 import { addComponents, applyFilter, emptySpectrum, observe } from '../../simulation/spectroscopy/spectrum';
 import type { GlassUniforms } from './flameMaterial';
 
@@ -85,6 +85,32 @@ export function huePair(raw: [number, number, number], filt: [number, number, nu
   return [a, b];
 }
 
+/** Colores de la llama base (sin y con vidrio de cobalto) a partir de su espectro. También los usa la Práctica 4. */
+export function computeFlameColors(w: FlameWorld, ctx: FlameContext): FlameColors {
+  const base = flameBaseSpectrum(w, ctx);
+  const exp = w.params.exposure;
+  const o = observe(base, exp);
+  const of = observe(applyFilter(base, ctx.cobalt, w.glass.cleanliness), exp);
+  const ch = emptySpectrum();
+  addComponents(ch, ctx.blueFlame, 0.02);
+  const c1 = observe(ch, exp);
+  const c2 = observe(applyFilter(ch, ctx.cobalt, w.glass.cleanliness), exp);
+  const [body, bodyF] = huePair(o.displayRgb, of.displayRgb, 1);
+  const [inner, innerF] = huePair(c1.displayRgb, c2.displayRgb, 1);
+  return { body, bodyF, inner, innerF };
+}
+
+/**
+ * Lo que necesitan las vistas de la llama y de la manguera (`FlameView`, `HoseView`): FlameLab3D lo cumple, y la
+ * Práctica 4 lo aporta con su sub-mundo del mechero.
+ */
+export interface BurnerViewSource {
+  frame(t: number, dt: number): FrameCtx3;
+  runtime: { world: FlameWorld; ctx: FlameContext };
+  hitMeshes: Set<THREE.Mesh>;
+  host: { getSelected(): string | null };
+}
+
 export class FlameLab3D {
   controller: FlameController;
   audio = new FlameAudio();
@@ -136,18 +162,7 @@ export class FlameLab3D {
     const key = `${w.burner.flameState}|${f.fuelFlow.toFixed(2)}|${f.airMix.toFixed(2)}|${w.glass.cleanliness.toFixed(2)}`;
     if (key === this.colorKey) return this.colors;
     this.colorKey = key;
-    const ctx = this.runtime.ctx;
-    const base = flameBaseSpectrum(w, ctx);
-    const exp = w.params.exposure;
-    const o = observe(base, exp);
-    const of = observe(applyFilter(base, ctx.cobalt, w.glass.cleanliness), exp);
-    const ch = emptySpectrum();
-    addComponents(ch, ctx.blueFlame, 0.02);
-    const c1 = observe(ch, exp);
-    const c2 = observe(applyFilter(ch, ctx.cobalt, w.glass.cleanliness), exp);
-    const [body, bodyF] = huePair(o.displayRgb, of.displayRgb, 1);
-    const [inner, innerF] = huePair(c1.displayRgb, c2.displayRgb, 1);
-    this.colors = { body, bodyF, inner, innerF };
+    this.colors = computeFlameColors(w, this.runtime.ctx);
     return this.colors;
   }
 

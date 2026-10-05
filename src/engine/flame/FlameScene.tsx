@@ -4,12 +4,12 @@
  * La llama es una malla paramétrica con shader (no imágenes fijas): altura, anchura, conos, color, luminosidad,
  * oscilación, separación de la boca y humo dependen del estado del dominio en cada fotograma.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, Physics, RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { FlameLabContext, useFlameLab } from './context';
-import type { FlameLab3D } from './FlameLab3D';
+import type { BurnerViewSource, FlameLab3D } from './FlameLab3D';
 import { huePair } from './FlameLab3D';
 import { coneProfile, createFlameMaterial, flameProfile, plumeProfile, setGlass } from './flameMaterial';
 import { createObjVisual } from './objects3d';
@@ -198,8 +198,10 @@ function Objects() {
 
 // ─────────────────────────── Manguera ───────────────────────────
 
-function HoseView() {
-  const lab = useFlameLab();
+/** Manguera de gas (también la usa la Práctica 4 con su sub-mundo del mechero). */
+export function HoseView({ src }: { src?: BurnerViewSource }) {
+  const ctxLab = useContext(FlameLabContext);
+  const lab = (src ?? ctxLab)!;
   const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: 0xd9612b, roughness: 0.55, emissive: 0x000000 }), []);
   const mesh = useMemo(() => {
     const m = new THREE.Mesh(new THREE.BufferGeometry(), mat);
@@ -289,8 +291,10 @@ interface Particle {
   max: number;
 }
 
-function FlameView() {
-  const lab = useFlameLab();
+/** Llama paramétrica, penachos de color, humo y chispas (también la usa la Práctica 4 con su sub-mundo del mechero). */
+export function FlameView({ src }: { src?: BurnerViewSource }) {
+  const ctxLab = useContext(FlameLabContext);
+  const lab = (src ?? ctxLab)!;
   const { scene } = useThree();
   const parts = useMemo(() => {
     const outerMat = createFlameMaterial(0.3);

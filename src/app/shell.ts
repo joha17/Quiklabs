@@ -1,11 +1,11 @@
 /**
  * Selección de laboratorio (portada con el menú de prácticas). El laboratorio abierto se refleja en el hash de la
- * URL (#p2, #p3) para poder enlazarlo directamente y para que «atrás» del navegador vuelva al menú.
+ * URL (#p2, #p3, #p4) para poder enlazarlo directamente y para que «atrás» del navegador vuelva al menú.
  */
 import { create } from 'zustand';
 
-export type LabId = 'p2' | 'p3';
-const LABS: LabId[] = ['p2', 'p3'];
+export type LabId = 'p2' | 'p3' | 'p4';
+const LABS: LabId[] = ['p2', 'p3', 'p4'];
 
 function fromHash(): LabId | null {
   if (typeof window === 'undefined') return null;

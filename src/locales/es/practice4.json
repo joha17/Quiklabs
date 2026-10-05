@@ -1,0 +1,1045 @@
+{
+  "p4": {
+    "app": {
+      "title": "Reacciones químicas",
+      "short": "Práctica 4 · Reacciones químicas",
+      "kicker": "Práctica 4",
+      "subtitle": "Neutralización, precipitación, desplazamiento metálico y combustión del magnesio: las observaciones salen de las cantidades que realmente mezcles."
+    },
+    "a11y": {
+      "canvas": "Laboratorio 3D de reacciones químicas. Flechas: elegir objeto; Intro: tomar o soltar; P: verter, gotear o la acción de la herramienta; A: agitar; Q/E: subir o bajar; 1–6: estaciones."
+    },
+    "intro": {
+      "lead": "Mide, vierte, gotea, agita, calienta y observa reactivos reales simulados. Cada cambio de color, precipitado, depósito metálico, variación de temperatura o luz surge de los moles que realmente transfieras: una mezcla incorrecta no da el mismo resultado que la ejecución ideal.",
+      "modules": [
+        "A. Neutralización: 5,0 mL de HCl 0,10 M + fenolftaleína + 5,0 mL de NaOH 0,10 M, con sonda de temperatura.",
+        "B1. Precipitación de CaCO₃ (Na₂CO₃ + CaCl₂ 0,15 M).",
+        "B2. Precipitación de Fe(OH)₃ (FeCl₃ + NaOH 0,15 M, proporción 1:1 de la guía).",
+        "C1. Desplazamiento de Cu²⁺ por un clavo de hierro (10 min con cronómetro).",
+        "C2. Combustión del magnesio con pinza para crisol, pantalla y cápsula.",
+        "C3. Hidratación del MgO y prueba de basicidad con fenolftaleína.",
+        "Ecuaciones moleculares, iónicas completas y netas; residuos separados."
+      ],
+      "duration": "Duración estimada: 45–65 min (la espera del clavo se puede acelerar).",
+      "controlsList": [
+        "Arrastrar un objeto lo lleva por encima de lo demás; soltar lo apoya, lo encaja en la gradilla o lo deja dentro de un recipiente.",
+        "Verter: acerca un recipiente con líquido a la boca de otro y detente: se acopla. Mantén P, el clic derecho o «Verter» para inclinarlo poco a poco; al soltar se endereza. La rueda o ⟲ ⟳ ajustan la inclinación.",
+        "Goteros: sácalos de su frasco gotero; sobre la boca del frasco, P aspira; sobre un tubo o vaso, cada P es una gota (mantener = gotas seguidas). Al soltarlo sobre su frasco vuelve a la tapa.",
+        "Varilla: acércala a un recipiente y entra sola; mover el puntero en círculos agita. Sonda: entra sola y queda midiendo (no debe tocar el fondo).",
+        "Tubo en la mano: sacudirlo de lado a lado lo agita (con fuerza salpica). A o «Agitar» agitan lo seleccionado.",
+        "Pinzas: P sujeta o suelta. Pinza para tubo: tubos y clavo. Pinza para crisol: cinta de Mg, cápsula y clavo.",
+        "Mechero (como en la Práctica 3): arrastrar las perillas o la rueda abre las válvulas; [ ] gas, , . aire; el encendedor chispea con P.",
+        "G coloca o retira la pantalla para Mg entre tu vista y el mechero.",
+        "«👁 Nivel del ojo» alinea la cámara con el menisco para leer la probeta sin paralaje.",
+        "Cámara: arrastrar el fondo para orbitar, rueda para acercar, doble clic en un objeto; 1–6 estaciones, J/L/I/K orbitar, +/− zoom, 0 restablecer."
+      ],
+      "teacher": "Opciones docentes",
+      "naoh": "Hidróxido de sodio (§2)",
+      "naohTwo": "Dos frascos: 0,10 M (neutralización) y 0,15 M (precipitación)",
+      "naohSingle": "Un solo frasco de NaOH {{c}} M",
+      "excessBase": "Permitir la demostración de exceso básico (rosa persistente)",
+      "feComparison": "Ensayo comparativo con 3,0 mL de NaOH 0,15 M (precipitación completa del Fe³⁺)",
+      "aluminum": "Variante con tira de aluminio (capa pasivante)",
+      "drain": "Permitir el desagüe para la disolución neutralizada (pH 6–8 comprobado)",
+      "nitride": "Modo avanzado: fracción pequeña de Mg₃N₂ al quemar en aire",
+      "scenarios": "Escenarios de error para detectar",
+      "seedHelp": "La misma semilla reproduce el volumen de gota, el óxido del clavo, la cinta de Mg y la variabilidad del intento."
+    },
+    "mode": {
+      "PRACTICE_desc": "Retroalimentación de consecuencias, revisión de la libreta y validación de ecuaciones.",
+      "GUIDED_desc": "Pasos de cada etapa y pistas; la etapa avanza con lo que realmente haces.",
+      "EVALUATION_desc": "Sin pistas ni volúmenes exactos (solo graduaciones) hasta la entrega; las alertas de seguridad siempre se muestran.",
+      "DEBUG_desc": "Panel docente con especies, moles, pH, temperatura, Q/Ksp, avance de reacción y balance."
+    },
+    "scenario": {
+      "WET_BEAKER": "Beaker mal escurrido (1,5 mL de agua)",
+      "CONTAMINATED_DROPPER": "Gotero del Na₂CO₃ con restos de ácido",
+      "RUSTY_NAIL": "Clavo muy oxidado",
+      "DIRTY_TUBE": "Tubo 2 con restos de otra disolución",
+      "CRACKED_HOSE": "Manguera de gas agrietada"
+    },
+    "ppe": {
+      "lead": "Antes de empezar: bata, gafas, cabello recogido y calzado cerrado. HCl y NaOH son corrosivos incluso diluidos; FeCl₃ irrita y mancha; la luz del magnesio es muy intensa.",
+      "gloves": "Guantes (para residuos y lo que indique el protocolo)",
+      "note": "Los guantes también se pueden poner desde el panel de seguridad."
+    },
+    "mgwarn": {
+      "title": "Combustión del magnesio",
+      "items": [
+        "Emite una luz blanca extremadamente intensa: no la mires directamente.",
+        "Coloca la pantalla para Mg entre tu vista y el mechero (tecla G o botón de la pantalla).",
+        "Sujeta la cinta SOLO con la pinza para crisol; nunca con la pinza para tubo ni con la mano.",
+        "Pon la cápsula de porcelana debajo para recoger el residuo; la fenolftaleína (etanol) debe estar lejos.",
+        "En la simulación la luz está limitada para no deslumbrarte; aun así se registra si miras sin pantalla."
+      ],
+      "accept": "Entendido"
+    },
+    "mgveil": {
+      "direct": "Luz intensa: estás mirando la combustión sin la pantalla",
+      "shielded": "Combustión del Mg — observación a través de la pantalla"
+    },
+    "restored": {
+      "text": "El intento se restauró en un estado seguro: el mechero quedó apagado con el gas cerrado y los vertidos detenidos. Las reacciones lentas no avanzaron mientras la aplicación estuvo cerrada."
+    },
+    "settings": {
+      "reducedMotion": "Reducir movimiento y destellos (remolinos, partículas, luz del Mg)",
+      "colorAid": "Apoyo de visión cromática: descripción del color y la turbidez en la libreta"
+    },
+    "hud": {
+      "speedNote": "se pausa sola mientras manipulas, viertes o arde el Mg"
+    },
+    "sw": {
+      "title": "Cronómetro",
+      "start": "Iniciar",
+      "stop": "Detener",
+      "reset": "Reiniciar cronómetro"
+    },
+    "station": {
+      "A": "A · Neutralización",
+      "B": "B · Precipitación",
+      "C": "C · Desplazamiento Fe/Cu",
+      "D": "D · Combustión del Mg",
+      "E": "E · Residuo del Mg",
+      "F": "F · Residuos"
+    },
+    "zone": {
+      "neutral": "Neutralización",
+      "precip": "Precipitación",
+      "redox": "Desplazamiento metálico",
+      "mg": "Combustión del magnesio",
+      "waste": "Residuos y limpieza",
+      "safety": "Seguridad"
+    },
+    "stage": {
+      "INTRO": "Inicio",
+      "PPE_CHECK": "Equipo de protección",
+      "PPE_AND_SETUP": "EPP y preparación",
+      "NEUTRALIZATION": "A · Neutralización",
+      "PRECIPITATION_CACO3": "B1 · Precipitación de CaCO₃",
+      "PRECIPITATION_FEOH3": "B2 · Precipitación de Fe(OH)₃",
+      "REDOX_FE_CU": "C1 · Desplazamiento Fe/Cu²⁺",
+      "MAGNESIUM_SETUP": "C2 · Preparación del Mg",
+      "MAGNESIUM_COMBUSTION": "C2 · Combustión del Mg",
+      "MAGNESIUM_HYDRATION": "C3 · MgO + agua",
+      "EQUATION_ANALYSIS": "Ecuaciones y análisis",
+      "WASTE_DISPOSAL": "Residuos y cierre",
+      "NOTEBOOK": "Libreta y entrega",
+      "SUBMISSION": "Entrega",
+      "REVIEW": "Revisión"
+    },
+    "guide": {
+      "PPE_AND_SETUP": [
+        "Confirma el EPP (bata, gafas, cabello, calzado).",
+        "Selecciona el beaker de 100 mL y pulsa «Inspeccionar»: debe estar limpio y seco.",
+        "Ubica los frascos: HCl 0,10 M, NaOH 0,10 M y la fenolftaleína (en etanol, lejos del mechero)."
+      ],
+      "NEUTRALIZATION": [
+        "Vierte HCl en la probeta de 10 mL hasta 5,0 mL (usa «Nivel del ojo» para leer el menisco).",
+        "Vierte la probeta en el beaker.",
+        "Saca el gotero de la fenolftaleína y añade dos gotas; agita con la varilla.",
+        "Mete la sonda en el beaker y anota la temperatura inicial.",
+        "Mide 5,0 mL de NaOH 0,10 M en otra probeta (o lava la primera).",
+        "Añádelo poco a poco mientras agitas: observa los remolinos rosados que desaparecen.",
+        "Registra el color final, los volúmenes y la temperatura final."
+      ],
+      "PRECIPITATION_CACO3": [
+        "Toma el gotero del Na₂CO₃ y suelta 20 gotas (≈ 1,0 mL) en un tubo limpio. Rotúlalo B1.",
+        "Con el gotero del CaCl₂ (¡otro gotero!) añade 20 gotas.",
+        "Observa la turbidez blanca; agita suavemente y deja sedimentar."
+      ],
+      "PRECIPITATION_FEOH3": [
+        "En un segundo tubo limpio: 20 gotas de FeCl₃ 0,15 M. Rotúlalo B2.",
+        "Añade 20 gotas de NaOH 0,15 M (el gotero del frasco de 0,15 M).",
+        "Observa el precipitado marrón rojizo y el color del sobrenadante. ¿Qué reactivo limita?"
+      ],
+      "REDOX_FE_CU": [
+        "Lava la probeta si la usaste con otro reactivo y mide 2,5 mL de CuSO₄ 0,25 M; viértelos en un tubo (rotúlalo C1).",
+        "Inspecciona el clavo; si tiene óxido, llévale la lija y pulsa P varias veces.",
+        "Con la pinza para tubo toma el clavo, llévalo sobre el tubo y suéltalo (P).",
+        "Inicia el cronómetro y observa al menos 10 minutos (puedes acelerar el tiempo con ×10 o ×20).",
+        "Registra el depósito rojizo y el cambio de color de la disolución."
+      ],
+      "MAGNESIUM_SETUP": [
+        "Ubica extintor, manta y corte de gas; enciende la extracción.",
+        "Inspecciona la manguera y el mechero (válvulas cerradas) y conecta la manguera.",
+        "Enciende como en la Práctica 3: aire cerrado, llave de mesa, encendedor en la boca, aguja poco a poco; luego abre el aire para una llama azul.",
+        "Lee la advertencia del Mg, coloca la pantalla (G) y deja la cápsula junto al mechero.",
+        "Toma la cinta de Mg con la pinza para crisol."
+      ],
+      "MAGNESIUM_COMBUSTION": [
+        "Lleva el extremo de la cinta a la zona más caliente (sobre el cono interno).",
+        "Cuando encienda, retírala parcialmente de la llama y mantenla sobre la cápsula.",
+        "Observa a través de la pantalla; deja que termine de arder.",
+        "Suelta la ceniza sobre la cápsula (P con la pinza) y apaga el mechero (aire, aguja, llave de mesa)."
+      ],
+      "MAGNESIUM_HYDRATION": [
+        "Espera a que la cápsula y el residuo estén fríos.",
+        "Mide 5,0 mL de agua destilada con la piseta en una probeta y viértelos en la cápsula.",
+        "Agita con la varilla y añade dos gotas de fenolftaleína.",
+        "Observa la suspensión blanca y el color rosado."
+      ],
+      "EQUATION_ANALYSIS": [
+        "En la libreta, pestaña «Ecuaciones»: escribe las ecuaciones moleculares, iónicas completas y netas.",
+        "Tacha los iones espectadores en la iónica completa y escribe las semirreacciones del redox.",
+        "Responde el análisis: reactivo limitante, sobrantes y evidencias."
+      ],
+      "WASTE_DISPOSAL": [
+        "Comprueba el pH de la disolución neutralizada con el papel indicador.",
+        "Cu²⁺, Cu y el clavo: contenedor de METALES. Fe³⁺ y Fe(OH)₃: SALES DE HIERRO.",
+        "CaCO₃ y MgO/Mg(OH)₂: SÓLIDOS. Ácidos y bases neutralizados: ÁCIDOS Y BASES.",
+        "Nada con metales al desagüe. Mechero apagado y llave de mesa cerrada."
+      ],
+      "NOTEBOOK": [
+        "Completa la libreta y revisa las ecuaciones.",
+        "Lee la sección de complejos (conceptual).",
+        "Entrega: no se permite con el mechero encendido, gas abierto o residuos sin clasificar."
+      ]
+    },
+    "obj": {
+      "bottle": "Frasco de {{r}}",
+      "dropperBottle": "Frasco gotero de {{r}}",
+      "dropper": "Gotero de {{r}}",
+      "tube": "Tubo de ensayo {{n}}",
+      "cyl10": "Probeta de 10,0 mL",
+      "cyl25": "Probeta de 25,0 mL",
+      "beaker": "Beaker de 100 mL",
+      "capsule": "Cápsula de porcelana",
+      "tile": "Soporte refractario",
+      "rod": "Varilla de vidrio (agitador)",
+      "probe": "Sonda digital de temperatura",
+      "washBottle": "Piseta con agua destilada",
+      "rack": "Gradilla",
+      "towel": "Toallas de papel",
+      "phPaper": "Papel indicador de pH",
+      "nail": "Clavo de hierro",
+      "alStrip": "Tira de aluminio",
+      "nailDish": "Vidrio de reloj del clavo",
+      "sandpaper": "Lija fina",
+      "tubeTongs": "Pinza para tubo",
+      "crucibleTongs": "Pinza para crisol",
+      "mgRibbon": "Cinta de magnesio",
+      "mgDish": "Plato de las cintas de Mg",
+      "shield": "Pantalla para Mg",
+      "sink": "Desagüe (fregadero)",
+      "bench": "la mesada",
+      "waste": "Contenedor de residuos",
+      "waste_metals": "Residuos: metales (Cu²⁺, Cu, Fe)",
+      "waste_iron": "Residuos: sales de hierro",
+      "waste_acidbase": "Residuos: ácidos y bases",
+      "waste_solids": "Residuos: sólidos inorgánicos",
+      "waste_glass": "Vidrio roto"
+    },
+    "tag": {
+      "tube": "Tubo",
+      "dropper": "Gotero",
+      "cylinder": "Probeta",
+      "beaker": "Beaker",
+      "capsule": "Cápsula",
+      "rod": "Varilla",
+      "probe": "Sonda",
+      "washBottle": "Piseta",
+      "waste": "Residuos",
+      "sink": "Desagüe",
+      "towel": "Toallas",
+      "phPaper": "Papel pH",
+      "nail": "Clavo",
+      "alStrip": "Tira de Al",
+      "sandpaper": "Lija",
+      "tubeTongs": "Pinza tubo",
+      "crucibleTongs": "Pinza crisol",
+      "mgRibbon": "Cinta Mg",
+      "shield": "Pantalla"
+    },
+    "label": {
+      "B1": "B1 · CaCO₃",
+      "B2": "B2 · Fe(OH)₃",
+      "C1": "C1 · Fe/Cu",
+      "B2x": "B2 · 3 mL NaOH",
+      "otro": "Otro"
+    },
+    "color": {
+      "incolora": "incolora",
+      "rosa_palido": "rosa pálido",
+      "rosa": "rosa",
+      "fucsia": "fucsia",
+      "amarillo_palido": "amarillo pálido",
+      "amarilla": "amarilla",
+      "naranja": "anaranjada",
+      "azul_palido": "azul pálido",
+      "azul": "azul",
+      "verde_palido": "verde pálido",
+      "verdosa": "verdosa",
+      "blanca": "blanca",
+      "marron_rojizo": "marrón rojizo",
+      "gris": "gris",
+      "rojizo_cobre": "rojizo (cobre)"
+    },
+    "solid": {
+      "blanco": "blanco",
+      "marron": "marrón rojizo",
+      "cobrizo": "cobrizo",
+      "azul": "azul",
+      "verdoso": "verdoso",
+      "gris": "gris"
+    },
+    "species": {
+      "CaCO3(s)": "CaCO₃ (blanco)",
+      "Fe(OH)3(s)": "Fe(OH)₃ (marrón rojizo)",
+      "Cu(OH)2(s)": "Cu(OH)₂ (azul)",
+      "Ca(OH)2(s)": "Ca(OH)₂ (blanco)",
+      "CuCO3(s)": "carbonato de cobre (verde azulado)",
+      "Fe(OH)2(s)": "Fe(OH)₂ (verdoso)",
+      "Mg(OH)2(s)": "Mg(OH)₂ (blanco)",
+      "MgCO3(s)": "MgCO₃ (blanco)",
+      "Al(OH)3(s)": "Al(OH)₃ (blanco gelatinoso)"
+    },
+    "desc": {
+      "empty": "vacío",
+      "film": "solo una película de líquido en las paredes",
+      "hasLiquid": "contiene líquido (lee la graduación)",
+      "ml": "≈ {{ml}} mL",
+      "swirl": "zona {{c}} sin mezclar",
+      "suspension": "sólido {{c}} en suspensión {{level}}",
+      "dense": "densa",
+      "moderate": "moderada",
+      "slight": "leve",
+      "localCloud": "nube de precipitado donde cayó el reactivo",
+      "sediment": "sedimento {{c}} en el fondo",
+      "bubbles": "burbujas de gas",
+      "broken": "roto: llevar los fragmentos al contenedor de vidrio",
+      "disposed": "desechado en {{to}}",
+      "contaminated": "posiblemente contaminado",
+      "open": "frasco abierto (gotero fuera)",
+      "phPaper": "papel indicador: pH ≈ {{ph}}",
+      "whiteResidue": "residuo sólido blanco",
+      "sanded": "lijado (metal brillante)",
+      "rusty": "con óxido rojizo opaco",
+      "shiny": "superficie metálica",
+      "copperCoat": "recubierto de cobre rojizo",
+      "copperSpots": "puntos rojizos de cobre",
+      "probeIn": "{{c}} °C en {{v}}",
+      "probeAir": "{{c}} °C (en el aire)",
+      "probeBottom": "¡toca el fondo!",
+      "rodIn": "dentro de {{v}}",
+      "tongsHold": "sujeta: {{o}}",
+      "tongsEmpty": "vacía",
+      "shieldPlaced": "colocada ({{p}} % de la vista cubierta)",
+      "shieldIdle": "en reposo",
+      "towel": "derrames sin limpiar: {{n}}"
+    },
+    "rx": {
+      "EMPTY": "vacío",
+      "UNMIXED": "sin mezclar",
+      "CONTACTING": "reactivos en contacto",
+      "LOCAL_REACTION": "reacción localizada",
+      "MIXING": "mezclando",
+      "REACTION_PROGRESS": "reacción en curso",
+      "EQUILIBRATING": "alcanzando el equilibrio",
+      "SETTLING": "sedimentando",
+      "OBSERVABLE_FINAL": "estado final observable",
+      "CONTAMINATED": "contaminado",
+      "SPILLED": "derramado",
+      "OVERHEATED": "sobrecalentado",
+      "MISLABELED": "rótulo que no corresponde al contenido",
+      "DISPOSED": "desechado"
+    },
+    "metal": {
+      "CLEAN_OR_OXIDIZED": "sin usar",
+      "IMMERSED": "recién sumergido",
+      "NUCLEATION": "aparecen los primeros puntos",
+      "COPPER_GROWTH": "el depósito crece",
+      "PARTIALLY_COATED": "parcialmente recubierto",
+      "COATING_LIMITED": "el recubrimiento frena la reacción",
+      "REMOVED_WET": "retirado, mojado",
+      "RINSED_OR_STORED": "retirado y seco"
+    },
+    "mg": {
+      "COLD_METAL": "cinta metálica fría",
+      "HEATING": "calentándose",
+      "IGNITION_THRESHOLD": "¡enciende!",
+      "BRIGHT_COMBUSTION": "arde con luz blanca intensa",
+      "GLOWING_RESIDUE": "residuo incandescente",
+      "COOLING_RESIDUE": "residuo enfriándose"
+    },
+    "mgSetup": {
+      "warning": "advertencia del Mg sin aceptar",
+      "shield": "pantalla sin colocar",
+      "capsule": "cápsula lejos del mechero",
+      "ppe": "EPP sin confirmar"
+    },
+    "act": {
+      "title": "Acciones",
+      "none": "Elige un objeto (clic, Tab + flechas o el inventario).",
+      "pour": "Verter (mantener)",
+      "pourHint": "Acerca el recipiente a la boca de otro y detente para acoplarlo.",
+      "tiltLeft": "Inclinar a la izquierda",
+      "tiltRight": "Inclinar a la derecha",
+      "eyeLevel": "Nivel del ojo",
+      "stir": "Agitar (mantener)",
+      "shake": "Agitar el tubo (mantener)",
+      "inspect": "Inspeccionar (limpio/seco)",
+      "wash": "Lavar",
+      "dry": "Secar",
+      "label": "Rótulo",
+      "spare": "Pedir repuesto",
+      "takeDropper": "Sacar el gotero",
+      "aspirate": "Aspirar",
+      "oneDrop": "1 gota",
+      "dropperContent": "En el gotero: {{ml}} mL",
+      "clampAim": "Acerca la punta a lo que quieres sujetar",
+      "inspectMetal": "Inspeccionar la superficie",
+      "sand": "Lijar (mantener)",
+      "wipe": "Limpiar derrame",
+      "ph": "Medir pH",
+      "squeeze": "Apretar (mantener)",
+      "newRibbon": "Otra cinta de 3 cm",
+      "shieldPlace": "Colocar entre la vista y el mechero",
+      "shieldRemove": "Retirar la pantalla"
+    },
+    "hint": {
+      "pour": "Para verter, acerca el recipiente a la boca del receptor y detente: se acopla. Luego mantén P, el clic derecho o «Verter».",
+      "pourDocked": "Acoplado: mantén P / clic derecho / «Verter» para inclinar poco a poco; suelta para enderezar.",
+      "pourNotDocked": "Primero acopla el recipiente a la boca del receptor (acércalo y detente).",
+      "dropper": "Gotero: sobre la boca de su frasco, P aspira; sobre un tubo o vaso, cada P es una gota. Suéltalo sobre su frasco para taparlo.",
+      "dropperAim": "Lleva la punta del gotero sobre la boca de un frasco o de un recipiente.",
+      "dropperEmpty": "El gotero está vacío: aspira en su frasco.",
+      "sourceEmpty": "El frasco no tiene suficiente líquido.",
+      "rod": "Acerca la varilla a la boca del recipiente: entra sola. Mueve el puntero en círculos para agitar.",
+      "mgTongs": "La cinta de Mg se lleva a la llama SOLO con la pinza para crisol.",
+      "gripMissed": "La pinza no alcanza: acerca la punta (▲▼ para la altura).",
+      "wrongTongs": "La pinza para tubo no sirve para el Mg: usa la pinza para crisol.",
+      "sandNear": "Lleva la lija junto al clavo (fuera del tubo) y pulsa P.",
+      "towelNear": "Lleva las toallas sobre el derrame y pulsa P.",
+      "phNear": "Lleva el papel indicador sobre la boca del recipiente.",
+      "phResult": "El papel indicador marca pH ≈ {{ph}}.",
+      "washAim": "Lleva la boquilla de la piseta sobre la boca de un recipiente.",
+      "waitCool": "El residuo de Mg sigue muy caliente: espera antes de añadir agua.",
+      "ethanolKeepAway": "La fenolftaleína está en etanol (inflamable): no se acerca a la llama.",
+      "DRAIN_METALS": "Nada con cobre o hierro al desagüe: usa el contenedor de metales o el de sales de hierro.",
+      "DRAIN_SOLIDS": "Los precipitados no van al desagüe: contenedor de sólidos inorgánicos.",
+      "toolsOut": "Al levantar un recipiente se sacan antes la varilla y la sonda que tenía dentro."
+    },
+    "cmd": {
+      "EMPTY_FIRST": "Primero vacía el recipiente en el contenedor de residuos que corresponde.",
+      "NO_WATER": "La piseta está casi vacía.",
+      "NOT_JUST_WATER": "Solo se seca un recipiente que tiene restos de agua (lávalo primero).",
+      "NO_LIQUID": "No hay líquido para medir.",
+      "NO_MORE_RIBBON": "No quedan cintas de repuesto.",
+      "RIBBON_ON_DISH": "Ya hay una cinta en el plato.",
+      "NOT_NEEDED": "No hace falta un repuesto.",
+      "NO_MORE": "No quedan repuestos.",
+      "HOT_WATER_MG": "No se añade agua al Mg caliente.",
+      "DRAIN_METALS": "Bloqueado: metales al desagüe.",
+      "DRAIN_SOLIDS": "Bloqueado: sólidos al desagüe.",
+      "FAILED": "No se pudo hacer esa acción."
+    },
+    "safety": {
+      "title": "Seguridad",
+      "ethanol": "Etanol/llama",
+      "ethanolNear": "fenolftaleína cerca del mechero",
+      "ethanolFar": "lejos",
+      "mg": "Mg",
+      "mgReady": "listo para quemar",
+      "gloves": "Guantes",
+      "glovesOn": "puestos",
+      "glovesOff": "sin guantes",
+      "glovesPut": "Ponerse guantes",
+      "glovesRemove": "Quitarse guantes",
+      "mgPending": "faltan {{n}} requisitos"
+    },
+    "block": {
+      "ETHANOL_NEAR_FLAME": "La fenolftaleína está disuelta en etanol (inflamable) y está cerca del mechero. Aléjala al menos 30 cm antes de encender o mientras la llama esté encendida.",
+      "MG_SETUP": "No se puede quemar el magnesio todavía: {{missing}}.",
+      "MG_HAND": "La cinta de Mg no se acerca a la llama con la mano: sujétala con la pinza para crisol.",
+      "HOT_WATER_MG": "El residuo de magnesio sigue ardiendo o muy caliente: el agua salpicaría. Espera a que se enfríe.",
+      "DRAIN_METALS": "Las disoluciones con cobre o hierro nunca van al desagüe (residuo ambiental). Usa el contenedor de metales o el de sales de hierro.",
+      "DRAIN_SOLIDS": "Los precipitados no van al desagüe: contenedor de sólidos inorgánicos.",
+      "readWarning": "Leer la advertencia",
+      "cleanSpill": "Limpia el derrame con las toallas de papel (y guantes).",
+      "inc_BURN": "Quemadura (simulada)",
+      "incHelp_BURN": "Tocaste material caliente con la mano. Aplica primeros auxilios (agua fría) y usa pinzas para lo caliente.",
+      "inc_SPILL": "Derrame importante sin limpiar",
+      "incHelp_SPILL": "Un derrame corrosivo o con metales no puede quedar en la mesada: contenlo y límpialo antes de continuar.",
+      "ack_MOVE_ETHANOL": "Primero aleja la fenolftaleína del mechero.",
+      "ack_MG_SETUP": "Todavía falta preparar la seguridad para el Mg.",
+      "ack_MG_HAND": "Primero deja la cinta (no la sostengas con la mano).",
+      "ack_WAIT_COOL": "Espera a que el residuo se enfríe.",
+      "ack_PENDING_FIRST_AID": "Primero aplica los primeros auxilios.",
+      "ack_PENDING_CLEAN_SPILL": "Primero limpia el derrame."
+    },
+    "submit": {
+      "lead": "Al entregar se evalúa lo que hiciste y lo que registraste. Revisa la libreta y las ecuaciones.",
+      "blocked": "No se puede entregar todavía:",
+      "b_FLAME_LIT": "el mechero sigue encendido",
+      "b_TABLE_OPEN": "la llave de gas de la mesa está abierta",
+      "b_NEEDLE_OPEN": "la válvula de gas del mechero está abierta",
+      "b_INCIDENT": "hay un incidente sin resolver",
+      "b_MG_BURNING": "una cinta de Mg está ardiendo",
+      "b_HOT_CAPSULE": "la cápsula caliente no está en el soporte refractario",
+      "b_WASTE_PENDING": "hay recipientes con residuos sin desechar",
+      "b_NAIL_PENDING": "el clavo no está en el contenedor de metales",
+      "b_BROKEN_GLASS": "hay vidrio roto fuera del contenedor",
+      "b_SPILL": "hay derrames sin limpiar"
+    },
+    "flag": {
+      "ppeSetup": "EPP e inspección del material",
+      "neutralization": "Neutralización HCl/NaOH con indicador y agitación",
+      "caco3": "Precipitado de CaCO₃",
+      "feoh3": "Precipitado de Fe(OH)₃",
+      "redox": "Clavo en CuSO₄ durante 10 minutos con depósito de Cu",
+      "mgSetup": "Preparación segura del Mg (advertencia, pantalla, mechero, pinza para crisol)",
+      "mgCombustion": "Combustión del Mg con el residuo en la cápsula",
+      "mgHydration": "MgO + agua + fenolftaleína",
+      "equations": "Ecuaciones correctas (al menos el 60 %)",
+      "waste": "Residuos clasificados y mechero apagado",
+      "notebookDone": "Libreta completa"
+    },
+    "cap": {
+      "spark": "[chispa]",
+      "ignite": "[el gas se enciende]",
+      "click": "[clic]",
+      "sizzle": "[chisporroteo]",
+      "metal": "[metal]",
+      "porcelain": "[porcelana]",
+      "glass": "[vidrio]",
+      "alert": "[alarma]",
+      "spray": "[pulverizador]",
+      "hiss": "[siseo de gas]",
+      "flashback": "[retroceso de llama]",
+      "pour": "[líquido vertiéndose]",
+      "drip": "[gota]",
+      "fizz": "[efervescencia]",
+      "clink": "[tintineo de vidrio]",
+      "stir": "[varilla contra el vidrio]",
+      "mgBurn": "[chisporroteo intenso del magnesio]",
+      "sand": "[lija]",
+      "squeeze": "[piseta]",
+      "break": "[vidrio que se rompe]",
+      "paper": "[papel]"
+    },
+    "ev": {
+      "GLOVES_ON": "Guantes puestos.",
+      "GLOVES_OFF": "Te quitaste los guantes.",
+      "GLOVES_RECOMMENDED": "Recuerda los guantes cuando el protocolo lo indique (residuos, corrosivos).",
+      "POUR_DONE": "Vertido: ≈ {{ml}} mL.",
+      "POUR_SPILLED": "El chorro cayó fuera del recipiente: hubo un derrame en la mesada.",
+      "OVERFLOW": "El recipiente rebosó: se derramaron ≈ {{ml}} mL.",
+      "VESSEL_TIPPED": "Un recipiente se volcó y derramó ≈ {{ml}} mL.",
+      "PRECIPITATE_FORMED": "Aparece un sólido: {{solid}}.",
+      "GAS_BUBBLES": "Se forman burbujas de gas en el recipiente.",
+      "SPLASH": "Agitaste demasiado fuerte: el líquido salpicó fuera del tubo.",
+      "ASPIRATED": "El gotero aspiró ≈ {{ml}} mL.",
+      "BOTTLE_CONTAMINATED": "Lo que retenía el gotero volvió al frasco: el reactivo quedó contaminado.",
+      "CROSS_DROPPER": "Usaste un gotero en el frasco de otro reactivo (gotero cruzado).",
+      "DROPPER_WRONG_BOTTLE": "Ese gotero no es de este frasco.",
+      "DROP_SPILLED": "La gota cayó en la mesada (no había un recipiente debajo).",
+      "LABELED": "Tubo rotulado.",
+      "VESSEL_DRIED": "Recipiente seco.",
+      "VESSEL_WASHED": "Recipiente lavado con la piseta; el enjuague fue a {{to}}.",
+      "PH_CHECKED": "El papel indicador marca pH ≈ {{ph}}.",
+      "SPILL_NO_GLOVES": "Limpiaste un derrame corrosivo sin guantes.",
+      "SPILL_CLEANED": "Derrame limpiado ({{ml}} mL).",
+      "SPILL_NOT_CLEANED": "Un derrame importante quedó en la mesada ({{ml}} mL): hay que contenerlo y limpiarlo.",
+      "NEW_RIBBON": "Nueva cinta de magnesio en el plato.",
+      "WASTE_MISCLASSIFIED": "Ese residuo no va en {{container}}: correspondía {{expected}}.",
+      "WASTE_OK": "Residuo en {{container}}.",
+      "DRAIN_METALS": "Bloqueado: no se vierten metales al desagüe.",
+      "DRAIN_SOLIDS": "Bloqueado: no se vierten precipitados al desagüe.",
+      "WATER_ON_HOT_MG": "¡No! El residuo de Mg está a {{t}} °C: el agua salpicaría. Espera a que se enfríe.",
+      "ETHANOL_NEAR_FLAME": "Peligro: la fenolftaleína (etanol, inflamable) está cerca de la llama.",
+      "INCIDENT_RESOLVED": "Incidente resuelto.",
+      "STATION_RESET": "Bloqueo resuelto.",
+      "BURN_HOT_OBJECT": "Quemadura simulada: tocaste {{obj}} a {{t}} °C con la mano.",
+      "HOT_TO_TOUCH": "Está tibio ({{t}} °C); con pinzas es más seguro.",
+      "METAL_IMMERSED": "{{metal}} dentro de la disolución.",
+      "METAL_WRONG_SOLUTION": "Esa disolución no contiene Cu²⁺: no hay depósito de cobre que observar.",
+      "METAL_REMOVED_EARLY": "Retiraste el metal a los {{min}} min: el depósito todavía es escaso.",
+      "METAL_REMOVED": "Metal retirado tras {{min}} min.",
+      "METAL_DISPOSED": "Metal desechado en {{to}}.",
+      "METAL_SANDED": "Lijaste {{metal}}: se elimina óxido y queda metal expuesto.",
+      "METAL_INSPECTED": "Superficie: óxido ≈ {{oxide}} %, cobre depositado ≈ {{cu}} mg.",
+      "HOT_ON_BENCH": "La cápsula caliente ({{t}} °C) quedó sobre la mesada: usa el soporte refractario.",
+      "WRONG_TONGS_MG": "La pinza para tubo no sostiene la cinta de Mg: se requiere la pinza para crisol.",
+      "GRIP_POOR": "Agarre débil: podría resbalar.",
+      "RESIDUE_TO_CAPSULE": "Residuo en la cápsula (≈ {{mg}} mg).",
+      "RESIDUE_LOST": "La ceniza cayó fuera de la cápsula: ese residuo se perdió.",
+      "VESSEL_WET": "Tiene restos de agua ({{ml}} mL): diluirá lo que pongas.",
+      "VESSEL_DIRTY": "Tiene restos de otra disolución ({{ml}} mL): lávalo antes de usarlo.",
+      "VESSEL_CLEAN_DRY": "Limpio y seco.",
+      "VESSEL_LOOKS_CONTAMINATED": "Este reactivo parece contaminado.",
+      "GLASS_BROKEN": "Se rompió {{obj}}: no lo toques con la mano; los fragmentos van al contenedor de vidrio.",
+      "SPARE": "Repuesto disponible.",
+      "MG_IN_HAND": "¡Alto! No se acerca la cinta de Mg a la llama con la mano.",
+      "MG_SETUP_INCOMPLETE": "Bloqueado antes de quemar el Mg: falta {{missing}}.",
+      "MG_ABRUPT_IGNITION": "Metiste toda la cinta de golpe en la llama: la ignición fue brusca y se pierde más residuo.",
+      "MG_IGNITED": "¡El magnesio enciende! Retíralo parcialmente de la llama y mantenlo sobre la cápsula. No mires directamente.",
+      "MG_WENT_OUT": "La cinta se apagó al retirarla demasiado pronto ({{frac}} % quemado): queda Mg metálico.",
+      "MG_BURN_DONE": "La cinta terminó de arder en {{s}} s: queda un residuo blanco.",
+      "LOOK_DIRECT": "Estás mirando la combustión del Mg sin la pantalla: coloca la pantalla (G) o aparta la vista.",
+      "MG_NO_CAPSULE_BELOW": "El residuo cae fuera de la cápsula: colócala debajo de la cinta.",
+      "PROBE_ON_BOTTOM": "La sonda toca el fondo: la lectura mezcla la temperatura del vidrio. Súbela un poco.",
+      "PINK_SWIRL": "Aparecen remolinos rosados donde cae la base…",
+      "COPPER_DETACHED": "La agitación brusca desprendió cobre: cae al fondo del tubo.",
+      "COPPER_VISIBLE": "Aparecen puntos rojizos de cobre sobre el metal.",
+      "FIRST_AID": "Primeros auxilios aplicados.",
+      "EYEWASH_USED": "Lavaojos usado."
+    },
+    "live": {
+      "swirlGone": "Los remolinos rosados desaparecen al agitar porque todavía queda H⁺ sin neutralizar.",
+      "aColorless": "La mezcla final es incolora (pH ≈ {{ph}}): la fenolftaleína no es rosada cerca de pH 7.",
+      "aPink": "La mezcla quedó rosada (pH ≈ {{ph}}): hay exceso de base.",
+      "aWrongNaoh": "Usaste NaOH 0,15 M en la neutralización: el punto de equivalencia llega antes de 5,0 mL y la mezcla final queda básica.",
+      "b2Yellow": "Queda color amarillo en el sobrenadante. Con {{oh}} mmol de OH⁻ solo precipitan como máximo {{max}} mmol de Fe³⁺ (proporción 1:3) de los {{fe}} mmol añadidos; quedan ≈ {{left}} mmol disueltos.",
+      "shakeNoMore": "Agitar redistribuyó el precipitado, pero no creó más producto.",
+      "nailOxide": "El clavo conserva su óxido y el depósito de cobre crece lentamente. Limpiar la superficie aumenta el área activa.",
+      "stopwatch": "El clavo ya está en la disolución: inicia el cronómetro para medir los 10 minutos.",
+      "mgBasic": "La suspensión de Mg(OH)₂ es básica (pH ≈ {{ph}}) aunque el sólido sea poco soluble.",
+      "cylMixed": "Esta probeta tuvo otro reactivo y no se lavó: la medida queda contaminada."
+    },
+    "nb": {
+      "tab": {
+        "A": "Neutralización",
+        "B": "Precipitación",
+        "C1": "Redox",
+        "Mg": "Magnesio",
+        "eq": "Ecuaciones",
+        "analysis": "Análisis",
+        "complexes": "Complejos",
+        "log": "Registro"
+      },
+      "titleA": "A · HCl + NaOH con fenolftaleína",
+      "titleB1": "B1 · Na₂CO₃ + CaCl₂",
+      "titleB2": "B2 · FeCl₃ + NaOH",
+      "titleC1": "C1 · Metal en CuSO₄",
+      "titleMg": "C2–C3 · Magnesio",
+      "mgHint": "Dato del paquete de cintas: 3,0 cm × 3 mm × 0,2 mm; densidad del Mg 1,74 g/cm³.",
+      "experiment": "Ensayo",
+      "insertProbe": "Insertar la lectura actual de la sonda",
+      "insertStopwatch": "Insertar el tiempo del cronómetro (min)",
+      "colorAid": "Descripción de lo observado: {{d}}",
+      "history": "Historial de cambios ({{n}})",
+      "f": {
+        "hclVolMl": "Volumen de HCl (mL)",
+        "hclConc": "Concentración de HCl",
+        "naohVolMl": "Volumen de NaOH (mL)",
+        "naohConc": "Concentración de NaOH",
+        "colorInitial": "Color inicial",
+        "during": "Cambios durante la adición",
+        "colorFinal": "Color final",
+        "tInitial": "Temperatura inicial",
+        "tFinal": "Temperatura final",
+        "thermal": "Tipo térmico",
+        "pH": "pH final (calculado o medido)",
+        "type": "Tipo de reacción",
+        "notes": "Observaciones",
+        "reagents": "Reactivos y cantidades",
+        "immediate": "Observación inmediata",
+        "texture": "Textura del precipitado",
+        "pptColor": "Color del precipitado",
+        "supernatant": "Sobrenadante",
+        "temperature": "Temperatura",
+        "limiting": "Reactivo limitante",
+        "excess": "Especie en exceso",
+        "metal": "Metal utilizado",
+        "surface": "Estado inicial de la superficie",
+        "metalChange": "Cambios en el metal",
+        "timeMin": "Tiempo (min)",
+        "oxidized": "Especie oxidada",
+        "reduced": "Especie reducida",
+        "lengthCm": "Longitud de la cinta (cm)",
+        "massG": "Masa estimada de Mg (g)",
+        "combustion": "Observación de la combustión",
+        "residue": "Apariencia del residuo",
+        "waterResult": "Resultado al añadir agua",
+        "phenolColor": "Color con fenolftaleína",
+        "typeCombustion": "Tipo: combustión del Mg",
+        "typeWater": "Tipo: MgO + agua"
+      },
+      "q1": "1. ¿Qué evidencias de reacción observaste en cada ensayo (precipitado, color, depósito, luz, temperatura)? ¿Alguna sola basta para identificar la reacción?",
+      "q2": "2. ¿Por qué la mezcla equivalente de HCl y NaOH queda incolora con fenolftaleína, aunque aparecieran remolinos rosados?",
+      "q3": "3. Con 1,0 mL de FeCl₃ 0,15 M y 1,0 mL de NaOH 0,15 M: calcula los moles, el reactivo limitante, el máximo de Fe(OH)₃ y lo que sobra. ¿Qué cambiaría con 3,0 mL de NaOH?",
+      "q4": "4. En el clavo: ¿qué especie se oxida y cuál se reduce? ¿Por qué la reacción es parcial en 10 minutos (termodinámica frente a cinética)?",
+      "q5": "5. ¿Por qué la masa del residuo de la combustión puede ser mayor que la de la cinta, y por qué la recuperada suele ser menor que la teórica?",
+      "q6": "6. Justifica la disposición de cada residuo. ¿Por qué «diluido» no significa «apto para el desagüe»?"
+    },
+    "opt": {
+      "during": {
+        "remolinos_rosados": "remolinos rosados que desaparecen",
+        "rosa_persistente": "rosa persistente",
+        "sin_cambio": "sin cambio visible",
+        "precipitado": "aparece un precipitado",
+        "burbujas": "burbujas"
+      },
+      "thermal": {
+        "exotermica": "exotérmica (sube la temperatura)",
+        "endotermica": "endotérmica (baja)",
+        "sin_cambio": "sin cambio apreciable"
+      },
+      "immediate": {
+        "turbidez_blanca": "turbidez blanca inmediata",
+        "precipitado_marron": "precipitado marrón rojizo",
+        "precipitado_azul": "precipitado azul",
+        "burbujas": "burbujas",
+        "cambio_color": "cambio de color sin sólido",
+        "sin_cambio": "sin cambio"
+      },
+      "texture": {
+        "fino_blanco": "fino, cristalino",
+        "gelatinoso_floculento": "gelatinoso, en flóculos",
+        "granular_metalico": "granular/metálico",
+        "no_hay": "no hay precipitado"
+      },
+      "supernatant": {
+        "incoloro": "incoloro",
+        "amarillo": "amarillo",
+        "azul": "azul",
+        "turbio": "turbio"
+      },
+      "limiting": {
+        "Ca2+": "Ca²⁺",
+        "CO3^2-": "CO₃²⁻",
+        "Fe3+": "Fe³⁺",
+        "OH-": "OH⁻",
+        "H+": "H⁺",
+        "equivalentes": "cantidades equivalentes",
+        "Cu2+": "Cu²⁺",
+        "Fe": "Fe",
+        "Mg": "Mg",
+        "O2": "O₂"
+      },
+      "metal": {
+        "Fe": "hierro (clavo)",
+        "Al": "aluminio (tira)"
+      },
+      "surface": {
+        "brillante": "brillante",
+        "oxidado_opaco": "oxidado, opaco",
+        "lijado": "lijado"
+      },
+      "metalChange": {
+        "deposito_rojizo": "depósito rojizo de cobre",
+        "sin_cambio": "sin cambio",
+        "oscurecido": "se oscureció",
+        "burbujas": "burbujas"
+      },
+      "combustion": {
+        "luz_blanca_intensa": "luz blanca muy intensa",
+        "llama_amarilla": "llama amarilla",
+        "sin_ignicion": "no encendió",
+        "chispas_humo": "chispas y humo blanco"
+      },
+      "residue": {
+        "polvo_blanco": "polvo blanco",
+        "gris_metalico": "gris metálico",
+        "negro": "negro",
+        "sin_residuo": "sin residuo"
+      },
+      "water": {
+        "suspension_blanca": "suspensión blanca turbia",
+        "disolucion_transparente": "disolución transparente",
+        "burbujas": "burbujas",
+        "sin_cambio": "sin cambio"
+      },
+      "type": {
+        "ACIDO_BASE": "ácido–base",
+        "PRECIPITACION": "precipitación",
+        "REDOX": "redox (desplazamiento)",
+        "COMBUSTION": "combustión (redox)",
+        "HIDRATACION": "hidratación de un óxido"
+      }
+    },
+    "exp": {
+      "A": "A · HCl + NaOH",
+      "B1": "B1 · CaCO₃",
+      "B2": "B2 · Fe(OH)₃",
+      "C1": "C1 · Fe + Cu²⁺",
+      "C2": "C2 · Mg + O₂",
+      "C3": "C3 · MgO + H₂O"
+    },
+    "eqkind": {
+      "MOLECULAR": "Ecuación molecular",
+      "COMPLETE_IONIC": "Ecuación iónica completa (tacha los espectadores ⊘)",
+      "NET_IONIC": "Ecuación iónica neta",
+      "OXIDATION": "Semirreacción de oxidación",
+      "REDUCTION": "Semirreacción de reducción"
+    },
+    "eq": {
+      "reactants": "Reactivos",
+      "products": "Productos",
+      "coef": "Coeficiente",
+      "formula": "Fórmula",
+      "state": "Estado",
+      "noState": "estado…",
+      "strike": "Tachar como ion espectador",
+      "remove": "Quitar término",
+      "term": "término",
+      "palette": "Fórmulas (arrastra a reactivos o productos, o pulsa para añadir al lado activo)",
+      "chipHelp": "Arrastra o pulsa para añadir",
+      "atoms": "átomos",
+      "charge": "carga",
+      "lowest": "relación mínima entera",
+      "phases": "estados",
+      "spectators": "espectadores"
+    },
+    "eqerr": {
+      "PARSE": "«{{f}}» no es una fórmula válida (subíndices con números, carga con ^: SO4^2-).",
+      "INCOMPLETE": "Faltan reactivos o productos.",
+      "COEF_NOT_INTEGER": "El coeficiente de {{f}} debe ser un entero positivo.",
+      "ATOMS_UNBALANCED": "Sin balancear: {{el}}.",
+      "CHARGE_UNBALANCED": "La carga no está balanceada (diferencia {{q}}).",
+      "NOT_LOWEST": "Los coeficientes se pueden simplificar (divisor común {{g}}).",
+      "PHASE_MISSING": "Falta el estado de {{f}}.",
+      "PHASE_WRONG": "El estado de {{f}} debería ser ({{s}}).",
+      "IONS_IN_MOLECULAR": "En la ecuación molecular los compuestos se escriben sin disociar (sin iones).",
+      "ELECTRONS_NOT_ALLOWED": "Los electrones solo aparecen en las semirreacciones.",
+      "NOT_DISSOCIATED": "{{f}}(ac) es un electrolito fuerte: en la ecuación iónica se escribe disociado.",
+      "SPECTATOR_NOT_CANCELLED": "Hay especies a ambos lados: en la ecuación neta se cancelan.",
+      "STRUCK_IN_NET": "En la ecuación neta no hay términos tachados: elimina los espectadores.",
+      "ELECTRONS_SIDE": "En esta semirreacción los electrones van en los {{side}}.",
+      "SPECTATORS_WRONG": "Revisa qué iones tachaste como espectadores.",
+      "SPECTATORS_NOT_MARKED": "Tacha (⊘) los iones espectadores.",
+      "REACTION_MISMATCH": "Las especies o proporciones no corresponden a la reacción de este ensayo.",
+      "NOT_OBSERVED": "Es la ecuación correcta, pero todavía no realizaste este ensayo (o no se formó el producto)."
+    },
+    "cx": {
+      "title": "Formación de complejos (conceptual)",
+      "p1": "Un complejo se forma cuando un ion metálico central acepta pares de electrones de moléculas o iones llamados ligandos (enlace coordinado). El objetivo de la guía menciona complejos, pero el procedimiento no incluye ningún ligando adecuado.",
+      "example": "Ejemplo:",
+      "notRun": "El NH₃ no forma parte de los reactivos de esta práctica: este experimento no se ejecuta ni se simula. Un módulo experimental requeriría procedimiento, concentración de NH₃, seguridad y manejo de vapores.",
+      "read": "Leí la sección y entiendo por qué no se realiza",
+      "note": "Notas (opcional): metal central, ligando y número de coordinación del ejemplo"
+    },
+    "review": {
+      "title": "Revisión — Práctica 4: Reacciones químicas",
+      "quant": "Cantidades usadas y valores teóricos (calculados con tus volúmenes reales)",
+      "test": "Ensayo",
+      "used": "Cantidades entregadas",
+      "obtained": "Obtenido",
+      "theory": "Teórico / esperado",
+      "drops": "fenolftaleína",
+      "aTheory": "color final esperado con tus volúmenes: {{c}}",
+      "limiting": "limitante:",
+      "cuMax": "máximo {{mg}} mg si reaccionara todo el Cu²⁺ (no esperado en 10 min)",
+      "note": "Los valores teóricos usan los volúmenes que realmente entregaste (no los de la guía). El residuo recuperado es menor que el teórico por el humo de MgO y las partículas que escapan.",
+      "equations": "Ecuaciones",
+      "waste": "Residuos",
+      "noWaste": "No se desechó ningún residuo.",
+      "expected": "correspondía"
+    },
+    "waste": {
+      "waste_metals": "el contenedor de METALES",
+      "waste_iron": "el de SALES DE HIERRO",
+      "waste_acidbase": "el de ÁCIDOS Y BASES",
+      "waste_solids": "el de SÓLIDOS INORGÁNICOS",
+      "waste_glass": "el de VIDRIO",
+      "acidbase_or_drain": "el de ÁCIDOS Y BASES (o el desagüe solo si lo autoriza el docente, tras comprobar el pH)",
+      "any": "cualquier contenedor general"
+    },
+    "comp": {
+      "p4safety": "Seguridad, selección y medición",
+      "p4neutral": "Neutralización y pH",
+      "p4precip": "Precipitación y ecuaciones iónicas",
+      "p4redox": "Redox Fe/Cu",
+      "p4mg": "Combustión e hidratación del Mg",
+      "p4analysis": "Ecuaciones, análisis y residuos"
+    },
+    "item": {
+      "ppe": "EPP confirmado",
+      "inspect": "Material inspeccionado (limpio y seco)",
+      "noCritical": "Sin errores críticos de seguridad",
+      "measure": "Volúmenes medidos dentro de la tolerancia",
+      "reagents": "Reactivos correctos en la neutralización",
+      "noCross": "Sin goteros cruzados",
+      "noSpill": "Sin derrames ni roturas",
+      "burnerOrder": "Encendido del mechero en el orden de la guía",
+      "ethanolAway": "Etanol lejos de la llama",
+      "aDone": "Neutralización realizada",
+      "indicator": "Dos gotas de indicador",
+      "slowStir": "Adición gradual con agitación (remolinos observados)",
+      "probe": "Temperatura medida con la sonda",
+      "aColors": "Colores registrados",
+      "aThermal": "Temperaturas y tipo térmico registrados",
+      "aEquations": "Ecuaciones de la neutralización",
+      "b1Done": "Precipitado de CaCO₃",
+      "b2Done": "Precipitado de Fe(OH)₃",
+      "b1Record": "Registro de B1",
+      "b2Record": "Registro de B2 (incluido el sobrenadante)",
+      "limiting": "Reactivos limitantes",
+      "ionicEq": "Ecuaciones iónicas y espectadores",
+      "settle": "Agitación suave y sedimentación",
+      "nailInspect": "Clavo inspeccionado antes",
+      "c1Time": "10 minutos de observación",
+      "stopwatch": "Cronómetro usado",
+      "copper": "Depósito de cobre",
+      "c1Record": "Registro del redox",
+      "oxRed": "Especies oxidada y reducida",
+      "c1Eq": "Ecuaciones y semirreacciones",
+      "mgSafety": "Seguridad del Mg (pinza, pantalla, cápsula, advertencia)",
+      "mgBurn": "Combustión completa",
+      "mgCollect": "Residuo recogido en la cápsula",
+      "noLook": "Sin mirar la luz directamente",
+      "cooled": "Agua añadida con el residuo frío",
+      "hydration": "Hidratación con fenolftaleína",
+      "mgRecord": "Registro del magnesio",
+      "mgEq": "Ecuaciones del magnesio",
+      "waste": "Residuos bien clasificados",
+      "nailWaste": "Clavo en el contenedor de metales",
+      "finalSafe": "Estado final seguro",
+      "gloves": "Guantes para residuos",
+      "complexes": "Sección de complejos leída",
+      "analysis": "Análisis respondido"
+    },
+    "demo": {
+      "ui": {
+        "watchHelp": "El simulador hace la práctica completa con los mismos gestos que usarás (verter, gotear, agitar, pinzas, mechero), explicando cada paso.",
+        "doneText": "Viste la ruta completa: neutralización, dos precipitaciones, desplazamiento Fe/Cu, combustión del Mg con pantalla e hidratación del MgO, y la clasificación de residuos. Las ecuaciones y el análisis quedan para ti.",
+        "partA": "A · Neutralización",
+        "partB": "B · Precipitación",
+        "partC": "C · Desplazamiento",
+        "partD": "D · Combustión del Mg",
+        "partE": "E · Residuo del Mg",
+        "partF": "F · Residuos",
+        "accelerated": "Tiempo acelerado ×{{x}}",
+        "eye": "Lectura a la altura del menisco: sin paralaje.",
+        "temp": "La sonda marca {{t}} °C."
+      },
+      "steps": {
+        "start": {
+          "title": "Material limpio y seco",
+          "text": "Antes de medir se comprueba que el beaker esté limpio y seco: un beaker mojado diluye el ácido y reduce el cambio de temperatura."
+        },
+        "measureHcl": {
+          "title": "Medir 5,0 mL de HCl",
+          "text": "Se acerca el frasco a la probeta de 10 mL hasta acoplarlo y se vierte inclinándolo poco a poco. La lectura se hace con el ojo a la altura del menisco."
+        },
+        "hclToBeaker": {
+          "title": "HCl al beaker",
+          "text": "Se vierte todo el ácido en el beaker. En las paredes de la probeta queda una película: por eso no se usa para otro reactivo sin lavarla."
+        },
+        "phenol": {
+          "title": "Dos gotas de fenolftaleína",
+          "text": "El gotero se saca de su frasco, aspira y suelta dos gotas. La fenolftaleína es incolora en medio ácido y neutro."
+        },
+        "probe": {
+          "title": "Temperatura inicial",
+          "text": "La sonda entra en la disolución sin tocar el fondo. Se anota la temperatura antes de añadir la base."
+        },
+        "measureNaoh": {
+          "title": "Medir 5,0 mL de NaOH 0,10 M",
+          "text": "Otra probeta para la base (o la misma, lavada). Se usa el frasco de 0,10 M: el de 0,15 M es para la precipitación."
+        },
+        "addNaoh": {
+          "title": "Base poco a poco, agitando",
+          "text": "Donde cae la base aparecen remolinos rosados: allí el pH local supera 8,2. Al agitar desaparecen porque todavía queda H⁺ sin neutralizar."
+        },
+        "observeA": {
+          "title": "Equivalencia: incolora",
+          "text": "Con cantidades equivalentes el pH queda cerca de 7 y la mezcla es incolora. La temperatura sube unas décimas de grado: la neutralización es exotérmica."
+        },
+        "b1": {
+          "title": "Na₂CO₃ + CaCl₂",
+          "text": "Veinte gotas de cada disolución, cada una con su propio gotero. Donde se encuentran los iones aparece una nube blanca de CaCO₃ que luego sedimenta."
+        },
+        "b2": {
+          "title": "FeCl₃ + NaOH (1:1)",
+          "text": "Precipitado marrón rojizo y gelatinoso de Fe(OH)₃. Con 1:1 el OH⁻ limita (se necesitan 3 OH⁻ por Fe³⁺): el sobrenadante sigue amarillo."
+        },
+        "cuso4": {
+          "title": "2,5 mL de CuSO₄",
+          "text": "La probeta se lava antes de medir el sulfato de cobre (tenía restos de HCl) y la disolución azul se vierte en un tubo limpio."
+        },
+        "nail": {
+          "title": "Clavo lijado al CuSO₄",
+          "text": "Se inspecciona el clavo, se lija el óxido para exponer hierro y se introduce con la pinza. Se inicia el cronómetro."
+        },
+        "wait10": {
+          "title": "Diez minutos de observación",
+          "text": "Aparecen puntos rojizos de cobre que crecen sobre la parte sumergida; el azul se aclara. En 10 minutos la reacción es parcial."
+        },
+        "burnerCheck": {
+          "title": "Inspección del mechero",
+          "text": "Como en la Práctica 3: ubicar extintor, manta y corte de gas, encender la extracción, revisar la manguera y confirmar las válvulas cerradas."
+        },
+        "ignite": {
+          "title": "Encendido y llama azul",
+          "text": "Aire cerrado, llave de mesa, encendedor junto a la boca y la válvula de gas abierta poco a poco. Luego se abre el aire hasta una llama azul de dos conos."
+        },
+        "mgSetup": {
+          "title": "Seguridad para el magnesio",
+          "text": "Se acepta la advertencia, la cápsula queda junto al mechero para recoger el residuo y la pantalla se coloca entre la vista y la llama. La fenolftaleína quedó lejos."
+        },
+        "burnMg": {
+          "title": "Combustión del magnesio",
+          "text": "Con la pinza para crisol, el extremo de la cinta va a la zona caliente. Al encender se retira y se mantiene sobre la cápsula: 2 Mg + O₂ → 2 MgO con una luz blanca intensa."
+        },
+        "burnerOff": {
+          "title": "Apagar el mechero",
+          "text": "Aire, válvula de gas del mechero y, al final, la llave de la mesa."
+        },
+        "cool": {
+          "title": "Esperar a que se enfríe",
+          "text": "No se añade agua sobre el residuo caliente: salpicaría. Se espera a que la cápsula esté fría."
+        },
+        "water": {
+          "title": "MgO + agua + fenolftaleína",
+          "text": "Cinco mililitros de agua destilada, agitación y dos gotas de indicador: la suspensión blanca se vuelve rosada porque el Mg(OH)₂ disuelto la hace básica."
+        },
+        "waste": {
+          "title": "Residuos separados",
+          "text": "Se comprueba el pH de la neutralización; el CaCO₃ y el MgO van a sólidos, el Fe(OH)₃ a sales de hierro, y el clavo y la disolución de cobre a metales. Nada con metales al desagüe."
+        }
+      }
+    },
+    "reagent": {
+      "pheno": "fenolftaleína 1 %"
+    }
+  },
+  "p4fb": {
+    "ppe": "Confirma el equipo de protección antes de manipular reactivos.",
+    "inspect": "No verificaste que el material estuviera limpio y seco: un recipiente mojado diluye y uno sucio interfiere.",
+    "noCritical": "Hubo errores críticos de seguridad: {{list}}.",
+    "measure": "Solo {{n}} de {{m}} volúmenes quedaron dentro de la tolerancia (lee el menisco a nivel del ojo y vierte poco a poco al final).",
+    "reagents": "La neutralización no usó solo HCl 0,10 M y NaOH 0,10 M: cambia el limitante, el pH final y el calor.",
+    "noCross": "Usaste un gotero en el frasco de otro reactivo: se contamina el reactivo y puede reaccionar dentro del frasco.",
+    "noSpill": "Hubo derrames o roturas: se pierden moles y aparece un riesgo químico.",
+    "burnerOrder": "El encendido del mechero no siguió el orden seguro de la guía (aire cerrado, llave, chispa, gas poco a poco).",
+    "notLit": "No llegaste a encender el mechero.",
+    "ethanolAway": "La fenolftaleína (en etanol) estuvo cerca de la llama.",
+    "aDone": "La neutralización no se completó con ambos reactivos.",
+    "indicator": "Añadiste {{ml}} mL de indicador; se piden dos gotas (≈ 0,10 mL).",
+    "slowStir": "No se observaron los remolinos con agitación: la base se añade poco a poco mientras se agita.",
+    "probe": "No mediste la temperatura de la neutralización con la sonda.",
+    "aColors": "Los colores registrados no coinciden con lo que se observa con tus cantidades.",
+    "aThermal": "Faltan las temperaturas o el tipo térmico (la neutralización es exotérmica).",
+    "aEquations": "Revisa las ecuaciones de la neutralización (molecular, iónica completa y neta).",
+    "b1Done": "No se formó el precipitado de CaCO₃.",
+    "b2Done": "No se formó el precipitado de Fe(OH)₃.",
+    "b1Record": "Revisa la observación y el color del precipitado de B1.",
+    "b2Record": "Revisa el color del precipitado y del sobrenadante de B2.",
+    "limiting": "Revisa el reactivo limitante. En B2 añadiste {{fe}} mmol de Fe³⁺ y {{oh}} mmol de OH⁻: se necesitan 3 OH⁻ por cada Fe³⁺.",
+    "ionicEq": "Revisa las ecuaciones iónicas de las precipitaciones y los iones espectadores.",
+    "settle": "Agita suavemente el tubo y deja sedimentar para observar el precipitado.",
+    "nailInspect": "No inspeccionaste el clavo antes: el óxido inicial puede confundirse con cobre.",
+    "c1Time": "El clavo estuvo {{min}} min en la disolución; se piden al menos 10.",
+    "stopwatch": "No usaste el cronómetro para medir el tiempo de la reacción.",
+    "copper": "Se depositaron {{mg}} mg de cobre: muy poco para observar con claridad (¿óxido, poco tiempo o disolución equivocada?).",
+    "c1Record": "Revisa los colores de la disolución y el cambio en el metal.",
+    "oxRed": "Revisa qué especie se oxida (pierde electrones) y cuál se reduce.",
+    "c1Eq": "Revisa las ecuaciones del desplazamiento y las semirreacciones.",
+    "mgSafety": "La combustión del Mg no se preparó con pinza para crisol, pantalla, cápsula y advertencia aceptada.",
+    "mgBurn": "La cinta de Mg no se quemó por completo.",
+    "mgCollect": "Solo se recogió el {{pct}} % del MgO teórico: mantén la cinta sobre la cápsula y suelta la ceniza encima.",
+    "noLook": "Miraste la combustión del Mg sin la pantalla.",
+    "cooled": "Añadiste agua sobre el residuo caliente.",
+    "hydration": "Falta la prueba del residuo con agua y fenolftaleína.",
+    "mgRecord": "Revisa el registro de la combustión, el residuo y el color con fenolftaleína.",
+    "mgEq": "Revisa las ecuaciones de la combustión y de la hidratación.",
+    "waste": "{{n}} residuos fueron a un contenedor incorrecto.",
+    "wasteNone": "No desechaste los residuos.",
+    "nailWaste": "El clavo no terminó en el contenedor de metales.",
+    "finalSafe": "El estado final no era seguro: {{list}}.",
+    "gloves": "No usaste guantes para manipular los residuos.",
+    "complexes": "No leíste la sección conceptual de complejos.",
+    "analysis": "Respondiste {{n}} de 6 preguntas de análisis (las revisa el docente)."
+  }
+}

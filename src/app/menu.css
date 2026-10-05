@@ -1,5 +1,4 @@
-/* Menú de laboratorios (portada). Usa los mismos tokens que el resto de la aplicación. */
-.lab-menu .intro-card { width: min(1040px, 100%); }
+/* Tarjetas de laboratorios (página de inicio). Usan los mismos tokens que el resto de la aplicación. */
 .lab-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
 .lab-card { height: 100%; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
 .lab-card:hover, .lab-card:focus-within { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-2px); }
@@ -7,11 +6,13 @@
 .lab-card-art span { font-size: 3.2rem; font-weight: 800; color: rgba(255, 255, 255, 0.92); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
 .art-p2 { background: linear-gradient(135deg, #1f6fbf 0%, #2c8f86 60%, #6bb36b 100%); }
 .art-p3 { background: radial-gradient(ellipse 28% 70% at 50% 100%, #8fb6ff 0%, #3f6fe0 35%, transparent 70%), linear-gradient(135deg, #2b1d4d 0%, #8a3b26 55%, #f2a900 100%); }
+.art-p4 { background: radial-gradient(circle at 72% 38%, #ffffff 0%, #fff6d8 8%, transparent 26%), linear-gradient(135deg, #4a2a6b 0%, #c2185b 45%, #2471a3 100%); }
 .lab-card-body { padding: 0.9rem 1rem 1rem; display: grid; gap: 0.45rem; align-content: start; }
-.lab-card-body h2 { margin: 0; font-size: 1.15rem; }
+.lab-card-body h3 { margin: 0; font-size: 1.15rem; }
 .lab-card-body p { margin: 0; color: var(--ink-2); }
 .lab-card-body ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); font-size: 0.9rem; display: grid; gap: 0.15rem; }
 .lab-card-body .btn { justify-self: start; margin-top: 0.3rem; min-height: 2.5rem; }
 .lab-card-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--ink-2); }
 .saved-pill { background: var(--ok-soft); color: var(--ok); border-radius: 999px; padding: 0.1rem 0.55rem; font-weight: 700; }
 .menu-back { position: fixed; top: 0.7rem; left: 0.7rem; z-index: 50; }
+.lab-card-body .kicker { color: var(--accent); font-weight: 700; letter-spacing: 0.02em; font-size: 0.85rem; text-transform: uppercase; }

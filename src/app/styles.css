@@ -9,7 +9,7 @@
   --accent: #1f6fbf;
   --accent-ink: #ffffff;
   --accent-soft: #e3effb;
-  --ok: #1e8e4e;
+  --ok: #17763f;
   --ok-soft: #e2f5ea;
   --warn: #a35c00;
   --warn-soft: #fff1dc;
@@ -115,6 +115,11 @@ textarea { width: 100%; resize: vertical; min-height: 3.2rem; }
 .lab-main { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr auto; min-height: 0; }
 .canvas-wrap { position: relative; min-width: 0; min-height: 0; }
 .canvas-host { position: absolute; inset: 0; outline: none; }
+/* Viñeta suave: los bordes se oscurecen un poco y la mirada va a la mesada (no intercepta el puntero). */
+.canvas-host::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 50% 58%, transparent 58%, rgba(18, 26, 34, 0.2) 100%);
+}
 .canvas-host:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .scene-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted, #555); font-size: 1rem; }
 .drawer { width: min(360px, 88vw); background: var(--panel); border-left: 1px solid var(--line); overflow: auto; min-height: 0; }

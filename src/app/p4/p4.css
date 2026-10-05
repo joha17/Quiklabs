@@ -1,0 +1,32 @@
+/* Práctica 4: piezas propias del HUD (mismos tokens de color y tipografía que las prácticas 2 y 3). */
+.hud .stopwatch { display: inline-flex; align-items: center; gap: 0.3rem; }
+.canvas-wrap.p4 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+.mg-veil {
+  position: absolute; inset: 0; pointer-events: none; z-index: 12; display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 0.8rem; background: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.25) 100%);
+}
+.mg-veil.direct { background: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.25) 10%, rgba(0, 0, 0, 0.55) 100%); }
+.mg-veil span { background: var(--panel); color: var(--ink); border-radius: 999px; padding: 0.3rem 0.8rem; font-weight: 600; box-shadow: var(--shadow); border-left: 4px solid var(--warn); }
+.eq-block { border-top: 1px solid var(--line); padding-top: 0.5rem; margin-top: 0.5rem; }
+.eq-block h4 { margin: 0 0 0.3rem; }
+.eq-editor { display: grid; gap: 0.4rem; }
+.eq-palette { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.eq-palette .chip { border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 0.15rem 0.55rem; cursor: grab; font: inherit; color: var(--ink); }
+.eq-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.4rem; align-items: start; }
+.eq-arrow { font-size: 1.4rem; padding-top: 1.4rem; }
+.eq-side { border: 1px dashed var(--line); border-radius: 8px; padding: 0.35rem; display: grid; gap: 0.25rem; min-height: 3rem; }
+.eq-side.active { border-color: var(--accent, #2f7fd1); }
+.eq-side-head { font-size: 0.78rem; color: var(--ink-2); }
+.eq-term { display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
+.eq-term.struck .eq-formula, .eq-term.struck .eq-pretty { text-decoration: line-through; opacity: 0.7; }
+.eq-coef { width: 3.2rem; }
+.eq-formula { width: 7.5rem; font-family: ui-monospace, Consolas, monospace; }
+.eq-pretty { min-width: 3rem; font-weight: 600; }
+.eq-preview { font-size: 1.02rem; padding: 0.3rem 0.5rem; background: var(--panel-2); border-radius: 8px; }
+.eq-preview .struck { text-decoration: line-through; opacity: 0.6; }
+.eq-check { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.86rem; }
+.eq-check ul { flex-basis: 100%; margin: 0; padding-left: 1.1rem; }
+@media (max-width: 760px) {
+  .eq-row { grid-template-columns: 1fr; }
+  .eq-arrow { padding-top: 0; text-align: center; }
+}

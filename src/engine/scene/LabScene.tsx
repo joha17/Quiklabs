@@ -12,7 +12,7 @@ import { LabContext, useLab3D } from './context';
 import type { Lab3D } from '../Lab3D';
 import { GRAVITY } from '../units';
 import { QUALITY, pickQuality, type QualityLevel } from '../quality';
-import { BENCH_EXT, FLOOR_Y, WALL_Z, createRoom } from './room';
+import { BENCH_EXT, FLOOR_Y, ROOM, WALL_Z, createRoom } from './room';
 import { VesselBody, PropBody } from './Bodies';
 import { CameraRig } from './CameraRig';
 import { InteractionBridge } from './InteractionBridge';
@@ -62,7 +62,10 @@ export function Environment() {
     scene.environment = env;
     scene.environmentIntensity = 0.55;
     scene.background = new THREE.Color(0xdfe5e8);
+    // Niebla leve: la mesada se ve nítida y la sala se aclara hacia el fondo, así la atención queda en el trabajo.
+    scene.fog = new THREE.Fog(0xdfe5e8, 260, 820);
     return () => {
+      scene.fog = null;
       env.dispose();
       pmrem.dispose();
     };
@@ -105,15 +108,18 @@ export function Lights({ q }: { q: QualityLevel }) {
   );
 }
 
-export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' }) {
+export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' | 'p4' }) {
   const room = useMemo(() => createRoom(q, variant), [q, variant]);
   return (
     <>
       <primitive object={room} />
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[(BENCH_EXT + 12) / 2, 1.6, 33.5]} position={[(BENCH_EXT - 12) / 2, -1.6, -33]} friction={0.9} />
-        <CuboidCollider args={[900, 1, 400]} position={[300, FLOOR_Y - 1, 100]} friction={0.9} />
-        <CuboidCollider args={[900, 120, 1]} position={[300, 60, WALL_Z - 1]} />
+        <CuboidCollider args={[(ROOM.xMax - ROOM.xMin) / 2, 1, (ROOM.zFront - ROOM.zBack) / 2]} position={[(ROOM.xMin + ROOM.xMax) / 2, FLOOR_Y - 1, (ROOM.zFront + ROOM.zBack) / 2]} friction={0.9} />
+        <CuboidCollider args={[(ROOM.xMax - ROOM.xMin) / 2, 140, 1]} position={[(ROOM.xMin + ROOM.xMax) / 2, 50, WALL_Z - 1]} />
+        <CuboidCollider args={[(ROOM.xMax - ROOM.xMin) / 2, 140, 1]} position={[(ROOM.xMin + ROOM.xMax) / 2, 50, ROOM.zFront + 1]} />
+        <CuboidCollider args={[1, 140, (ROOM.zFront - ROOM.zBack) / 2]} position={[ROOM.xMin - 1, 50, (ROOM.zFront + ROOM.zBack) / 2]} />
+        <CuboidCollider args={[1, 140, (ROOM.zFront - ROOM.zBack) / 2]} position={[ROOM.xMax + 1, 50, (ROOM.zFront + ROOM.zBack) / 2]} />
       </RigidBody>
     </>
   );

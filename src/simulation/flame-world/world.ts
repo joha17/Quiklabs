@@ -669,7 +669,7 @@ function updateBurner(w: FlameWorld, ctx: FlameContext, dt: number) {
       w.evidence.unlitFlowS = 0;
       rearm(w, 'unlitFlow');
     }
-    if (b.ignitionSourceAtMouth && flow >= p.minFlow * 0.8 && upright) tryIgnite(w, flow, airMix);
+    if (b.ignitionSourceAtMouth && flow >= p.minFlow && upright) tryIgnite(w, flow, airMix);
     return;
   }
 
@@ -845,6 +845,7 @@ function tryIgnite(w: FlameWorld, flow: number, airMix: number) {
   }
   if (first) b.litOnceAt = w.timeS;
   w.evidence.lastIgnitionAt = w.timeS;
+  w.evidence.lowFlowOutAt = 0;
 }
 
 /** §7.1 — inspección previa completa. */

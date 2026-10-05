@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { ORBIT_LIMITS, confineCamera } from '../scene/room';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useFlameLab } from './context';
 import { BENCH3, P3_STATIONS } from '../../practices/practice-03/definition';
@@ -70,7 +71,7 @@ export function CameraRig3() {
         const off = cam.position.clone().sub(c.target);
         const sph = new THREE.Spherical().setFromVector3(off);
         sph.theta += dAz;
-        sph.phi = THREE.MathUtils.clamp(sph.phi + dPol, 0.25, 1.55);
+        sph.phi = THREE.MathUtils.clamp(sph.phi + dPol, 0.42, 1.55);
         off.setFromSpherical(sph);
         go(c.target.clone(), c.target.clone().add(off));
       },
@@ -78,7 +79,7 @@ export function CameraRig3() {
         const c = controls.current;
         if (!c) return;
         const off = cam.position.clone().sub(c.target);
-        const len = THREE.MathUtils.clamp(off.length() / f, 10, 320);
+        const len = THREE.MathUtils.clamp(off.length() / f, ORBIT_LIMITS.minDistance, ORBIT_LIMITS.maxDistance);
         go(c.target.clone(), c.target.clone().add(off.setLength(len)));
       },
       reset: () => lab.camera?.goToStation('A'),
@@ -148,6 +149,8 @@ export function CameraRig3() {
       c.target.z = THREE.MathUtils.clamp(c.target.z, -66, 10);
       if (camera.position.y < 1) camera.position.y = 1;
       c.update();
+      // Dentro de la sala: no atraviesa paredes, suelo ni techo.
+      confineCamera(camera);
     }
     lab.camPos.copy(camera.position);
   });
@@ -158,9 +161,8 @@ export function CameraRig3() {
       makeDefault
       enableDamping
       dampingFactor={0.12}
-      minDistance={10}
-      maxDistance={320}
-      minPolarAngle={0.2}
+      {...ORBIT_LIMITS}
+      minPolarAngle={0.42}
       maxPolarAngle={1.56}
       screenSpacePanning
       mouseButtons={{ LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }}
