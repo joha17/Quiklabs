@@ -51,6 +51,16 @@ describe('autenticación', () => {
     expect((await p.call('POST', '/auth/signup', { body: {} })).status).toBe(404);
   });
 
+  it('el estado de la sesión no da error HTTP: null sin sesión, el usuario con sesión y el motivo si dejó de valer', async () => {
+    const p = platform();
+    expect(await p.call('GET', '/auth/session')).toMatchObject({ status: 200, json: { me: null } });
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    expect(((await p.call('GET', '/auth/session', { cookie: a.cookie })).json.me as { user: { role: string } }).user.role).toBe('admin');
+    const v = await p.loginAs(EMAIL.valeria, PW.student);
+    await p.call('PATCH', '/admin/users/u_est01', { cookie: a.cookie, body: { status: 'suspended' } });
+    expect((await p.call('GET', '/auth/session', { cookie: v.cookie })).json).toEqual({ me: null, reason: 'SESSION_EXPIRED' });
+  });
+
   it('admin entra; contraseña o correo equivocados dan el mismo error; 5 fallos bloquean 15 min', async () => {
     const p = platform();
     const ok = await p.loginAs(EMAIL.admin, PW.admin);

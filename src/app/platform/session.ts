@@ -4,7 +4,7 @@
  */
 import { create } from 'zustand';
 import type { LabId, LabMode } from '../../../worker/core/types';
-import { api, ApiFailure, type Me } from './api';
+import { api, type Me } from './api';
 import { setStorageScope } from './scope';
 
 type Status = 'unknown' | 'anon' | 'ready';
@@ -32,12 +32,11 @@ export const usePlatform = create<PlatformState>()((set) => ({
   notice: null,
   async refresh() {
     try {
-      const me = await api<Me>('GET', '/auth/me');
-      set({ me: applyMe(me), status: 'ready' });
-    } catch (e) {
+      const r = await api<{ me: Me | null; reason?: string }>('GET', '/auth/session');
+      set({ me: applyMe(r.me), status: r.me ? 'ready' : 'anon', notice: r.reason ?? null });
+    } catch {
       applyMe(null);
-      const code = e instanceof ApiFailure ? e.code : null;
-      set({ me: null, status: 'anon', notice: code && code !== 'NOT_AUTHENTICATED' && code !== 'NETWORK_ERROR' ? code : null });
+      set({ me: null, status: 'anon' });
     }
   },
   async login(email, password) {

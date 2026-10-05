@@ -113,6 +113,21 @@ export function createApp(deps: AppDeps) {
 
   app.get('/auth/me', auth({ allowPending: true }), (c) => c.json(me(c.get('db'), c.get('user'), now())));
 
+  /** Estado de la sesión sin error HTTP: la portada lo consulta en cada visita (un 401 ensuciaría la consola). */
+  app.get('/auth/session', async (c) => {
+    const token = getCookie(c, COOKIE);
+    if (!token) return c.json({ me: null });
+    const claims = await verifySession(token, deps.secret, Math.floor(now().getTime() / 1000));
+    const db = await loadDb(deps.kv, deps.seed);
+    const u = claims ? db.users.find((x) => x.id === claims.sub) : undefined;
+    const reason = !claims || !u || u.tokenVersion !== claims.ver ? 'SESSION_EXPIRED' : accessBlock(db, u, now());
+    if (reason) {
+      deleteCookie(c, COOKIE, { path: '/' });
+      return c.json({ me: null, reason });
+    }
+    return c.json({ me: me(db, u!, now()) });
+  });
+
   app.post('/auth/password', auth({ allowPending: true }), async (c) => {
     const { current, next } = await body<{ current?: string; next?: string }>(c);
     if (!current || !next) throw new ApiError(400, 'MISSING_FIELDS');
