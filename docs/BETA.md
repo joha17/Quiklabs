@@ -6,7 +6,7 @@ mientras tenga una matrícula activa en un curso vigente** y la licencia esté v
 
 ## Cuentas ficticias de la beta
 
-Los datos iniciales están en `worker/seed/data.json` (contraseñas con hash). Para regenerarlos: `npm run seed`.
+Los datos iniciales están en `worker/seed/seed.sql` (contraseñas con hash), generados por `npm run seed`.
 
 | Rol | Correo | Contraseña | Situación |
 |---|---|---|---|
@@ -48,12 +48,13 @@ equipo no ven los intentos de la otra.
 worker/
 ├── index.ts          Worker: /api → API; el resto lo sirven los estáticos (assets.run_worker_first)
 ├── app.ts            API Hono: auth, admin, teacher, student (guardas por rol, CSRF: escrituras solo JSON)
-├── core/             reglas sin dependencias de Cloudflare (se prueban en Node)
+├── core/             reglas sin dependencias de Cloudflare (se prueban en Node con SQLite)
 │   ├── types.ts      modelo de datos
 │   ├── crypto.ts     PBKDF2, HMAC, contraseñas temporales
-│   ├── store.ts      documento JSON en KV (clave db:v1); si KV está vacío, datos iniciales
+│   ├── repo.ts       consultas SQL sobre D1 (interfaz mínima `SqlDb`)
 │   └── service.ts    acceso, login, usuarios, cursos, matrículas, entregas, calificaciones, auditoría
-└── seed/             datos ficticios (data.json) y su generador
+└── seed/             datos ficticios (seed.sql), su generador y `to-sql.mjs`
+migrations/           esquema de la base (D1/SQLite), versionado
 src/app/platform/     login, cambio de contraseña, paneles de admin, docente y estudiante, sesión, registro de entregas
 ```
 
@@ -64,26 +65,46 @@ abre las prácticas abiertas en su curso).
 
 ```bash
 cp .dev.vars.example .dev.vars      # y poner un SESSION_SECRET de al menos 32 caracteres
-npm run dev:api                     # Worker + KV local en :8787 (compila el sitio primero)
+npm run db:setup                    # una vez: esquema + datos ficticios en la D1 local (.wrangler/)
+npm run dev:api                     # Worker + D1 local en :8787 (compila el sitio primero)
 npm run dev                         # Vite en :5173, /api se reenvía a :8787
 ```
 
-`npm test` incluye `src/tests/unit/platform-api.test.ts` (la API real sobre un KV en memoria). Las pruebas e2e levantan
-`wrangler dev` con un KV vacío en cada ejecución.
+`npm test` incluye `src/tests/unit/platform-api.test.ts`: la API real sobre SQLite de Node (`node:sqlite`) con las
+mismas migraciones y datos (`src/tests/helpers/sqlite-d1.ts`). Las pruebas e2e levantan `wrangler dev` con una D1
+local nueva en cada ejecución.
+
+## Base de datos (Cloudflare D1)
+
+Base `quiklabs` (binding `DB`), esquema en `migrations/`:
+
+| Tabla | Contenido |
+|---|---|
+| `license` | institución, vigencia y cupo (una fila) |
+| `users` | cuentas; correo y carné únicos; hash de contraseña, versión de sesión, bloqueo |
+| `courses`, `course_teachers`, `course_labs` | cursos (sigla, periodo, grupo, fechas), sus docentes y sus prácticas (apertura, cierre, modo) |
+| `enrollments` | matrícula estudiante–curso (única por par) y su estado |
+| `submissions` | entregas (única por estudiante e intento: reenviar reemplaza) |
+| `audit` | acciones de administración y seguridad |
+
+Cada cambio y su registro de auditoría se escriben en un mismo lote atómico (`batch`). Para cambiar el esquema se agrega
+un archivo `migrations/000N_…sql` y se aplica con `npm run db:migrate:remote` **antes** de desplegar el código que lo usa.
+D1 guarda puntos de restauración («Time Travel»): `npx wrangler d1 time-travel restore quiklabs --timestamp …`.
 
 ## Despliegue (Cloudflare)
 
-1. Secreto de sesión (una vez): `npx wrangler secret put SESSION_SECRET` (cadena aleatoria de 48+ caracteres).
-2. El espacio KV `DATA` se crea solo en el primer despliegue (`kv_namespaces` sin `id`); empieza vacío y toma los datos
-   iniciales del repositorio hasta la primera escritura.
+1. Secreto de sesión (ya configurado): `npx wrangler secret put SESSION_SECRET`.
+2. Esquema: `npm run db:migrate:remote` (cuando haya migraciones nuevas).
 3. `git push` a `main` (Workers Builds) o `npx wrangler deploy`.
 
 Sin el secreto, la API responde `SERVER_NOT_CONFIGURED` y nadie puede entrar (los estáticos se sirven igual).
+Los datos de la beta que estaban en Cloudflare KV se pasaron a D1 con `worker/seed/to-sql.mjs`; el espacio KV
+`quiklabs-data` ya no se usa y se puede borrar.
 
 ## Límites conocidos de la beta
 
-- **KV no es una base de datos**: todo vive en un documento; la última escritura gana y los cambios pueden tardar hasta
-  ~60 s en verse en otras regiones. Para producción: Cloudflare D1.
+- D1 escribe desde una sola región (la base está en el este de Norteamérica). Para reportes analíticos pesados o mucha
+  escritura simultánea, o si la universidad exige otra región, conviene PostgreSQL (vía Hyperdrive).
 - El control de acceso a los laboratorios es de la aplicación: el código de los simuladores es estático (no contiene
   datos de estudiantes), pero la API sí exige sesión, rol, matrícula y fechas para todo dato y toda entrega.
 - La nota registrada la calcula el simulador en el navegador; un estudiante con conocimientos técnicos podría enviar una

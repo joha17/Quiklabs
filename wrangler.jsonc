@@ -14,7 +14,10 @@
     // Solo /api pasa por el Worker; el resto lo sirven los archivos estáticos directamente.
     "run_worker_first": ["/api/*"]
   },
-  // Datos de la beta (un documento JSON en el espacio KV «quiklabs-data»).
-  "kv_namespaces": [{ "binding": "DATA", "id": "0c36cba98f28457ca73cf498ddc1ad95" }]
+  // Base de datos de la plataforma (Cloudflare D1, SQLite). Esquema versionado en migrations/:
+  // `npm run db:migrate:remote` antes de desplegar un cambio de esquema.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "quiklabs", "database_id": "6dff2731-3f4c-40cd-a8f1-4bb4caaaf5fd", "migrations_dir": "migrations" }
+  ]
   // Secreto de sesión: `npx wrangler secret put SESSION_SECRET` (en local, archivo .dev.vars).
 }

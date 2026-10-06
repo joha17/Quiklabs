@@ -1,14 +1,10 @@
 /**
- * Plataforma académica (beta): API real (Hono) sobre un KV en memoria, con los datos ficticios del repositorio y la
- * fecha fija del 5 de octubre de 2026.
+ * Plataforma académica (beta): API real (Hono) sobre SQLite con el esquema de D1 (migrations/) y los datos ficticios
+ * del repositorio (worker/seed/seed.sql), con la fecha fija del 5 de octubre de 2026.
  */
 import { describe, expect, it } from 'vitest';
 import { createApp, COOKIE } from '../../../worker/app';
-import { MemoryKv } from '../../../worker/core/store';
-import type { Db } from '../../../worker/core/types';
-import seedJson from '../../../worker/seed/data.json';
-
-const seed = seedJson as Db;
+import { freshDb } from '../helpers/sqlite-d1';
 const SECRET = 'x'.repeat(48);
 const PW = { admin: 'Admin#Quiklabs2026', teacher: 'Docente2026!', student: 'Quimica2026!' };
 const EMAIL = {
@@ -25,8 +21,8 @@ const EMAIL = {
 
 function platform(nowIso = '2026-10-05T18:00:00.000Z') {
   let now = new Date(nowIso);
-  const kv = new MemoryKv();
-  const app = createApp({ kv, secret: SECRET, seed, now: () => now });
+  const db = freshDb();
+  const app = createApp({ db, secret: SECRET, now: () => now });
   const call = async (method: string, path: string, opts: { body?: unknown; cookie?: string; raw?: string; type?: string } = {}) => {
     const headers: Record<string, string> = {};
     if (opts.cookie) headers.cookie = `${COOKIE}=${opts.cookie}`;
@@ -41,7 +37,7 @@ function platform(nowIso = '2026-10-05T18:00:00.000Z') {
     const r = await call('POST', '/auth/login', { body: { email, password } });
     return { ...r, cookie: r.token! };
   };
-  return { call, loginAs, setNow: (iso: string) => (now = new Date(iso)), kv };
+  return { call, loginAs, setNow: (iso: string) => (now = new Date(iso)), db };
 }
 
 describe('autenticación', () => {
@@ -214,5 +210,35 @@ describe('docentes y estudiantes', () => {
     expect((await p.call('PUT', `/teacher/courses/${course.id}/labs`, { cookie: carlos.cookie, body: { labs } })).status).toBe(200);
     const c = await p.loginAs(EMAIL.camila, PW.student);
     expect((c.json.labs as Array<{ labId: string }>).map((l) => l.labId)).toContain('p4');
+  });
+});
+
+describe('base de datos (esquema de D1)', () => {
+  it('la base impone correos y carnés únicos aunque el código no lo revisara, y los lotes son atómicos', async () => {
+    const p = platform();
+    const raw = p.db.raw;
+    const insert = (id: string, email: string, code: string | null) =>
+      raw.prepare(`INSERT INTO users (id, role, email, name, code, status, password_hash, created_at) VALUES (?, 'student', ?, 'Duplicado', ?, 'active', 'x', '2026-10-05')`).run(id, email, code);
+    expect(() => insert('u_dup1', 'VALERIA.SOLANO@estudiante.uni.example', null)).toThrow(/UNIQUE/); // correo sin distinguir mayúsculas
+    expect(() => insert('u_dup2', 'otra@estudiante.uni.example', 'B60101')).toThrow(/UNIQUE/);
+    // Un lote con una sentencia inválida no deja nada a medias.
+    const before = (raw.prepare('SELECT COUNT(*) AS n FROM audit').get() as { n: number }).n;
+    await expect(p.db.batch([
+      p.db.prepare(`INSERT INTO audit (id, at, actor_id, action) VALUES ('a_x', '2026', 'u_admin', 'prueba')`),
+      p.db.prepare(`INSERT INTO enrollments (id, course_id, student_id, status, enrolled_at, updated_at) VALUES ('e01', 'c', 's', 'active', 'x', 'x')`),
+    ])).rejects.toThrow();
+    expect((raw.prepare('SELECT COUNT(*) AS n FROM audit').get() as { n: number }).n).toBe(before);
+  });
+
+  it('las acciones del administrador quedan en tablas: usuario, matrícula y auditoría', async () => {
+    const p = platform();
+    const a = await p.loginAs(EMAIL.admin, PW.admin);
+    const s = await p.call('POST', '/admin/users', { cookie: a.cookie, body: { role: 'student', email: 'tabla@estudiante.uni.example', name: 'Prueba Tabla', code: 'T0001' } });
+    const id = (s.json.user as { id: string }).id;
+    await p.call('POST', '/admin/courses/c_qg1_02/enrollments', { cookie: a.cookie, body: { studentIds: [id] } });
+    expect(p.db.raw.prepare('SELECT role, must_change_password AS m FROM users WHERE id = ?').get(id)).toEqual({ role: 'student', m: 1 });
+    expect(p.db.raw.prepare("SELECT status FROM enrollments WHERE course_id = 'c_qg1_02' AND student_id = ?").get(id)).toEqual({ status: 'active' });
+    const actions = (p.db.raw.prepare("SELECT action FROM audit WHERE actor_id = 'u_admin' ORDER BY rowid").all() as Array<{ action: string }>).map((r) => r.action);
+    expect(actions).toEqual(expect.arrayContaining(['user.create', 'enrollment.add']));
   });
 });

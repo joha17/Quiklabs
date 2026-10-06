@@ -1,6 +1,7 @@
 /**
- * Modelo de datos de la plataforma académica (beta). Todo vive en un solo documento JSON: los datos iniciales salen
- * de `worker/seed/data.json` y los cambios se guardan en Cloudflare KV. Compartido por el Worker y la interfaz.
+ * Modelo de datos de la plataforma académica (beta). En la base (Cloudflare D1) cada tipo es una tabla
+ * (migrations/); `Db` es el formato de exportación completo (datos iniciales y la migración desde KV).
+ * Compartido por el Worker y la interfaz.
  */
 export type Role = 'admin' | 'teacher' | 'student';
 export type UserStatus = 'active' | 'suspended';

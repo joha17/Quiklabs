@@ -1,6 +1,6 @@
 /**
  * Inicio de sesión para las pruebas e2e: la portada ya no abre los laboratorios; hay que entrar con una cuenta.
- * Se usa la API (la cookie de sesión queda en el contexto del navegador). Cuentas ficticias de worker/seed/data.json.
+ * Se usa la API (la cookie de sesión queda en el contexto del navegador). Cuentas ficticias de worker/seed/seed.sql.
  */
 import { expect, type Page } from '@playwright/test';
 

@@ -1,10 +1,11 @@
 /**
- * Genera `worker/seed/data.json` (datos ficticios de la beta) con las contraseñas ya convertidas en hash.
- * Uso: `npm run seed`. Las contraseñas en claro están en docs/BETA.md (solo para pruebas).
- * Los datos de KV no cambian al regenerar: KV conserva lo que el administrador haya modificado.
+ * Genera `worker/seed/seed.sql` (datos ficticios de la beta) con las contraseñas ya convertidas en hash.
+ * Uso: `npm run seed`, luego `npm run db:setup` (local). Las contraseñas en claro están en docs/BETA.md.
+ * Cargar el seed en una base que ya tiene datos falla (claves únicas): no pisa lo que el administrador cambió.
  */
 import { writeFileSync } from 'node:fs';
 import { webcrypto as crypto } from 'node:crypto';
+import { toSql } from './to-sql.mjs';
 
 const ITER = 30000;
 const b64 = (u) => Buffer.from(u).toString('base64url');
@@ -91,5 +92,5 @@ const db = {
   audit: [{ id: 'a_seed', at: T0, actorId: 'u_admin', action: 'seed', detail: 'Datos ficticios de la beta' }],
 };
 
-writeFileSync(new URL('./data.json', import.meta.url), `${JSON.stringify(db, null, 2)}\n`);
-console.log(`data.json: ${users.length} usuarios, ${courses.length} cursos, ${enrollments.length} matrículas, ${submissions.length} entregas`);
+writeFileSync(new URL('./seed.sql', import.meta.url), toSql(db));
+console.log(`seed.sql: ${users.length} usuarios, ${courses.length} cursos, ${enrollments.length} matrículas, ${submissions.length} entregas`);

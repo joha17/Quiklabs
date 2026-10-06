@@ -1,16 +1,14 @@
 /**
  * Worker de Cloudflare: `/api/*` va a la API de la plataforma; todo lo demás lo sirven los archivos estáticos de Vite
- * (wrangler.jsonc: `assets.run_worker_first`). Los datos viven en KV (`DATA`) y la sesión se firma con
+ * (wrangler.jsonc: `assets.run_worker_first`). Los datos viven en D1 (`DB`) y la sesión se firma con
  * `SESSION_SECRET` (secreto de Wrangler; en local, `.dev.vars`).
  */
 import { createApp } from './app';
-import type { KvLike } from './core/store';
-import type { Db } from './core/types';
-import seed from './seed/data.json';
+import type { SqlDb } from './core/repo';
 
 interface Env {
   ASSETS: { fetch(req: Request): Promise<Response> };
-  DATA: KvLike;
+  DB: D1Database;
   SESSION_SECRET?: string;
 }
 
@@ -24,7 +22,7 @@ export default {
       return Response.json({ error: 'SERVER_NOT_CONFIGURED' }, { status: 503 });
     }
     if (!cached || cached.secret !== env.SESSION_SECRET) {
-      cached = { secret: env.SESSION_SECRET, app: createApp({ kv: env.DATA, secret: env.SESSION_SECRET, seed: seed as Db }) };
+      cached = { secret: env.SESSION_SECRET, app: createApp({ db: env.DB as unknown as SqlDb, secret: env.SESSION_SECRET }) };
     }
     return cached.app.fetch(req);
   },

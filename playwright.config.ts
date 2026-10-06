@@ -14,9 +14,14 @@ export default defineConfig({
     // WebGL acelerado por hardware también en modo sin ventana (si no, se usa el rasterizador por software).
     launchOptions: { args: ['--use-angle=default', '--enable-gpu', '--ignore-gpu-blocklist'] },
   },
-  // Sitio + API (Worker) con KV local vacío en cada ejecución; wrangler compila primero (build.command).
+  // Sitio + API (Worker) con una base D1 local nueva (esquema + datos ficticios) en cada ejecución; wrangler compila primero.
   webServer: {
-    command: `node -e "require('fs').rmSync('.wrangler/e2e',{recursive:true,force:true})" && npx wrangler dev --port 4173 --persist-to .wrangler/e2e --var SESSION_SECRET:${'e2e-'.padEnd(48, 'x')}`,
+    command: [
+      `node -e "require('fs').rmSync('.wrangler/e2e',{recursive:true,force:true})"`,
+      'npx wrangler d1 migrations apply DB --local --persist-to .wrangler/e2e',
+      'npx wrangler d1 execute DB --local --persist-to .wrangler/e2e --file worker/seed/seed.sql',
+      `npx wrangler dev --port 4173 --persist-to .wrangler/e2e --var SESSION_SECRET:${'e2e-'.padEnd(48, 'x')}`,
+    ].join(' && '),
     url: 'http://localhost:4173',
     reuseExistingServer: true,
     timeout: 180_000,

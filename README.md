@@ -121,7 +121,7 @@ página funciona igual, sin la escena; con «reducir movimiento» la escena qued
 
 El acceso es por **licencia universitaria**: no hay registro; la administración crea las cuentas (o importa el padrón) y
 los estudiantes entran mientras estén matriculados. Roles: administración, docente y estudiante, cada uno con su panel.
-Backend en el mismo Worker de Cloudflare (Hono + KV, datos iniciales en `worker/seed/data.json`). Cuentas de prueba,
+Backend en el mismo Worker de Cloudflare (Hono + base de datos D1, esquema en `migrations/`, datos ficticios en `worker/seed/seed.sql`). Cuentas de prueba,
 módulos, desarrollo y despliegue: [docs/BETA.md](docs/BETA.md).
 
 ## Práctica 3 — Mechero de Bunsen y prueba de cationes a la llama
