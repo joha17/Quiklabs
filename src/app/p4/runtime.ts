@@ -8,6 +8,7 @@ import { UNLOGGED_P4_COMMANDS, type P4Command, type P4DispatchResult } from '../
 import { dispatchReaction, p4Summary, stepReaction, vesselPH, type ReactionContext } from '../../simulation/reaction-world/world';
 import { stableHash } from '../../simulation/core/math';
 import { contextFor } from '../../practices/practice-04';
+import type { TapeRecorder } from '../platform/tape';
 
 /** §22.3 — evento de la práctica 4. */
 export interface Practice04Event {
@@ -34,6 +35,8 @@ const MAX_FRAME_S = 0.25;
 const round = (v: number, d = 6) => Math.round(v * 10 ** d) / 10 ** d;
 
 export class ReactionRuntime {
+  /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
+  tape: TapeRecorder | null = null;
   readonly ctx: ReactionContext;
   actions: Practice04Event[];
   timeScale = 1;
@@ -57,6 +60,7 @@ export class ReactionRuntime {
   dispatch(cmd: P4Command): P4DispatchResult {
     const w = this.world;
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
+    this.tape?.record(w.tick, cmd);
     const r = dispatchReaction(w, cmd, this.ctx);
     if (this.shouldLog(cmd, prevSupport)) this.actions.push(this.toAction(cmd, r));
     this.flush();

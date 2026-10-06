@@ -7,6 +7,7 @@ import type { P6World, SimEvent } from '../../simulation/calorimetry-world/types
 import { UNLOGGED_P6_COMMANDS, type P6Command, type P6DispatchResult } from '../../simulation/calorimetry-world/commands';
 import { dispatchCalor, p6Summary, stepCalor, cupWaterC } from '../../simulation/calorimetry-world/world';
 import { stableHash } from '../../simulation/core/math';
+import type { TapeRecorder } from '../platform/tape';
 
 /** §28.2 — evento de la práctica 6 (encadenado por hash con el anterior). */
 export interface Practice06Event {
@@ -32,6 +33,8 @@ const MAX_STEPS_PER_FRAME = 500;
 const MAX_FRAME_S = 0.25;
 
 export class CalorRuntime {
+  /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
+  tape: TapeRecorder | null = null;
   actions: Practice06Event[];
   timeScale = 1;
   paused = false;
@@ -54,6 +57,7 @@ export class CalorRuntime {
   dispatch(cmd: P6Command): P6DispatchResult {
     const w = this.world;
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
+    this.tape?.record(w.tick, cmd);
     const r = dispatchCalor(w, cmd);
     if (this.shouldLog(cmd, prevSupport)) this.actions.push(this.toAction(cmd, r));
     this.flush();

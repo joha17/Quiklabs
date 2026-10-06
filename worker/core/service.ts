@@ -10,10 +10,12 @@
  */
 import { hashPassword, passwordProblem, temporaryPassword, verifyPassword } from './crypto';
 import type { Repo, SqlStmt } from './repo';
+import { unpackJson } from './pack';
+import { gradeSnapshot, isGradedLab, type AttemptSnapshot, type GradeResult } from '../../src/practices/grading';
 import {
   LAB_IDS, publicUser,
   type AuditEntry, type Course, type CourseLab, type Enrollment, type EnrollmentStatus, type LabId, type LabMode,
-  type License, type Me, type Role, type Submission, type User, type UserStatus,
+  type License, type Me, type Role, type Submission, type SubmissionReplay, type User, type UserStatus,
 } from './types';
 
 export class ApiError extends Error {
@@ -401,6 +403,44 @@ export async function gradebook(repo: Repo, teacher: User, courseId: string) {
   return { course: c, labs: c.labs.map((l) => l.labId), rows };
 }
 
+/** Entregas de un curso, con los problemas detectados y la repetición docente, para revisarlas una a una. */
+export async function courseSubmissions(repo: Repo, teacher: User, courseId: string) {
+  await teacherCourse(repo, teacher, courseId);
+  return repo.submissionsOfCourse(courseId);
+}
+
+async function teacherSubmission(repo: Repo, teacher: User, id: string): Promise<Submission> {
+  const sub = await repo.submissionById(id);
+  if (!sub) throw new ApiError(404, 'SUBMISSION_NOT_FOUND');
+  await teacherCourse(repo, teacher, sub.courseId);
+  return sub;
+}
+
+/** Lo necesario para repetir un intento en el navegador del docente: estado entregado, cinta y opciones. */
+export async function submissionReplayData(repo: Repo, teacher: User, id: string) {
+  const submission = await teacherSubmission(repo, teacher, id);
+  const data = await repo.submissionData(id);
+  if (!data.snapshot) throw new ApiError(404, 'NO_SUBMISSION_DATA');
+  return { submission, snapshot: data.snapshot, tape: data.tape ?? null };
+}
+
+const REPLAY_STATUS: SubmissionReplay['status'][] = ['OK', 'MISMATCH', 'FAILED', 'NO_TAPE'];
+
+/** El docente registra el resultado de repetir el intento (queda en la entrega y en la auditoría). */
+export async function recordReplay(repo: Repo, teacher: User, id: string, input: Partial<SubmissionReplay>): Promise<Submission> {
+  const sub = await teacherSubmission(repo, teacher, id);
+  if (!input.status || !REPLAY_STATUS.includes(input.status)) throw new ApiError(400, 'INVALID_REPLAY');
+  const num = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
+  const replay: SubmissionReplay = {
+    status: input.status, exactState: !!input.exactState, replayScore: num(input.replayScore),
+    diffs: (Array.isArray(input.diffs) ? input.diffs : []).slice(0, 12).map((d) => ({ key: String(d.key).slice(0, 40), replay: num(d.replay) ?? 0, submitted: num(d.submitted) ?? 0 })),
+    error: input.error ? String(input.error).slice(0, 80) : undefined,
+    at: iso(new Date()), by: teacher.id,
+  };
+  await repo.run([repo.setReplayStmt(id, replay), audit(repo, teacher.id, 'submission.replay', id, `${replay.status}${replay.replayScore === null ? '' : ` ${replay.replayScore.toFixed(3)}`}`)]);
+  return { ...sub, replay };
+}
+
 // ─────────────────────────── Estudiantes ───────────────────────────
 
 export async function studentCourses(repo: Repo, student: User, now: Date) {
@@ -421,11 +461,24 @@ export interface SubmissionInput {
   labId: LabId;
   mode: LabMode;
   attemptId: string;
-  score: number;
-  components: Submission['components'];
-  durationS: number;
+  /** Nota que calculó el navegador: solo se guarda para compararla con la del servidor. */
+  clientScore?: number;
+  /** Estado final entregado (`AttemptSnapshot`), JSON comprimido con gzip en base64. */
+  snapshot: string;
+  /** Opciones de creación del mundo (cabecera de la cinta), en claro: el servidor reconstruye el mundo inicial. */
+  tapeOptions?: unknown;
+  /** Cinta de comandos (`AttemptTape`) comprimida; el servidor solo la guarda para la repetición docente. */
+  tape?: string | null;
 }
 
+/** Límites de tamaño de una entrega (base64 comprimido y JSON descomprimido del estado). */
+export const SUBMISSION_LIMITS = { snapshotB64: 3_000_000, snapshotJson: 12_000_000, tapeB64: 20_000_000, optionsJson: 20_000 };
+
+/**
+ * Entrega de un estudiante. La nota no se toma del navegador: el servidor descomprime el estado final, lo evalúa con
+ * la rúbrica de la práctica y lo contrasta con un mundo reconstruido desde las opciones de creación (ver
+ * `gradeSnapshot`). Los problemas encontrados quedan anotados en la entrega para el docente.
+ */
 export async function submit(repo: Repo, student: User, input: SubmissionInput, now: Date): Promise<Submission> {
   if (student.role !== 'student') throw new ApiError(403, 'ONLY_STUDENTS_SUBMIT');
   const live = await repo.liveEnrollments(student.id, iso(now));
@@ -434,18 +487,46 @@ export async function submit(repo: Repo, student: User, input: SubmissionInput, 
   const lab = c.labs.find((l) => l.labId === input.labId);
   if (!lab) throw new ApiError(400, 'LAB_NOT_ASSIGNED');
   if (!within(now, lab.opensAt, lab.closesAt)) throw new ApiError(403, 'LAB_CLOSED');
-  if (!input.attemptId || typeof input.score !== 'number' || !Number.isFinite(input.score)) throw new ApiError(400, 'INVALID_SUBMISSION');
-  const clamp = (x: number) => Math.min(1, Math.max(0, x));
+  if (!input.attemptId || typeof input.snapshot !== 'string' || !isGradedLab(input.labId)) throw new ApiError(400, 'INVALID_SUBMISSION');
+  const tape = typeof input.tape === 'string' && input.tape ? input.tape : null;
+  const optionsJson = input.tapeOptions == null ? null : JSON.stringify(input.tapeOptions);
+  if (input.snapshot.length > SUBMISSION_LIMITS.snapshotB64 || (tape?.length ?? 0) > SUBMISSION_LIMITS.tapeB64 || (optionsJson?.length ?? 0) > SUBMISSION_LIMITS.optionsJson) {
+    throw new ApiError(413, 'SUBMISSION_TOO_LARGE');
+  }
   const attemptId = String(input.attemptId).slice(0, 80);
+  let snap: AttemptSnapshot;
+  try {
+    snap = await unpackJson<AttemptSnapshot>(input.snapshot, SUBMISSION_LIMITS.snapshotJson);
+  } catch {
+    throw new ApiError(400, 'INVALID_SNAPSHOT');
+  }
+  let graded: GradeResult;
+  try {
+    graded = gradeSnapshot(input.labId, snap, {
+      attemptId,
+      // Sin cinta no hay repetición posible; las opciones solo valen junto con ella.
+      options: tape && optionsJson ? input.tapeOptions : null,
+      requiredMode: lab.mode,
+      clientScore: typeof input.clientScore === 'number' && Number.isFinite(input.clientScore) ? input.clientScore : null,
+    });
+  } catch {
+    throw new ApiError(400, 'INVALID_SNAPSHOT');
+  }
   // Reenviar el mismo intento reemplaza la entrega anterior (no duplica) y conserva su id.
   const prev = await repo.submissionByAttempt(student.id, attemptId);
+  const ev = graded.evaluation;
   const sub: Submission = {
     id: prev?.id ?? rid('s'), userId: student.id, courseId: c.id, labId: input.labId, mode: MODES.includes(input.mode) ? input.mode : lab.mode,
-    attemptId, score: clamp(input.score),
-    components: (input.components ?? []).slice(0, 12).map((x) => ({ key: String(x.key).slice(0, 40), score: clamp(Number(x.score) || 0), weight: Number(x.weight) || 0 })),
-    durationS: Math.max(0, Math.round(Number(input.durationS) || 0)), submittedAt: iso(now),
+    attemptId, score: ev.total,
+    components: ev.components.slice(0, 12).map((x) => ({ key: x.id, score: Math.min(1, Math.max(0, x.score)), weight: x.weight })),
+    durationS: Math.max(0, Math.round(graded.durationS)), submittedAt: iso(now),
+    clientScore: typeof input.clientScore === 'number' && Number.isFinite(input.clientScore) ? input.clientScore : null,
+    grading: 'SERVER', issues: graded.issues, replay: null,
   };
-  await repo.run([repo.upsertSubmissionStmt(sub)]);
+  await repo.run([
+    repo.upsertSubmissionStmt(sub),
+    ...repo.submissionDataStmts(sub.id, { snapshot: input.snapshot, tape, options: tape ? optionsJson : null }),
+  ]);
   return sub;
 }
 

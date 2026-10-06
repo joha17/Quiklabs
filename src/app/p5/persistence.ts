@@ -7,10 +7,12 @@ import type { P5Notebook } from '../../practices/practice-05/notebook';
 import type { Practice05Event } from './runtime';
 import type { P5Settings } from './store';
 import { scopedKey } from '../platform/scope';
+import type { TapeSave } from '../platform/tape';
 
 export const P5_SAVE_KEY = 'quiklabs.practica5.intento.v1';
 
-export interface SavedP5Attempt {
+/** Incluye la parte de la cinta que aún no está en IndexedDB (`TapeRecorder.forSave`). */
+export interface SavedP5Attempt extends Partial<TapeSave> {
   version: 1;
   savedAt: number;
   attemptId: string;

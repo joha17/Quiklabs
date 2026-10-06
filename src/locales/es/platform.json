@@ -62,6 +62,12 @@
       "MUST_CHANGE_PASSWORD": "Debes cambiar tu contraseña antes de continuar.",
       "NETWORK_ERROR": "No hay conexión con el servidor.",
       "SERVER_NOT_CONFIGURED": "El servidor aún no está configurado (falta el secreto de sesión).",
+      "INVALID_SUBMISSION": "La entrega está incompleta.",
+      "INVALID_SNAPSHOT": "No se pudo leer el estado de la práctica entregada.",
+      "SUBMISSION_TOO_LARGE": "La entrega es demasiado grande.",
+      "SUBMISSION_NOT_FOUND": "No se encontró la entrega.",
+      "NO_SUBMISSION_DATA": "Esta entrega no guarda el estado de la práctica (es anterior a la validación en el servidor).",
+      "INVALID_REPLAY": "El resultado de la verificación no es válido.",
       "default": "No se pudo completar la acción ({{code}})."
     },
     "labs": {
@@ -106,6 +112,37 @@
       "lastLogin": "Último ingreso",
       "never": "nunca",
       "status": { "active": "Activa", "withdrawn": "Retirada", "completed": "Finalizada" }
+    },
+    "review": {
+      "title": "Entregas y verificación",
+      "intro": "La nota de cada entrega la calcula el servidor con la rúbrica de la práctica a partir del estado final y la libreta; la que calculó el navegador del estudiante no se usa. «Verificar intento» repite la sesión completa en este navegador, comando por comando, y comprueba que llega al mismo estado y a la misma nota.",
+      "none": "Todavía no hay entregas en este grupo.",
+      "flagged_one": "1 entrega tiene avisos o no coincidió al repetirla: revísala.",
+      "flagged_other": "{{count}} entregas tienen avisos o no coincidieron al repetirlas: revísalas.",
+      "allLabs": "Todas",
+      "date": "Entregada",
+      "score": "Nota",
+      "grading": "Validación",
+      "verification": "Verificación",
+      "legacy": "Nota del navegador (anterior)",
+      "server": "Recalculada en el servidor",
+      "clientScore": "El navegador envió {{score}}",
+      "verify": "Verificar intento",
+      "again": "Repetir de nuevo",
+      "running": "Repitiendo… {{pct}} %",
+      "noTape": "Esta entrega no tiene cinta de comandos: no se puede repetir.",
+      "replayScore": "nota al repetir: {{score}}",
+      "notExact": "(misma nota; el estado difiere en detalles numéricos)",
+      "replay": { "OK": "Verificada", "MISMATCH": "No coincide", "FAILED": "No se pudo repetir", "NO_TAPE": "Sin cinta" },
+      "issue": {
+        "SEED_MISMATCH": "Semilla distinta",
+        "FIXED_STATE_CHANGED": "Parámetros alterados",
+        "CLOCK_INCONSISTENT": "Reloj inconsistente",
+        "NOT_CONSERVED": "Materia no conservada",
+        "MODE_MISMATCH": "No se hizo en modo Evaluación",
+        "CLIENT_SCORE_MISMATCH": "Nota del navegador distinta",
+        "NO_TAPE": "Sin cinta de comandos"
+      }
     },
     "admin": {
       "title": "Administración",

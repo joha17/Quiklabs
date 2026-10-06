@@ -7,10 +7,12 @@ import type { P4Notebook } from '../../practices/practice-04/notebook';
 import type { Practice04Event } from './runtime';
 import type { P4Settings } from './store';
 import { scopedKey } from '../platform/scope';
+import type { TapeSave } from '../platform/tape';
 
 export const P4_SAVE_KEY = 'quiklabs.practica4.intento.v1';
 
-export interface SavedP4Attempt {
+/** Incluye la parte de la cinta que aún no está en IndexedDB (`TapeRecorder.forSave`). */
+export interface SavedP4Attempt extends Partial<TapeSave> {
   version: 1;
   savedAt: number;
   attemptId: string;

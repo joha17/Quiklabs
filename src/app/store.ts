@@ -8,7 +8,8 @@ import type { SimEvent } from '../simulation/entities/types';
 import type { Command } from '../simulation/world/commands';
 import type { DispatchResult } from '../simulation/world/world';
 import { newSeed } from '../simulation/core/rng';
-import { newPracticeWorld } from '../practices/practice-02';
+import { newPracticeWorld, type PracticeOptions } from '../practices/practice-02';
+import { sanitizeOnResume2 } from '../practices/practice-02/resume';
 import type { PracticeMode } from '../practices/practice-02/definition';
 import { emptyNotebook, type NotebookState } from '../practices/practice-02/notebook';
 import { practiceMachine, stageName } from '../practices/practice-02/workflow.machine';
@@ -21,6 +22,7 @@ import type { Lab3D } from '../engine/Lab3D';
 import type { QualitySetting } from '../engine/quality';
 import { eventFeedback } from './feedback';
 import { reportSubmission } from './platform/report';
+import { TapeRecorder } from './platform/tape';
 
 export interface Settings {
   mode: PracticeMode;
@@ -179,9 +181,11 @@ export const useLab = create<LabState>()((set, get) => ({
     const s = get().settings;
     const seed = opts?.sameSeed ? s.seed : s.seed || newSeed();
     const settings: Settings = { ...s, seed, showZones: s.mode === 'GUIDED' ? true : s.showZones };
-    const world = newPracticeWorld({ mode: settings.mode === 'DEBUG' ? 'PRACTICE' : settings.mode, seed, oilProfile: settings.oilProfile });
     const id = attemptId(seed);
-    const rt = new LabRuntime(world, id);
+    const worldOpts: PracticeOptions = { mode: settings.mode === 'DEBUG' ? 'PRACTICE' : settings.mode, seed, oilProfile: settings.oilProfile };
+    const tape = TapeRecorder.start('p2', id, worldOpts);
+    const rt = new LabRuntime(newPracticeWorld(worldOpts), id);
+    rt.tape = tape;
     rt.timeScale = settings.timeScale;
     bindRuntime(rt);
     actor?.stop();
@@ -225,12 +229,9 @@ export const useLab = create<LabState>()((set, get) => ({
 
   resume(saved) {
     const rt = new LabRuntime(saved.world, saved.attemptId, saved.actions);
+    rt.tape = TapeRecorder.resume('p2', saved.attemptId, saved.world.tick, saved);
     // Reanudar en pausa y sin agitación ni vertidos activos (§14).
-    for (const v of Object.values(saved.world.vessels)) {
-      v.agitation = 0;
-      v.agitationTool = 'NONE';
-    }
-    saved.world.pours = {};
+    sanitizeOnResume2(saved.world);
     rt.timeScale = saved.settings.timeScale;
     rt.paused = true;
     bindRuntime(rt);
@@ -336,7 +337,9 @@ export const useLab = create<LabState>()((set, get) => ({
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
     // Estudiantes: la entrega queda registrada en su curso (plataforma).
-    void reportSubmission('p2', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
+    void reportSubmission('p2', {
+      mode: get().settings.mode, attemptId: get().attemptId, evaluation, world: rt.world, notebook: get().notebook, ppe: get().ppeConfirmed, tape: rt.tape,
+    });
   },
 
   backToIntro() {
@@ -353,7 +356,9 @@ export const useLab = create<LabState>()((set, get) => ({
       version: 1, savedAt: Date.now(), attemptId: s.attemptId, settings: s.settings, world: rt.world, actions: rt.actions,
       notebook: s.notebook, workflow: actor?.getPersistedSnapshot() ?? null, ppe: s.ppeConfirmed,
       spillPos: s.stage?.controller.spillPos ?? { x: 160, y: 10 }, submitted: s.submitted,
+      ...rt.tape?.forSave(),
     });
+    rt.tape?.flush();
     if (ok) set({ savedAt: Date.now() });
   },
 

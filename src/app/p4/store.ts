@@ -7,7 +7,8 @@ import { createActor, type Actor } from 'xstate';
 import type { SimEvent } from '../../simulation/reaction-world/types';
 import type { P4Command, P4DispatchResult } from '../../simulation/reaction-world/commands';
 import { newSeed } from '../../simulation/core/rng';
-import { newPractice4World } from '../../practices/practice-04';
+import { newPractice4World, type Practice4Options } from '../../practices/practice-04';
+import { sanitizeOnResume4 } from '../../practices/practice-04/resume';
 import type { P4Mode } from '../../practices/practice-04/definition';
 import type { P4Scenario } from '../../practices/practice-04/error-scenarios';
 import { emptyP4Notebook, type P4Notebook } from '../../practices/practice-04/notebook';
@@ -21,6 +22,7 @@ import { ReactionRuntime } from './runtime';
 import { clearP4Attempt, loadP4Attempt, saveP4Attempt, type SavedP4Attempt } from './persistence';
 import { p4EventFeedback } from './feedback';
 import { reportSubmission } from '../platform/report';
+import { TapeRecorder } from '../platform/tape';
 
 export interface P4Settings {
   mode: P4Mode;
@@ -139,8 +141,9 @@ const DEFAULT_SETTINGS: P4Settings = {
 
 const attemptIdFor = (seed: number) => `p4-${seed.toString(36)}-${Date.now().toString(36)}`;
 
-function worldFor(s: P4Settings, seed: number, mode: P4Mode) {
-  return newPractice4World({
+/** Opciones de creación del mundo (también van en la cinta del intento). */
+function optionsFor(s: P4Settings, seed: number, mode: P4Mode): Practice4Options {
+  return {
     mode,
     seed,
     scenarios: s.scenarios,
@@ -152,7 +155,11 @@ function worldFor(s: P4Settings, seed: number, mode: P4Mode) {
       waste: { allowNeutralDrain: s.allowNeutralDrain },
       mgNitrideFrac: s.mgNitride ? 0.03 : 0,
     },
-  });
+  };
+}
+
+function worldFor(s: P4Settings, seed: number, mode: P4Mode) {
+  return newPractice4World(optionsFor(s, seed, mode));
 }
 
 export const useP4 = create<P4State>()((set, get) => ({
@@ -189,9 +196,11 @@ export const useP4 = create<P4State>()((set, get) => ({
   start(opts) {
     const s = get().settings;
     const seed = opts?.sameSeed ? s.seed : s.seed || newSeed();
-    const world = worldFor(s, seed, s.mode);
     const id = attemptIdFor(seed);
-    const rt = new ReactionRuntime(world, id);
+    const worldOpts = optionsFor(s, seed, s.mode);
+    const tape = TapeRecorder.start('p4', id, worldOpts);
+    const rt = new ReactionRuntime(newPractice4World(worldOpts), id);
+    rt.tape = tape;
     rt.timeScale = s.timeScale;
     bindRuntime(rt);
     actor?.stop();
@@ -235,25 +244,9 @@ export const useP4 = create<P4State>()((set, get) => ({
   resume(saved) {
     const w = saved.world;
     // §27 — al restaurar: mechero apagado y gas cerrado, sin chispa, vertidos detenidos, nada en la mano.
-    const g = w.gas;
-    const wasLit = !['OFF', 'EXTINGUISHED', 'GAS_RELEASED'].includes(g.burner.flameState);
-    g.burner.tableGasValve = 0;
-    g.burner.needleGasValve = 0;
-    g.burner.flameState = 'OFF';
-    g.burner.flame = { ...g.burner.flame, isLit: false, heightCm: 0, innerConeHeightCm: 0, fuelFlow: 0, sootRateMgS: 0, coRateMgS: 0 };
-    g.lighter.sparking = false;
-    g.room.gasAccumMl = 0;
-    w.pours = {};
-    w.squeezes = {};
-    for (const o of Object.values(g.objects)) if (o.support === 'hand' || o.support === 'falling') o.support = 'bench';
-    for (const o of Object.values(w.objects)) if (o.support === 'hand' || o.support === 'falling') o.support = 'bench';
-    for (const [tid, tg] of Object.entries(w.tongs)) {
-      if (tg.holding && w.objects[tg.holding]?.support === `tongs:${tid}`) w.objects[tg.holding].support = 'bench';
-      tg.holding = null;
-    }
-    // Una cinta que ardía al cerrar termina como residuo (no sigue ardiendo «en pausa»).
-    for (const r of Object.values(w.ribbons)) if (r.phase === 'BRIGHT_COMBUSTION' || r.phase === 'IGNITION_THRESHOLD') r.phase = 'GLOWING_RESIDUE';
+    const { wasLit } = sanitizeOnResume4(w);
     const rt = new ReactionRuntime(w, saved.attemptId, saved.actions);
+    rt.tape = TapeRecorder.resume('p4', saved.attemptId, w.tick, saved);
     rt.timeScale = saved.settings.timeScale;
     rt.paused = true;
     bindRuntime(rt);
@@ -355,7 +348,9 @@ export const useP4 = create<P4State>()((set, get) => ({
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
     // Estudiantes: la entrega queda registrada en su curso (plataforma).
-    void reportSubmission('p4', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
+    void reportSubmission('p4', {
+      mode: get().settings.mode, attemptId: get().attemptId, evaluation, world: rt.world, notebook: get().notebook, ppe: get().ppeConfirmed, tape: rt.tape,
+    });
   },
 
   backToIntro() {
@@ -371,7 +366,9 @@ export const useP4 = create<P4State>()((set, get) => ({
     const ok = saveP4Attempt({
       version: 1, savedAt: Date.now(), attemptId: s.attemptId, settings: s.settings, world: rt.world, actions: rt.actions,
       notebook: s.notebook, workflow: actor?.getPersistedSnapshot() ?? null, ppe: s.ppeConfirmed, submitted: s.submitted,
+      ...rt.tape?.forSave(),
     });
+    rt.tape?.flush();
     if (ok) set({ savedAt: Date.now() });
   },
 

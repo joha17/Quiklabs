@@ -8,6 +8,7 @@ import { UNLOGGED_P5_COMMANDS, type P5Command, type P5DispatchResult } from '../
 import { dispatchStoich, p5Summary, stepStoich, tubeTempC, type StoichContext } from '../../simulation/stoich-world/world';
 import { stableHash } from '../../simulation/core/math';
 import { CTX5 } from '../../practices/practice-05';
+import type { TapeRecorder } from '../platform/tape';
 
 /** §22.3 — evento de la práctica 5. */
 export interface Practice05Event {
@@ -32,6 +33,8 @@ const MAX_STEPS_PER_FRAME = 500;
 const MAX_FRAME_S = 0.25;
 
 export class StoichRuntime {
+  /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
+  tape: TapeRecorder | null = null;
   readonly ctx: StoichContext = CTX5;
   actions: Practice05Event[];
   timeScale = 1;
@@ -55,6 +58,7 @@ export class StoichRuntime {
   dispatch(cmd: P5Command): P5DispatchResult {
     const w = this.world;
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
+    this.tape?.record(w.tick, cmd);
     const r = dispatchStoich(w, cmd, this.ctx);
     if (this.shouldLog(cmd, prevSupport)) this.actions.push(this.toAction(cmd, r));
     this.flush();

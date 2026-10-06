@@ -36,7 +36,8 @@ del 1/7/2026 al 30/6/2027, 120 cupos.
 | Prácticas del grupo (docente) | Qué prácticas tiene el grupo, apertura, cierre y modo (Práctica, Guiado, Evaluación). |
 | Calificaciones (docente/admin) | Mejor nota por estudiante y práctica, número de entregas; exportación CSV. |
 | Panel del estudiante | Prácticas abiertas en sus cursos (entra en el modo que fijó su docente), cursos y fechas, historial de entregas con nota. |
-| Entregas | Al entregar una práctica, la evaluación por evidencia del simulador se registra en el curso (reenviar el mismo intento lo reemplaza). Docentes y admin pueden abrir todas las prácticas sin generar entregas. |
+| Entregas | Al entregar una práctica se envían el estado final del mundo, la libreta y la cinta de comandos del intento. **La nota la calcula el servidor** con la rúbrica de la práctica y anota los problemas de plausibilidad (reenviar el mismo intento lo reemplaza). Docentes y admin pueden abrir todas las prácticas sin generar entregas. |
+| Verificación (docente/admin) | «Entregas y verificación»: nota recalculada, avisos (semilla, parámetros alterados, conservación, reloj, modo, nota del navegador distinta) y «Verificar intento», que repite la sesión tic a tic en el navegador del docente y registra si llega al mismo estado y nota (queda en la auditoría). |
 | Auditoría (admin) | Registro de altas, cambios, matrículas, licencia, bloqueos y cambios de contraseña. |
 
 Los intentos guardados en el navegador se separan por usuario (`clave:idUsuario`), así dos personas que usan el mismo
@@ -52,10 +53,13 @@ worker/
 │   ├── types.ts      modelo de datos
 │   ├── crypto.ts     PBKDF2, HMAC, contraseñas temporales
 │   ├── repo.ts       consultas SQL sobre D1 (interfaz mínima `SqlDb`)
-│   └── service.ts    acceso, login, usuarios, cursos, matrículas, entregas, calificaciones, auditoría
+│   ├── service.ts    acceso, login, usuarios, cursos, matrículas, entregas, calificaciones, auditoría
+│   └── pack.ts       JSON comprimido (gzip + base64) del estado entregado y la cinta
 └── seed/             datos ficticios (seed.sql), su generador y `to-sql.mjs`
 migrations/           esquema de la base (D1/SQLite), versionado
-src/app/platform/     login, cambio de contraseña, paneles de admin, docente y estudiante, sesión, registro de entregas
+src/app/platform/     login, cambio de contraseña, paneles de admin, docente y estudiante, sesión, registro de entregas,
+                      cinta del intento (IndexedDB) y revisión de entregas
+src/practices/grading.ts  calificación en el servidor y repetición de la cinta (código puro compartido con el Worker)
 ```
 
 Rutas de la interfaz: portada (pública) · `#login` · `#panel` · `#p2` … `#p6` (exigen sesión; un estudiante solo
@@ -84,7 +88,8 @@ Base `quiklabs` (binding `DB`), esquema en `migrations/`:
 | `users` | cuentas; correo y carné únicos; hash de contraseña, versión de sesión, bloqueo |
 | `courses`, `course_teachers`, `course_labs` | cursos (sigla, periodo, grupo, fechas), sus docentes y sus prácticas (apertura, cierre, modo) |
 | `enrollments` | matrícula estudiante–curso (única por par) y su estado |
-| `submissions` | entregas (única por estudiante e intento: reenviar reemplaza) |
+| `submissions` | entregas (única por estudiante e intento: reenviar reemplaza); nota del servidor, nota del navegador, avisos y resultado de la repetición |
+| `submission_data` | estado entregado, cinta y opciones de creación de cada entrega (gzip + base64, en partes de 1 MB) |
 | `audit` | acciones de administración y seguridad |
 
 Cada cambio y su registro de auditoría se escriben en un mismo lote atómico (`batch`). Para cambiar el esquema se agrega
@@ -107,6 +112,11 @@ Los datos de la beta que estaban en Cloudflare KV se pasaron a D1 con `worker/se
   escritura simultánea, o si la universidad exige otra región, conviene PostgreSQL (vía Hyperdrive).
 - El control de acceso a los laboratorios es de la aplicación: el código de los simuladores es estático (no contiene
   datos de estudiantes), pero la API sí exige sesión, rol, matrícula y fechas para todo dato y toda entrega.
-- La nota registrada la calcula el simulador en el navegador; un estudiante con conocimientos técnicos podría enviar una
-  nota falsa. Para evaluaciones con peso, el docente debe revisar el intento (se puede exportar) o validar en servidor.
+- La nota la calcula el servidor a partir del estado final entregado, no la que envía el navegador. El servidor no
+  repite el intento (el plan gratuito de Workers da 10 ms de CPU; recalcular cuesta ≈ 2–5 ms): un estado final
+  fabricado con cuidado, coherente con la semilla, los parámetros y la conservación, pasaría el recálculo. Lo detecta
+  «Verificar intento», que repite la cinta completa en el navegador del docente; para evaluaciones con peso conviene
+  verificar las entregas antes de cerrar las notas. Con Workers Paid se podría repetir cada entrega en el servidor.
+- La cinta vive en IndexedDB del navegador del estudiante: si cambia de equipo o borra los datos del sitio a mitad del
+  intento, la entrega se califica igual pero no se puede repetir («Sin cinta»).
 - No hay recuperación de contraseña por correo: la restablece la administración.

@@ -7,7 +7,8 @@ import { createActor, type Actor } from 'xstate';
 import type { SimEvent } from '../../simulation/stoich-world/types';
 import type { P5Command, P5DispatchResult } from '../../simulation/stoich-world/commands';
 import { newSeed } from '../../simulation/core/rng';
-import { newPractice5World } from '../../practices/practice-05';
+import { newPractice5World, type Practice5Options } from '../../practices/practice-05';
+import { sanitizeOnResume5 } from '../../practices/practice-05/resume';
 import type { P5Mode } from '../../practices/practice-05/definition';
 import type { P5Scenario } from '../../practices/practice-05/error-scenarios';
 import { emptyP5Notebook, type P5Notebook } from '../../practices/practice-05/notebook';
@@ -22,6 +23,7 @@ import { StoichRuntime } from './runtime';
 import { clearP5Attempt, loadP5Attempt, saveP5Attempt, type SavedP5Attempt } from './persistence';
 import { p5EventFeedback } from './feedback';
 import { reportSubmission } from '../platform/report';
+import { TapeRecorder } from '../platform/tape';
 
 export interface P5Settings {
   mode: P5Mode;
@@ -130,8 +132,13 @@ const DEFAULT_SETTINGS: P5Settings = {
 
 const attemptIdFor = (seed: number) => `p5-${seed.toString(36)}-${Date.now().toString(36)}`;
 
+/** Opciones de creación del mundo (también van en la cinta del intento). */
+function optionsFor(s: P5Settings, seed: number, mode: P5Mode): Practice5Options {
+  return { mode, seed, scenarios: s.scenarios, params: { kclo3MaxG: s.kclo3MaxG, firstCycleS: s.firstCycleMin * 60 } };
+}
+
 function worldFor(s: P5Settings, seed: number, mode: P5Mode) {
-  return newPractice5World({ mode, seed, scenarios: s.scenarios, params: { kclo3MaxG: s.kclo3MaxG, firstCycleS: s.firstCycleMin * 60 } });
+  return newPractice5World(optionsFor(s, seed, mode));
 }
 
 export const useP5 = create<P5State>()((set, get) => ({
@@ -169,9 +176,11 @@ export const useP5 = create<P5State>()((set, get) => ({
   start(opts) {
     const s = get().settings;
     const seed = opts?.sameSeed ? s.seed : s.seed || newSeed();
-    const world = worldFor(s, seed, s.mode);
     const id = attemptIdFor(seed);
-    const rt = new StoichRuntime(world, id);
+    const worldOpts = optionsFor(s, seed, s.mode);
+    const tape = TapeRecorder.start('p5', id, worldOpts);
+    const rt = new StoichRuntime(newPractice5World(worldOpts), id);
+    rt.tape = tape;
     rt.timeScale = s.timeScale;
     bindRuntime(rt);
     actor?.stop();
@@ -215,30 +224,9 @@ export const useP5 = create<P5State>()((set, get) => ({
   resume(saved) {
     const w = saved.world;
     // Al restaurar: mechero apagado y gas cerrado, sin chispa, nada en la mano. La reacción no avanzó con la app cerrada.
-    const g = w.gas;
-    const wasLit = !['OFF', 'EXTINGUISHED', 'GAS_RELEASED'].includes(g.burner.flameState);
-    g.burner.tableGasValve = 0;
-    g.burner.needleGasValve = 0;
-    g.burner.flameState = 'OFF';
-    g.burner.flame = { ...g.burner.flame, isLit: false, heightCm: 0, innerConeHeightCm: 0, fuelFlow: 0, sootRateMgS: 0, coRateMgS: 0 };
-    g.lighter.sparking = false;
-    g.room.gasAccumMl = 0;
-    for (const o of Object.values(g.objects)) if (o.support === 'hand' || o.support === 'falling') o.support = 'bench';
-    for (const o of Object.values(w.objects)) {
-      if (o.support !== 'hand') continue;
-      o.support = 'bench';
-      if (o.id === 'tube') {
-        // El tubo que estaba en la mano vuelve a la gradilla.
-        o.support = 'rack';
-        o.pose = { x: w.objects.rack.pose.x - 3, y: w.objects.rack.pose.y, z: 0.6, rotationRad: 0 };
-      }
-    }
-    if (w.objects.tube.support === 'tongs') {
-      w.objects.tube.support = 'rack';
-      w.objects.tube.pose = { x: w.objects.rack.pose.x - 3, y: w.objects.rack.pose.y, z: 0.6, rotationRad: 0 };
-    }
-    w.safety.lastInteractionS = w.timeS;
+    const { wasLit } = sanitizeOnResume5(w);
     const rt = new StoichRuntime(w, saved.attemptId, saved.actions);
+    rt.tape = TapeRecorder.resume('p5', saved.attemptId, w.tick, saved);
     rt.timeScale = saved.settings.timeScale;
     rt.paused = true;
     bindRuntime(rt);
@@ -346,7 +334,9 @@ export const useP5 = create<P5State>()((set, get) => ({
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
     // Estudiantes: la entrega queda registrada en su curso (plataforma).
-    void reportSubmission('p5', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
+    void reportSubmission('p5', {
+      mode: get().settings.mode, attemptId: get().attemptId, evaluation, world: rt.world, notebook: get().notebook, ppe: get().ppeConfirmed, tape: rt.tape,
+    });
   },
 
   backToIntro() {
@@ -362,7 +352,9 @@ export const useP5 = create<P5State>()((set, get) => ({
     const ok = saveP5Attempt({
       version: 1, savedAt: Date.now(), attemptId: s.attemptId, settings: s.settings, world: rt.world, actions: rt.actions,
       notebook: s.notebook, workflow: actor?.getPersistedSnapshot() ?? null, ppe: s.ppeConfirmed, submitted: s.submitted,
+      ...rt.tape?.forSave(),
     });
+    rt.tape?.flush();
     if (ok) set({ savedAt: Date.now() });
   },
 

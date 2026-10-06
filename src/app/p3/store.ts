@@ -7,7 +7,8 @@ import { createActor, type Actor } from 'xstate';
 import type { SimEvent } from '../../simulation/flame-world/types';
 import type { FlameCommand, FlameDispatchResult } from '../../simulation/flame-world/commands';
 import { newSeed } from '../../simulation/core/rng';
-import { newPractice3World } from '../../practices/practice-03';
+import { newPractice3World, type Practice3Options } from '../../practices/practice-03';
+import { sanitizeOnResume3 } from '../../practices/practice-03/resume';
 import type { P3Mode } from '../../practices/practice-03/definition';
 import type { P3Scenario } from '../../practices/practice-03/error-scenarios';
 import { emptyP3Notebook, type P3Notebook } from '../../practices/practice-03/notebook';
@@ -22,6 +23,7 @@ import { FlameRuntime } from './runtime';
 import { clearP3Attempt, loadP3Attempt, pushUnknownHistory, readUnknownHistory, saveP3Attempt, type SavedP3Attempt } from './persistence';
 import { p3EventFeedback } from './feedback';
 import { reportSubmission } from '../platform/report';
+import { TapeRecorder } from '../platform/tape';
 
 export interface P3Settings {
   mode: P3Mode;
@@ -179,17 +181,20 @@ export const useP3 = create<P3State>()((set, get) => ({
   start(opts) {
     const s = get().settings;
     const seed = opts?.sameSeed ? s.seed : s.seed || newSeed();
-    const world = newPractice3World({
+    const worldOpts: Practice3Options = {
       mode: s.mode,
       seed,
       fuel: s.fuel,
       scenarios: s.scenarios,
       params: { loopMode: s.loopMode, atomizerEnabled: s.atomizer },
       unknownHistory: readUnknownHistory(),
-    });
-    pushUnknownHistory(world.unknown.cation);
+    };
     const id = attemptIdFor(seed);
+    const tape = TapeRecorder.start('p3', id, worldOpts);
+    const world = newPractice3World(worldOpts);
+    pushUnknownHistory(world.unknown.cation);
     const rt = new FlameRuntime(world, id);
+    rt.tape = tape;
     rt.timeScale = s.timeScale;
     bindRuntime(rt);
     actor?.stop();
@@ -235,17 +240,9 @@ export const useP3 = create<P3State>()((set, get) => ({
   resume(saved) {
     const w = saved.world;
     // §25 — al restaurar se vuelve a un estado seguro: gas cerrado, sin llama ni chispa, nada en la mano.
-    const wasLit = !['OFF', 'EXTINGUISHED', 'GAS_RELEASED'].includes(w.burner.flameState);
-    w.burner.tableGasValve = 0;
-    w.burner.needleGasValve = 0;
-    w.burner.flameState = 'OFF';
-    w.burner.flame = { ...w.burner.flame, isLit: false, heightCm: 0, innerConeHeightCm: 0, fuelFlow: 0, sootRateMgS: 0, coRateMgS: 0 };
-    w.lighter.sparking = false;
-    w.room.gasAccumMl = 0;
-    for (const o of Object.values(w.objects)) if (o.support === 'hand' || o.support === 'falling') o.support = 'bench';
-    for (const tg of Object.values(w.tongs)) tg.holding = null;
-    w.capsule.clampedBy = null;
+    const { wasLit } = sanitizeOnResume3(w);
     const rt = new FlameRuntime(w, saved.attemptId, saved.actions);
+    rt.tape = TapeRecorder.resume('p3', saved.attemptId, w.tick, saved);
     rt.timeScale = saved.settings.timeScale;
     rt.paused = true;
     bindRuntime(rt);
@@ -349,7 +346,9 @@ export const useP3 = create<P3State>()((set, get) => ({
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
     // Estudiantes: la entrega queda registrada en su curso (plataforma).
-    void reportSubmission('p3', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
+    void reportSubmission('p3', {
+      mode: get().settings.mode, attemptId: get().attemptId, evaluation, world: rt.world, notebook: get().notebook, ppe: get().ppeConfirmed, tape: rt.tape,
+    });
   },
 
   backToIntro() {
@@ -365,7 +364,9 @@ export const useP3 = create<P3State>()((set, get) => ({
     const ok = saveP3Attempt({
       version: 1, savedAt: Date.now(), attemptId: s.attemptId, settings: s.settings, world: rt.world, actions: rt.actions,
       notebook: s.notebook, workflow: actor?.getPersistedSnapshot() ?? null, ppe: s.ppeConfirmed, submitted: s.submitted,
+      ...rt.tape?.forSave(),
     });
+    rt.tape?.flush();
     if (ok) set({ savedAt: Date.now() });
   },
 

@@ -8,6 +8,7 @@ import { UNLOGGED_FLAME_COMMANDS, type FlameCommand, type FlameDispatchResult } 
 import { dispatchFlame, flameSummary, gasFlows, isLit, stepFlame } from '../../simulation/flame-world/world';
 import { stableHash } from '../../simulation/core/math';
 import { CTX3 } from '../../practices/practice-03';
+import type { TapeRecorder } from '../platform/tape';
 
 /** §19.3 — evento de la práctica 3. */
 export interface Practice03Event {
@@ -35,6 +36,8 @@ const MAX_STEPS_PER_FRAME = 400;
 const MAX_FRAME_S = 0.25;
 
 export class FlameRuntime {
+  /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
+  tape: TapeRecorder | null = null;
   readonly ctx = CTX3;
   actions: Practice03Event[];
   timeScale = 1;
@@ -58,6 +61,7 @@ export class FlameRuntime {
   dispatch(cmd: FlameCommand): FlameDispatchResult {
     const w = this.world;
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
+    this.tape?.record(w.tick, cmd);
     const r = dispatchFlame(w, cmd, this.ctx);
     if (this.shouldLog(cmd, prevSupport)) this.actions.push(this.toAction(cmd, r));
     this.flush();

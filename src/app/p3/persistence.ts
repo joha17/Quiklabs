@@ -7,11 +7,13 @@ import type { P3Notebook } from '../../practices/practice-03/notebook';
 import type { Practice03Event } from './runtime';
 import type { P3Settings } from './store';
 import { scopedKey } from '../platform/scope';
+import type { TapeSave } from '../platform/tape';
 
 export const P3_SAVE_KEY = 'quiklabs.practica3.intento.v1';
 const HISTORY_KEY = 'quiklabs.practica3.incognitas';
 
-export interface SavedP3Attempt {
+/** Incluye la parte de la cinta que aún no está en IndexedDB (`TapeRecorder.forSave`). */
+export interface SavedP3Attempt extends Partial<TapeSave> {
   version: 1;
   savedAt: number;
   attemptId: string;

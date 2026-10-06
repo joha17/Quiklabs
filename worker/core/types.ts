@@ -70,7 +70,7 @@ export interface Enrollment {
   updatedAt: string;
 }
 
-/** Entrega de una práctica: la evaluación por evidencia que calculó el simulador. */
+/** Entrega de una práctica: la evaluación por evidencia, recalculada en el servidor con la rúbrica del simulador. */
 export interface Submission {
   id: string;
   userId: string;
@@ -84,6 +84,25 @@ export interface Submission {
   components: Array<{ key: string; score: number; weight: number }>;
   durationS: number;
   submittedAt: string;
+  /** Nota que calculó el navegador (solo para comparar; la válida es `score`). */
+  clientScore: number | null;
+  /** `SERVER`: nota recalculada por el servidor; `CLIENT`: entrega anterior a la validación en el servidor. */
+  grading: 'CLIENT' | 'SERVER';
+  /** Problemas de plausibilidad detectados al recalcular (ver `GradeIssue` en practices/grading.ts). */
+  issues: string[];
+  /** Repetición del intento hecha por un docente. */
+  replay: SubmissionReplay | null;
+}
+
+/** Resultado de repetir la cinta de un intento en el navegador del docente. */
+export interface SubmissionReplay {
+  status: 'OK' | 'MISMATCH' | 'FAILED' | 'NO_TAPE';
+  exactState: boolean;
+  replayScore: number | null;
+  diffs: Array<{ key: string; replay: number; submitted: number }>;
+  error?: string;
+  at: string;
+  by: string;
 }
 
 export interface AuditEntry {

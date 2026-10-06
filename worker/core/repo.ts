@@ -3,7 +3,7 @@
  * pueden correr las mismas consultas sobre `node:sqlite` (ver `src/tests/helpers/sqlite-d1.ts`).
  * Las filas se convierten a los tipos de `types.ts`; las operaciones de varias sentencias van en `batch` (atómico).
  */
-import type { AuditEntry, Course, CourseLab, Enrollment, EnrollmentStatus, LabId, License, Submission, User } from './types';
+import type { AuditEntry, Course, CourseLab, Enrollment, EnrollmentStatus, LabId, License, Submission, SubmissionReplay, User } from './types';
 
 export interface SqlStmt {
   bind(...values: unknown[]): SqlStmt;
@@ -46,8 +46,17 @@ function toSubmission(r: Row): Submission {
     id: String(r.id), userId: String(r.user_id), courseId: String(r.course_id), labId: r.lab_id as LabId, mode: r.mode as Submission['mode'],
     attemptId: String(r.attempt_id), score: Number(r.score), components: JSON.parse(String(r.components ?? '[]')) as Submission['components'],
     durationS: Number(r.duration_s), submittedAt: String(r.submitted_at),
+    clientScore: r.client_score === null || r.client_score === undefined ? null : Number(r.client_score),
+    grading: r.grading === 'SERVER' ? 'SERVER' : 'CLIENT',
+    issues: JSON.parse(String(r.issues ?? '[]')) as string[],
+    replay: r.replay ? (JSON.parse(String(r.replay)) as SubmissionReplay) : null,
   };
 }
+
+/** D1 limita cada valor a 2 MB: los datos de la entrega se guardan en partes. */
+const DATA_PART = 1_000_000;
+
+export type SubmissionDataKind = 'snapshot' | 'tape' | 'options';
 
 export class Repo {
   constructor(private db: SqlDb) {}
@@ -231,11 +240,51 @@ export class Repo {
 
   // ── Entregas ──
   upsertSubmissionStmt(s: Submission): SqlStmt {
-    return this.db.prepare(`INSERT INTO submissions (id, user_id, course_id, lab_id, mode, attempt_id, score, components, duration_s, submitted_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    return this.db.prepare(`INSERT INTO submissions (id, user_id, course_id, lab_id, mode, attempt_id, score, components, duration_s, submitted_at,
+        client_score, grading, issues, replay)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (user_id, attempt_id) DO UPDATE SET course_id = excluded.course_id, lab_id = excluded.lab_id, mode = excluded.mode,
-        score = excluded.score, components = excluded.components, duration_s = excluded.duration_s, submitted_at = excluded.submitted_at`)
-      .bind(s.id, s.userId, s.courseId, s.labId, s.mode, s.attemptId, s.score, JSON.stringify(s.components), s.durationS, s.submittedAt);
+        score = excluded.score, components = excluded.components, duration_s = excluded.duration_s, submitted_at = excluded.submitted_at,
+        client_score = excluded.client_score, grading = excluded.grading, issues = excluded.issues, replay = excluded.replay`)
+      .bind(s.id, s.userId, s.courseId, s.labId, s.mode, s.attemptId, s.score, JSON.stringify(s.components), s.durationS, s.submittedAt,
+        s.clientScore, s.grading, JSON.stringify(s.issues), s.replay ? JSON.stringify(s.replay) : null);
+  }
+
+  /** Reemplaza los datos guardados de una entrega (estado, cinta, opciones). */
+  submissionDataStmts(submissionId: string, data: Partial<Record<SubmissionDataKind, string | null>>): SqlStmt[] {
+    const out = [this.db.prepare('DELETE FROM submission_data WHERE submission_id = ?').bind(submissionId)];
+    for (const [kind, value] of Object.entries(data)) {
+      if (!value) continue;
+      for (let part = 0; part * DATA_PART < value.length; part++) {
+        out.push(this.db.prepare('INSERT INTO submission_data (submission_id, kind, part, data) VALUES (?, ?, ?, ?)')
+          .bind(submissionId, kind, part, value.slice(part * DATA_PART, (part + 1) * DATA_PART)));
+      }
+    }
+    return out;
+  }
+
+  async submissionData(submissionId: string): Promise<Partial<Record<SubmissionDataKind, string>>> {
+    const { results } = await this.db.prepare('SELECT kind, data FROM submission_data WHERE submission_id = ? ORDER BY kind, part').bind(submissionId).all();
+    const out: Partial<Record<SubmissionDataKind, string>> = {};
+    for (const r of results) out[r.kind as SubmissionDataKind] = (out[r.kind as SubmissionDataKind] ?? '') + String(r.data);
+    return out;
+  }
+
+  async submissionById(id: string): Promise<Submission | null> {
+    const r = await this.db.prepare('SELECT * FROM submissions WHERE id = ?').bind(id).first();
+    return r ? toSubmission(r) : null;
+  }
+
+  /** Entregas de un curso con el nombre del estudiante (más recientes primero). */
+  async submissionsOfCourse(courseId: string): Promise<Array<Submission & { studentName: string; studentCode: string | null; hasTape: boolean }>> {
+    const { results } = await this.db.prepare(`SELECT s.*, u.name AS student_name, u.code AS student_code,
+        EXISTS (SELECT 1 FROM submission_data d WHERE d.submission_id = s.id AND d.kind = 'tape') AS has_tape
+      FROM submissions s JOIN users u ON u.id = s.user_id WHERE s.course_id = ? ORDER BY s.submitted_at DESC`).bind(courseId).all();
+    return results.map((r) => ({ ...toSubmission(r), studentName: String(r.student_name), studentCode: str(r.student_code), hasTape: !!r.has_tape }));
+  }
+
+  setReplayStmt(id: string, replay: SubmissionReplay): SqlStmt {
+    return this.db.prepare('UPDATE submissions SET replay = ? WHERE id = ?').bind(JSON.stringify(replay), id);
   }
 
   async submissionByAttempt(userId: string, attemptId: string): Promise<Submission | null> {

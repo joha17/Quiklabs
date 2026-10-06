@@ -38,9 +38,9 @@
 .pf-role { display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.78rem; font-weight: 800; background: var(--accent-soft); color: var(--ink); }
 .pf-role-admin { background: #f6be18; color: #0f1b1d; }
 .pf-role-teacher { background: #1f6f6b; color: #fff; }
-.pf-main { width: min(1200px, 100%); margin: 0 auto; padding: 1.4rem 16px 3rem; display: grid; gap: 1.2rem; }
+.pf-main { width: min(1200px, 100%); margin: 0 auto; padding: 1.4rem 16px 3rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2rem; }
 .pf-h1 { margin: 0; font-family: var(--pf-font); font-weight: 900; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.02em; }
-.pf-section { display: grid; gap: 0.8rem; }
+.pf-section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
 .pf-section h2, .pf-inline-form h2 { margin: 0.4rem 0 0; font-family: var(--pf-font); font-size: 1.3rem; }
 .pf-muted { color: var(--ink-2); margin: 0; font-size: 0.92rem; }
 .pf-empty { color: var(--ink-2); margin: 0; padding: 1rem; background: var(--panel); border-radius: 14px; border: 1px dashed var(--line); }

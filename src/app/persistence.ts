@@ -7,10 +7,12 @@ import type { NotebookState } from '../practices/practice-02/notebook';
 import type { LabActionEvent } from './runtime';
 import type { Settings } from './store';
 import { scopedKey } from './platform/scope';
+import type { TapeSave } from './platform/tape';
 
 export const SAVE_KEY = 'quiklabs.practica2.intento.v1';
 
-export interface SavedAttempt {
+/** Incluye la parte de la cinta que aún no está en IndexedDB (`TapeRecorder.forSave`). */
+export interface SavedAttempt extends Partial<TapeSave> {
   version: 1;
   savedAt: number;
   attemptId: string;

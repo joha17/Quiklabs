@@ -17,12 +17,18 @@ export default tseslint.config(
     },
   },
   // Backend (Cloudflare Worker): sin React ni DOM; el núcleo tampoco depende de Cloudflare (se prueba en Node).
+  // Solo puede usar el dominio puro (simulation/ y practices/) para recalcular las notas.
   {
     files: ['worker/**/*.ts'],
     languageOptions: { globals: { ...globals.worker } },
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-restricted-imports': ['error', { patterns: [{ group: ['react', 'react-dom', 'three', '**/src/**'], message: 'El Worker no depende de la interfaz.' }] }],
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['react', 'react-dom', 'three', 'xstate', '**/src/app/**', '**/src/engine/**', '**/src/locales/**', '**/workflow.machine'],
+          message: 'El Worker no depende de la interfaz (solo del dominio puro: src/simulation y src/practices).',
+        }],
+      }],
     },
   },
   { files: ['worker/**/*.mjs'], languageOptions: { globals: { ...globals.node } } },

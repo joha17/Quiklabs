@@ -4,8 +4,9 @@
  *   auth      login · logout · me · session · password
  *   admin     overview · users (+ import, reset-password, unlock) · courses (+ roster, enrollments, gradebook)
  *             enrollments · license · audit
- *   teacher   courses · courses/:id/labs · courses/:id/gradebook
- *   student   courses · submissions
+ *   teacher   courses · courses/:id/labs · courses/:id/gradebook · courses/:id/submissions
+ *             submissions/:id/data (estado y cinta para repetir el intento) · submissions/:id/replay
+ *   student   courses · submissions (la nota la calcula el servidor)
  */
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -14,7 +15,7 @@ import { Repo, type SqlDb } from './core/repo';
 import {
   ApiError, accessBlock, adminCourses, auditLog, changePassword, createCourse, createUser, enroll, gradebook, importStudents,
   login, me, overview, resetPassword, roster, setCourseLabs, setEnrollmentStatus, studentCourses, studentSubmissions, submit,
-  teacherCourses, unlockUser, updateCourse, updateLicense, updateUser,
+  courseSubmissions, recordReplay, submissionReplayData, teacherCourses, unlockUser, updateCourse, updateLicense, updateUser,
 } from './core/service';
 import { publicUser, type Role, type User } from './core/types';
 
@@ -171,6 +172,11 @@ export function createApp(deps: AppDeps) {
     return c.json(await setCourseLabs(repo, c.get('user'), c.req.param('id'), labs));
   });
   app.get('/teacher/courses/:id/gradebook', teacher, async (c) => c.json(await gradebook(repo, c.get('user'), c.req.param('id'))));
+  // Revisión de entregas (también para el administrador): problemas detectados y repetición del intento.
+  const reviewer = auth({ roles: ['teacher', 'admin'] });
+  app.get('/teacher/courses/:id/submissions', reviewer, async (c) => c.json(await courseSubmissions(repo, c.get('user'), c.req.param('id'))));
+  app.get('/teacher/submissions/:id/data', reviewer, async (c) => c.json(await submissionReplayData(repo, c.get('user'), c.req.param('id'))));
+  app.post('/teacher/submissions/:id/replay', reviewer, async (c) => c.json(await recordReplay(repo, c.get('user'), c.req.param('id'), await body(c))));
 
   // ── Estudiantes ──
   const student = auth({ roles: ['student'] });

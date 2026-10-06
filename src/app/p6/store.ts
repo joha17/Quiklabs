@@ -7,7 +7,8 @@ import { createActor, type Actor } from 'xstate';
 import type { SimEvent } from '../../simulation/calorimetry-world/types';
 import type { P6Command, P6DispatchResult } from '../../simulation/calorimetry-world/commands';
 import { newSeed } from '../../simulation/core/rng';
-import { DEFAULT_P6_PARAMS, newPractice6World } from '../../practices/practice-06';
+import { DEFAULT_P6_PARAMS, newPractice6World, type Practice6Options } from '../../practices/practice-06';
+import { sanitizeOnResume6 } from '../../practices/practice-06/resume';
 import type { P6Mode } from '../../practices/practice-06/definition';
 import type { P6Scenario } from '../../practices/practice-06/error-scenarios';
 import { emptyP6Notebook, type P6Notebook } from '../../practices/practice-06/notebook';
@@ -22,6 +23,7 @@ import { CalorRuntime } from './runtime';
 import { clearP6Attempt, loadP6Attempt, saveP6Attempt, type SavedP6Attempt } from './persistence';
 import { p6EventFeedback } from './feedback';
 import { reportSubmission } from '../platform/report';
+import { TapeRecorder } from '../platform/tape';
 
 export interface P6Settings {
   mode: P6Mode;
@@ -141,15 +143,20 @@ const DEFAULT_SETTINGS: P6Settings = {
 
 const attemptIdFor = (seed: number) => `p6-${seed.toString(36)}-${Date.now().toString(36)}`;
 
-function worldFor(s: P6Settings, seed: number, mode: P6Mode) {
+/** Opciones de creación del mundo (también van en la cinta del intento). */
+function optionsFor(s: P6Settings, seed: number, mode: P6Mode): Practice6Options {
   const res = s.balanceResolution ?? 0.1;
-  return newPractice6World({
+  return {
     mode, seed, scenarios: s.scenarios, unknown: s.unknown,
     params: {
       model: s.model, cpModel: s.cpModel, pressureKPa: s.pressureKPa, ambientC: s.ambientC, cupHeatCapJPerC: s.cupHeatCap, bombEnabled: s.bombEnabled,
       balance: { ...DEFAULT_P6_PARAMS.balance, resolutionG: res, uncertaintyG: res / 2 },
     },
-  });
+  };
+}
+
+function worldFor(s: P6Settings, seed: number, mode: P6Mode) {
+  return newPractice6World(optionsFor(s, seed, mode));
 }
 
 export const useP6 = create<P6State>()((set, get) => ({
@@ -187,9 +194,11 @@ export const useP6 = create<P6State>()((set, get) => ({
   start(opts) {
     const s = get().settings;
     const seed = opts?.sameSeed ? s.seed : s.seed || newSeed();
-    const world = worldFor(s, seed, s.mode);
     const id = attemptIdFor(seed);
-    const rt = new CalorRuntime(world, id);
+    const worldOpts = optionsFor(s, seed, s.mode);
+    const tape = TapeRecorder.start('p6', id, worldOpts);
+    const rt = new CalorRuntime(newPractice6World(worldOpts), id);
+    rt.tape = tape;
     rt.timeScale = s.timeScale;
     bindRuntime(rt);
     actor?.stop();
@@ -233,22 +242,9 @@ export const useP6 = create<P6State>()((set, get) => ({
   resume(saved) {
     const w = saved.world;
     // Al restaurar: plantilla apagada, vertidos detenidos y nada en la mano (§28.1). El tiempo no avanzó.
-    const wasOn = w.plate.knob > 0.01;
-    w.plate.knob = 0;
-    w.pours = {};
-    for (const o of Object.values(w.objects)) {
-      if (o.support !== 'hand' && o.support !== 'tongs') continue;
-      if (w.tubes[o.id]) {
-        o.support = 'rack';
-        o.pose = { x: w.objects.rack.pose.x + (o.id === 'tube_fe' ? -3 : 3), y: w.objects.rack.pose.y, z: 0.6, rotationRad: 0 };
-      } else {
-        o.support = 'bench';
-        o.pose = { ...o.pose, z: 0, rotationRad: 0 };
-      }
-    }
-    for (const p of Object.values(w.pieces)) if (p.loc === 'spatula') p.loc = 'bench';
-    w.safety.lastInteractionS = w.timeS;
+    const { wasOn } = sanitizeOnResume6(w);
     const rt = new CalorRuntime(w, saved.attemptId, saved.actions);
+    rt.tape = TapeRecorder.resume('p6', saved.attemptId, w.tick, saved);
     rt.timeScale = saved.settings.timeScale;
     rt.paused = true;
     bindRuntime(rt);
@@ -350,7 +346,9 @@ export const useP6 = create<P6State>()((set, get) => ({
     set({ evaluation, submitted: true, screen: 'review', modal: null, paused: true });
     get().save();
     // Estudiantes: la entrega queda registrada en su curso (plataforma).
-    void reportSubmission('p6', { mode: get().settings.mode, attemptId: get().attemptId, evaluation, durationS: rt.world.timeS });
+    void reportSubmission('p6', {
+      mode: get().settings.mode, attemptId: get().attemptId, evaluation, world: rt.world, notebook: get().notebook, ppe: get().ppeConfirmed, tape: rt.tape,
+    });
   },
 
   backToIntro() {
@@ -366,7 +364,9 @@ export const useP6 = create<P6State>()((set, get) => ({
     const ok = saveP6Attempt({
       version: 1, savedAt: Date.now(), attemptId: s.attemptId, settings: s.settings, world: rt.world, actions: rt.actions,
       notebook: s.notebook, workflow: actor?.getPersistedSnapshot() ?? null, ppe: s.ppeConfirmed, submitted: s.submitted,
+      ...rt.tape?.forSave(),
     });
+    rt.tape?.flush();
     if (ok) set({ savedAt: Date.now() });
   },
 

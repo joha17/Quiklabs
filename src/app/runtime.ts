@@ -10,6 +10,7 @@ import { dispatchMut, stepMut, type DispatchResult } from '../simulation/world/w
 import { mixAmounts } from '../simulation/solutions/mixture';
 import { stableHash } from '../simulation/core/math';
 import { CTX } from '../practices/practice-02';
+import type { TapeRecorder } from './platform/tape';
 
 export interface LabActionEvent {
   attemptId: string;
@@ -32,6 +33,8 @@ const MAX_STEPS_PER_FRAME = 400;
 const MAX_FRAME_S = 0.25;
 
 export class LabRuntime {
+  /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
+  tape: TapeRecorder | null = null;
   readonly ctx = CTX;
   actions: LabActionEvent[];
   timeScale = 1;
@@ -53,6 +56,7 @@ export class LabRuntime {
   dispatch(cmd: Command): DispatchResult {
     const w = this.world;
     const prevPour = cmd.type === 'setPour' ? w.pours[cmd.sourceId] : undefined;
+    this.tape?.record(w.tick, cmd);
     const r = dispatchMut(w, cmd, this.ctx);
     const newPour = cmd.type === 'setPour' && (!prevPour || prevPour.targetId !== cmd.targetId);
     const log = !UNLOGGED_COMMANDS.has(cmd.type) && (cmd.type !== 'setPour' || newPour) && !(cmd.type === 'stopPour' && !(cmd.sourceId in w.pours) && !r.ok);

@@ -1,6 +1,6 @@
 /**
- * Panel docente: sus grupos, la lista de estudiantes, la programación de prácticas (apertura, cierre y modo) y el
- * libro de calificaciones exportable. Puede abrir cualquier práctica para revisarla sin generar entregas.
+ * Panel docente: sus grupos, la lista de estudiantes, la programación de prácticas (apertura, cierre y modo), el
+ * libro de calificaciones exportable y la revisión de entregas (validación en el servidor y repetición del intento). Puede abrir cualquier práctica para revisarla sin generar entregas.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { LAB_IDS, type Course, type CourseLab, type LabId, type LabMode } from '
 import { LabCards } from '../LabMenu';
 import { api } from './api';
 import { usePlatform } from './session';
+import { SubmissionReview } from './SubmissionReview';
 import { Notice, PanelShell, downloadCsv, errorText, fmtDate, fromLocalInput, pct, toLocalInput } from './ui';
 
 export interface RosterRow {
@@ -173,6 +174,10 @@ export function TeacherPanel() {
           <section className="pf-section" aria-labelledby="pf-t-gb">
             <h2 id="pf-t-gb">{t('pf.teacher.gradebook')}</h2>
             {gb ? <GradebookTable gb={gb} /> : <p className="pf-empty">{t('pf.loading')}</p>}
+          </section>
+          <section className="pf-section" aria-labelledby="pf-t-rev">
+            <h2 id="pf-t-rev">{t('pf.review.title')}</h2>
+            <SubmissionReview key={course.id} courseId={course.id} />
           </section>
           <section className="pf-section" aria-labelledby="pf-t-st">
             <h2 id="pf-t-st">{t('pf.teacher.students')} ({course.students.filter((s) => s.status === 'active').length})</h2>

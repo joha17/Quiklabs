@@ -5,6 +5,12 @@
 import { describe, expect, it } from 'vitest';
 import { createApp, COOKIE } from '../../../worker/app';
 import { freshDb } from '../helpers/sqlite-d1';
+import { packJson, unpackJson } from '../../../worker/core/pack';
+import { replayTape, type AttemptSnapshot, type AttemptTape, type TapeEntry } from '../../practices/grading';
+import { evaluateP4 } from '../../practices/practice-04/rubric';
+import { emptyP4Notebook } from '../../practices/practice-04/notebook';
+import type { P4Command } from '../../simulation/reaction-world/commands';
+import { cmd4, run4, world4 } from '../helpers4';
 const SECRET = 'x'.repeat(48);
 const PW = { admin: 'Admin#Quiklabs2026', teacher: 'Docente2026!', student: 'Quimica2026!' };
 const EMAIL = {
@@ -18,6 +24,32 @@ const EMAIL = {
   lucia: 'lucia.fernandez@estudiante.uni.example',
   mateo: 'mateo.calderon@estudiante.uni.example',
 };
+
+/** Un intento real de la Práctica 4 grabado como lo haría el runtime: estado final, cinta y cuerpo de la entrega. */
+async function p4Attempt(mode: 'EVALUATION' | 'PRACTICE' = 'EVALUATION') {
+  const options = { mode, seed: 4711 };
+  const w = world4(options);
+  const entries: TapeEntry[] = [];
+  const c = (cmd: P4Command) => {
+    entries.push([w.tick, structuredClone(cmd)]);
+    cmd4(w, cmd);
+  };
+  c({ type: 'confirmPpe' });
+  c({ type: 'inspect', target: 'beaker' });
+  run4(w, 3);
+  c({ type: 'inspect', target: 'extinguisher' });
+  run4(w, 2);
+  const notebook = emptyP4Notebook();
+  const snapshot: AttemptSnapshot = { world: JSON.parse(JSON.stringify({ ...w, events: [] })), notebook, ppe: true, mode };
+  const attemptId = `p4-${(4711).toString(36)}-t`;
+  const tape: AttemptTape = { v: 1, labId: 'p4', attemptId, options, entries };
+  const expected = evaluateP4(structuredClone(snapshot.world) as typeof w, notebook, { ppeConfirmed: true });
+  const body = async () => ({
+    courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId, clientScore: expected.total,
+    snapshot: await packJson(snapshot), tapeOptions: options, tape: await packJson(tape),
+  });
+  return { snapshot, tape, expected, body };
+}
 
 function platform(nowIso = '2026-10-05T18:00:00.000Z') {
   let now = new Date(nowIso);
@@ -184,21 +216,71 @@ describe('docentes y estudiantes', () => {
   it('entregas: solo prácticas abiertas del propio curso; el docente ve el libro de calificaciones de su grupo', async () => {
     const p = platform();
     const v = await p.loginAs(EMAIL.valeria, PW.student);
-    const ok = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId: 'att-1', score: 0.88, components: [], durationS: 3100 } });
+    const a = await p4Attempt();
+    const ok = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: await a.body() });
     expect(ok.status).toBe(201);
+    // La nota es la que calcula el servidor con la rúbrica, no la que envía el navegador.
+    expect(ok.json.score).toBeCloseTo(a.expected.total, 9);
+    expect(ok.json).toMatchObject({ grading: 'SERVER', issues: [], replay: null });
     // Reenviar el mismo intento lo reemplaza.
-    await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId: 'att-1', score: 0.9, components: [], durationS: 3200 } });
+    await p.call('POST', '/student/submissions', { cookie: v.cookie, body: await a.body() });
     expect((await p.call('GET', '/student/submissions', { cookie: v.cookie })).json.filter((s) => s.labId === 'p4')).toHaveLength(1);
     const c = await p.loginAs(EMAIL.camila, PW.student);
-    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { courseId: 'c_qg1_02', labId: 'p4', mode: 'EVALUATION', attemptId: 'x', score: 1, components: [], durationS: 1 } })).json.error).toBe('LAB_CLOSED');
-    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { courseId: 'c_qg1_01', labId: 'p2', mode: 'PRACTICE', attemptId: 'y', score: 1, components: [], durationS: 1 } })).json.error).toBe('NOT_ENROLLED');
+    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { ...(await a.body()), courseId: 'c_qg1_02' } })).json.error).toBe('LAB_CLOSED');
+    expect((await p.call('POST', '/student/submissions', { cookie: c.cookie, body: { ...(await a.body()), courseId: 'c_qg1_01', labId: 'p2' } })).json.error).toBe('NOT_ENROLLED');
     const laura = await p.loginAs(EMAIL.laura, PW.teacher);
     const gb = await p.call('GET', '/teacher/courses/c_qg1_01/gradebook', { cookie: laura.cookie });
     const row = (gb.json.rows as Array<{ student: { id: string }; cells: Record<string, { best: number } | null> }>).find((r) => r.student.id === 'u_est01')!;
-    expect(row.cells.p4?.best).toBeCloseTo(0.9);
+    expect(row.cells.p4?.best).toBeCloseTo(a.expected.total, 9);
     expect(row.cells.p2?.best).toBeCloseTo(0.91);
     const carlos = await p.loginAs(EMAIL.carlos, PW.teacher);
     expect((await p.call('GET', '/teacher/courses/c_qg1_01/gradebook', { cookie: carlos.cookie })).json.error).toBe('NOT_YOUR_COURSE');
+  });
+
+  it('la nota enviada por el navegador se ignora y un estado manipulado queda marcado', async () => {
+    const p = platform();
+    const v = await p.loginAs(EMAIL.valeria, PW.student);
+    const a = await p4Attempt();
+    const r = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { ...(await a.body()), clientScore: 1, score: 1, components: [{ key: 'safety', score: 1, weight: 1 }] } });
+    expect(r.json.score).toBeCloseTo(a.expected.total, 9);
+    expect(r.json.issues).toEqual(['CLIENT_SCORE_MISMATCH']);
+    // Cambiar los parámetros del mundo (p. ej., la concentración) o la semilla.
+    const forged = structuredClone(a.snapshot);
+    (forged.world as { params: { ambientC: number } }).params.ambientC += 5;
+    const f = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { ...(await a.body()), snapshot: await packJson(forged) } });
+    expect(f.json.issues).toContain('FIXED_STATE_CHANGED');
+    const s = await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { ...(await a.body()), attemptId: 'p4-zz-1' } });
+    expect(s.json.issues).toContain('SEED_MISMATCH');
+    // En Evaluación, un intento creado en modo Práctica.
+    const prac = await p4Attempt('PRACTICE');
+    expect((await p.call('POST', '/student/submissions', { cookie: v.cookie, body: await prac.body() })).json.issues).toContain('MODE_MISMATCH');
+    // Sin estado o con un estado ilegible no hay entrega.
+    expect((await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { courseId: 'c_qg1_01', labId: 'p4', mode: 'EVALUATION', attemptId: 'x', score: 1 } })).json.error).toBe('INVALID_SUBMISSION');
+    expect((await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { ...(await a.body()), snapshot: 'bm8gZXMgZ3ppcA==' } })).json.error).toBe('INVALID_SNAPSHOT');
+    expect((await p.call('POST', '/student/submissions', { cookie: v.cookie, body: { ...(await a.body()), snapshot: await packJson({ world: { tick: 1 }, notebook: {} }) } })).json.error).toBe('INVALID_SNAPSHOT');
+  });
+
+  it('el docente repite el intento en su navegador y el resultado queda en la entrega y en la auditoría', async () => {
+    const p = platform();
+    const v = await p.loginAs(EMAIL.valeria, PW.student);
+    const a = await p4Attempt();
+    const sub = (await p.call('POST', '/student/submissions', { cookie: v.cookie, body: await a.body() })).json;
+    const laura = await p.loginAs(EMAIL.laura, PW.teacher);
+    const list = (await p.call('GET', '/teacher/courses/c_qg1_01/submissions', { cookie: laura.cookie })).json;
+    expect(list.find((x) => x.id === sub.id)).toMatchObject({ studentName: 'Valeria Solano Mora', hasTape: true, grading: 'SERVER' });
+    const data = (await p.call('GET', `/teacher/submissions/${sub.id}/data`, { cookie: laura.cookie })).json as unknown as { snapshot: string; tape: string; submission: { score: number; components: Array<{ key: string; score: number; weight: number }> } };
+    const out = await replayTape(await unpackJson<AttemptTape>(data.tape), await unpackJson<AttemptSnapshot>(data.snapshot), {
+      total: data.submission.score, needsTeacherReview: [], components: data.submission.components.map((c) => ({ id: c.key, score: c.score, weight: c.weight, items: [] })),
+    });
+    expect(out).toMatchObject({ status: 'OK', exactState: true });
+    const saved = await p.call('POST', `/teacher/submissions/${sub.id}/replay`, { cookie: laura.cookie, body: out });
+    expect(saved.json.replay).toMatchObject({ status: 'OK', exactState: true, by: 'u_doc01' });
+    const carlos = await p.loginAs(EMAIL.carlos, PW.teacher);
+    expect((await p.call('GET', `/teacher/submissions/${sub.id}/data`, { cookie: carlos.cookie })).json.error).toBe('NOT_YOUR_COURSE');
+    expect((await p.call('POST', `/teacher/submissions/${sub.id}/replay`, { cookie: laura.cookie, body: { status: 'GREAT' } })).json.error).toBe('INVALID_REPLAY');
+    const admin = await p.loginAs(EMAIL.admin, PW.admin);
+    const log = (await p.call('GET', '/admin/audit', { cookie: admin.cookie })).json;
+    expect(log.some((e) => e.action === 'submission.replay' && e.target === sub.id && e.detail?.toString().startsWith('OK'))).toBe(true);
   });
 
   it('el docente abre una práctica de su grupo y queda disponible para sus estudiantes', async () => {
