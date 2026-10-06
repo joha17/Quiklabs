@@ -5,6 +5,8 @@ import { tList } from './i18n';
 import { loadAttempt } from './persistence';
 import { loadP3Attempt } from './p3/persistence';
 import { loadP4Attempt } from './p4/persistence';
+import { loadP5Attempt } from './p5/persistence';
+import { loadP6Attempt } from './p6/persistence';
 import './menu.css';
 
 interface LabCard {
@@ -25,10 +27,14 @@ export function LabCards({ locked = false, only, extra }: { locked?: boolean; on
     const p2 = loadAttempt();
     const p3 = loadP3Attempt();
     const p4 = loadP4Attempt();
+    const p5 = loadP5Attempt();
+    const p6 = loadP6Attempt();
     return [
       { id: 'p2', number: 2, key: 'menu.labs.p2', saved: p2 ? { mode: p2.settings.mode, minutes: Math.round(p2.world.timeS / 60), submitted: p2.submitted } : null },
       { id: 'p3', number: 3, key: 'menu.labs.p3', saved: p3 ? { mode: p3.settings.mode, minutes: Math.round(p3.world.timeS / 60), submitted: p3.submitted } : null },
       { id: 'p4', number: 4, key: 'menu.labs.p4', saved: p4 ? { mode: p4.settings.mode, minutes: Math.round(p4.world.timeS / 60), submitted: p4.submitted } : null },
+      { id: 'p5', number: 5, key: 'menu.labs.p5', saved: p5 ? { mode: p5.settings.mode, minutes: Math.round(p5.world.timeS / 60), submitted: p5.submitted } : null },
+      { id: 'p6', number: 6, key: 'menu.labs.p6', saved: p6 ? { mode: p6.settings.mode, minutes: Math.round(p6.world.timeS / 60), submitted: p6.submitted } : null },
     ];
   }, []);
   return (

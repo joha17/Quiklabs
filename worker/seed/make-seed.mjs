@@ -54,6 +54,8 @@ const labs = (p4Opens) => [
   { labId: 'p2', opensAt: '2026-08-17T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p3', opensAt: '2026-09-07T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p4', opensAt: p4Opens, closesAt: '2026-12-12T05:59:00.000Z', mode: 'EVALUATION' },
+  { labId: 'p5', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
+  { labId: 'p6', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
 ];
 const courses = [
   { id: 'c_qg1_01', code: 'QU-0100', name: 'Química General I', term: '2026-II', group: '01', teacherIds: ['u_doc01'], startsAt: '2026-08-10T06:00:00.000Z', endsAt: '2026-12-12T05:59:00.000Z', labs: labs('2026-09-28T06:00:00.000Z'), archived: false },

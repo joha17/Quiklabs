@@ -58,7 +58,7 @@ migrations/           esquema de la base (D1/SQLite), versionado
 src/app/platform/     login, cambio de contraseña, paneles de admin, docente y estudiante, sesión, registro de entregas
 ```
 
-Rutas de la interfaz: portada (pública) · `#login` · `#panel` · `#p2` `#p3` `#p4` (exigen sesión; un estudiante solo
+Rutas de la interfaz: portada (pública) · `#login` · `#panel` · `#p2` … `#p6` (exigen sesión; un estudiante solo
 abre las prácticas abiertas en su curso).
 
 ## Desarrollo

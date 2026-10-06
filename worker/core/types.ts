@@ -5,10 +5,10 @@
  */
 export type Role = 'admin' | 'teacher' | 'student';
 export type UserStatus = 'active' | 'suspended';
-export type LabId = 'p2' | 'p3' | 'p4';
+export type LabId = 'p2' | 'p3' | 'p4' | 'p5' | 'p6';
 export type LabMode = 'PRACTICE' | 'GUIDED' | 'EVALUATION';
 
-export const LAB_IDS: LabId[] = ['p2', 'p3', 'p4'];
+export const LAB_IDS: LabId[] = ['p2', 'p3', 'p4', 'p5', 'p6'];
 
 export interface User {
   id: string;

@@ -1,0 +1,49 @@
+/* Práctica 5: piezas propias (mismos tokens de color y tipografía que las prácticas 2 a 4). */
+.canvas-wrap.p5 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+
+/* Lupa de la balanza: escala del fiel y pesas, abajo al centro. */
+.balance-lens {
+  position: absolute; left: 3.4rem; bottom: 0.6rem; z-index: 13; width: min(230px, calc(100% - 4rem));
+  background: var(--panel); color: var(--ink); border-radius: 12px; box-shadow: var(--shadow); padding: 0.45rem 0.65rem; font-size: 0.84rem;
+  display: grid; gap: 0.3rem; border-left: 4px solid var(--accent, #2f7fd1);
+}
+.balance-lens .lens-body { display: grid; grid-template-columns: 44px 1fr; gap: 0.5rem; align-items: center; }
+.balance-lens .lens-scale { width: 44px; height: 74px; }
+.balance-lens .scale-bg { fill: var(--panel-2); stroke: var(--line); }
+.balance-lens .tick { stroke: var(--ink-2); stroke-width: 1.2; }
+.balance-lens .zero { stroke: #c0392b; stroke-width: 2; }
+.balance-lens .needle { fill: var(--ink); }
+.balance-lens .lens-riders { margin: 0; display: grid; grid-template-columns: auto auto; gap: 0.1rem 0.6rem; }
+.balance-lens .lens-riders dt { color: var(--ink-2); }
+.balance-lens .lens-riders dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.balance-lens .lens-state { font-weight: 600; }
+.balance-lens .lens-state.ok { color: var(--ok); }
+.balance-lens .lens-state.pending { color: var(--warn-ink, #8a5a00); }
+
+/* Libreta: cuadros, cadenas y ecuación. */
+.p5-t1 input[type='text'] { width: 100%; min-width: 4rem; }
+.chain { display: grid; gap: 0.35rem; border-top: 1px solid var(--line); padding-top: 0.5rem; }
+.chain h4 { margin: 0; }
+.chain-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.chain-start { font-weight: 600; padding: 0.2rem 0.45rem; background: var(--panel-2); border-radius: 6px; }
+.factor { display: inline-flex; align-items: center; gap: 0.25rem; }
+.factor .times { font-weight: 700; color: var(--ink-2); }
+.factor .frac { display: inline-grid; gap: 0.15rem; justify-items: center; }
+.factor .frac .bar { display: block; width: 100%; height: 0; border-top: 2px solid var(--ink); }
+.q-edit { display: inline-flex; gap: 0.15rem; }
+.p5-eq-arrow { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: end; padding: 0.3rem 0.5rem; border-left: 3px solid var(--line); }
+.eq-preview .arrow { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; margin: 0 0.25rem; }
+.eq-preview .arrow sup { font-size: 0.72rem; }
+
+/* Gráfica de masa por ciclo. */
+.p5-chart { width: min(340px, 100%); height: auto; background: var(--panel-2); border-radius: 8px; }
+.p5-chart .axis { stroke: var(--ink-2); stroke-width: 1; }
+.p5-chart .tick, .p5-chart .lab { fill: var(--ink-2); font-size: 9px; }
+.p5-chart .line { fill: none; stroke: var(--accent, #2f7fd1); stroke-width: 1.6; }
+.p5-chart .pt { fill: var(--accent, #2f7fd1); }
+.p5-chart .err { stroke: var(--ink); stroke-width: 1; }
+.p5-chart .band { fill: rgba(23, 118, 63, 0.14); }
+
+@media (max-width: 760px) {
+  .balance-lens { bottom: 3.6rem; }
+}

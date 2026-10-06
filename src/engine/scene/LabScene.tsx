@@ -108,7 +108,7 @@ export function Lights({ q }: { q: QualityLevel }) {
   );
 }
 
-export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' | 'p4' }) {
+export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' | 'p4' | 'p5' | 'p6' }) {
   const room = useMemo(() => createRoom(q, variant), [q, variant]);
   return (
     <>

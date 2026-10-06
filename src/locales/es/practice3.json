@@ -40,6 +40,26 @@
           "C: Fe/Cu²⁺ con cronómetro, combustión del Mg con pantalla y MgO + agua."
         ],
         "duration": "45–65 min"
+      },
+      "p5": {
+        "title": "Relaciones estequiométricas",
+        "subtitle": "Descomposición térmica del KClO₃ con MnO₂: balanza de triple brazo, masa constante y rendimiento porcentual.",
+        "points": [
+          "Calibración de la balanza de triple brazo y pesadas por diferencia (tubo, MnO₂, KClO₃).",
+          "Mezcla segura, montaje inclinado en el soporte y calentamiento gradual hasta masa constante.",
+          "Análisis dimensional, KCl y O₂ teóricos, rendimiento y fuentes de error."
+        ],
+        "duration": "60–90 min"
+      },
+      "p6": {
+        "title": "Calorimetría",
+        "subtitle": "Calor específico del hierro, identificación de un metal incógnito y calor de combustión de un alimento.",
+        "points": [
+          "Masa de agua y de metal por diferencia; menisco a nivel del ojo; termómetros con retardo.",
+          "Baño de agua en ebullición, traslado rápido del metal y máximo de temperatura en un calorímetro de vaso.",
+          "Modelo ideal y corregido, incertidumbre e identificación; bomba calorimétrica virtual opcional."
+        ],
+        "duration": "75–110 min"
       }
     }
   },

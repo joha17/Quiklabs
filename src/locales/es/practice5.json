@@ -1,0 +1,864 @@
+{
+  "p5": {
+    "app": {
+      "title": "Relaciones estequiométricas",
+      "short": "Práctica 5 · Estequiometría",
+      "kicker": "Práctica 5",
+      "subtitle": "Descomposición térmica del clorato de potasio con MnO₂: pesadas por diferencia, masa constante y rendimiento porcentual."
+    },
+    "a11y": {
+      "canvas": "Laboratorio 3D de la Práctica 5: balanza de triple brazo, reactivos, soporte con pinza y mechero. Usa Tab para llegar al panel de acciones."
+    },
+    "intro": {
+      "lead": "Calentarás clorato de potasio con dióxido de manganeso como catalizador: 2 KClO₃(s) → 2 KCl(s) + 3 O₂(g). Medirás con una balanza de triple brazo la masa del tubo vacío, con MnO₂, con la mezcla y después de cada calentamiento, hasta masa constante. Con tus propias masas calcularás el KCl y el O₂ teóricos y el rendimiento: lo que hagas en el laboratorio (calibrar, enfriar antes de pesar, calentar con suavidad) cambia el resultado.",
+      "modules": [
+        "Seguridad: KClO₃ es un oxidante fuerte; sin papel, azúcar, grasa ni fricción; boca del tubo lejos de las personas y sin tapón.",
+        "Balanza de triple brazo: nivel, cero con el tornillo, pesas de 100 g, 10 g y la fina de 0–10 g; esperar que el fiel quede quieto en la marca.",
+        "Pesadas por diferencia: tubo vacío → tubo + MnO₂ → tubo + MnO₂ + KClO₃ (1,0–2,0 g).",
+        "Mezcla con golpecitos suaves (sin moler), montaje inclinado en el soporte con la pantalla.",
+        "Calentamiento gradual 10 min, enfriamiento en la gradilla y pesadas hasta masa constante (±0,1 g).",
+        "Análisis dimensional, KCl y O₂ teóricos, rendimiento porcentual y fuentes de error."
+      ],
+      "duration": "Duración estimada: 60–90 min (el calentamiento y el enfriamiento se pueden acelerar).",
+      "controlsList": [
+        "Arrastrar un objeto lo lleva por encima de lo demás; al soltar el tubo encaja en el platillo, en la pinza del soporte o en la gradilla refractaria.",
+        "Balanza: arrastra cada pesa sobre su brazo (las de 100 g y 10 g encajan en sus muescas); la rueda sobre la pesa fina la mueve 0,05 g. El tornillo de cero gira con arrastre vertical o con la rueda. R lee la balanza. V pone la vista a la altura del fiel.",
+        "Espátulas: cada reactivo tiene la suya. Abre el frasco con un clic en la tapa; acerca la cuchara a la boca del frasco y pulsa P para tomar (la rueda elige punta, pequeña o rasa). Sobre la boca del tubo, P vuelca.",
+        "Mezclar: toma el tubo y muévelo de lado a lado con suavidad (o T): son golpecitos. Con fuerza sale polvo.",
+        "Pinza para tubo: tómela, acerca la punta al tercio superior del tubo y pulsa P para sujetar o soltar. Un tubo calienta no se toma con la mano.",
+        "Mechero: las perillas se giran arrastrando; [ ] aguja, , . aire. A y D mueven la llama a lo largo del tubo. Encendedor: P = chispa.",
+        "Cámara: 1–5 estaciones, J/L giran, I/K inclinan, + − zoom, 0 vista inicial. Enter toma lo seleccionado; flechas lo mueven; Q/E lo suben o bajan.",
+        "Todo también se puede hacer desde el panel de acciones (debajo de la escena), sin ratón."
+      ],
+      "teacher": "Opciones docentes",
+      "kclo3Max": "Masa máxima de KClO₃ permitida",
+      "firstCycle": "Duración del primer calentamiento",
+      "scenarios": "Escenarios de error",
+      "seedHelp": "La semilla fija las pequeñas variaciones (error de cero, cantidades de cada porción). Con la misma semilla el intento es reproducible."
+    },
+    "mode": {
+      "PRACTICE_desc": "Retroalimentación sobre qué revisar; puedes comprobar tus cálculos sin ver la respuesta.",
+      "GUIDED_desc": "Pasos de cada etapa y pistas de técnica.",
+      "EVALUATION_desc": "Sin pistas ni temperaturas exactas hasta la entrega (sí alertas de seguridad).",
+      "DEBUG_desc": "Para docentes: masa verdadera, error de cero, composición del tubo, temperaturas, cinética y eventos."
+    },
+    "scenario": {
+      "ZERO_OFF": "Balanza con el cero desajustado",
+      "UNLEVEL": "Balanza desnivelada",
+      "DRAFT": "Corriente de aire sobre la balanza",
+      "RIDERS_NOT_ZERO": "Pesas que no quedaron en cero",
+      "WET_TUBE": "Tubo con humedad",
+      "CRACKED_TUBE": "Tubo con una grieta",
+      "GREASY_SPATULA": "Espátula del clorato con grasa",
+      "CRACKED_HOSE": "Manguera agrietada"
+    },
+    "ppe": {
+      "lead": "Antes de entrar al laboratorio confirma tu equipo de protección personal.",
+      "hazards": [
+        "KClO₃: oxidante fuerte. Lejos de papel, azúcar, grasa y cualquier material combustible; nunca se muele ni se tritura.",
+        "El tubo calienta quema: se manipula con la pinza para tubo y se enfría en la gradilla, nunca con agua.",
+        "La boca del tubo nunca apunta a una persona y el tubo nunca se tapa mientras se calienta."
+      ]
+    },
+    "restored": {
+      "text": "Se restauró el intento en un estado seguro: el mechero quedó apagado y el gas cerrado. El tiempo no avanzó mientras la práctica estuvo cerrada: el tubo está como lo dejaste."
+    },
+    "settings": {
+      "reducedMotion": "Reducir movimiento (sin partículas ni vibración del fiel)"
+    },
+    "hud": {
+      "speedNote": "el tiempo se acelera solo mientras no manipula nada"
+    },
+    "station": {
+      "A": "A · Balanza",
+      "B": "B · Reactivos y mezcla",
+      "C": "C · Gradilla y enfriamiento",
+      "D": "D · Montaje y calentamiento",
+      "E": "E · Residuos"
+    },
+    "cam": {
+      "eye": "Vista a la altura del fiel"
+    },
+    "zone": {
+      "weigh": "Pesada",
+      "reagents": "Reactivos y mezcla",
+      "cool": "Enfriamiento",
+      "heat": "Montaje y calentamiento",
+      "waste": "Residuos",
+      "safety": "Seguridad"
+    },
+    "stage": {
+      "INTRO": "Inicio",
+      "PPE_CHECK": "Equipo de protección",
+      "PPE_AND_HAZARD_CHECK": "Seguridad e inspección",
+      "BALANCE_CALIBRATION": "Calibrar la balanza",
+      "EMPTY_TUBE_WEIGHING": "Pesar el tubo vacío",
+      "CATALYST_ADDITION_WEIGHING": "Agregar y pesar MnO₂",
+      "KClO3_ADDITION_WEIGHING": "Agregar y pesar KClO₃",
+      "SAFE_MIXING": "Mezclar sin moler",
+      "APPARATUS_ASSEMBLY": "Montar el equipo",
+      "HEATING_CYCLE": "Calentar",
+      "COOLING": "Enfriar y pesar",
+      "CONSTANT_MASS_CHECK": "Masa constante",
+      "STOICHIOMETRY": "Cálculos estequiométricos",
+      "YIELD_ANALYSIS": "Rendimiento y análisis",
+      "WASTE_AND_SHUTDOWN": "Residuos y cierra",
+      "DONE": "Listo para entregar",
+      "SUBMISSION": "Entrega",
+      "REVIEW": "Revisión"
+    },
+    "guide": {
+      "PPE_AND_HAZARD_CHECK": [
+        "Inspecciona el tubo (busque grietas y humedad) y las espátulas.",
+        "Ubica el extintor, la manta y el paro de emergencia."
+      ],
+      "BALANCE_CALIBRATION": [
+        "Con el platillo vacío, lleva las tres pesas a cero.",
+        "Si la burbuja no está centrada, nivela la balanza.",
+        "Espera que el fiel deja de oscilar y gira el tornillo de cero hasta que quede en la marca.",
+        "Lee la balanza vacía (R): queda registrada la comprobación de cero."
+      ],
+      "EMPTY_TUBE_WEIGHING": [
+        "Lleva el tubo limpio y seco al platillo.",
+        "Mueve la pesa de 100 g, luego la de 10 g y por último la fina hasta centrar el fiel.",
+        "Espera a que el fiel quede quieto y lee. Anota la lectura en el Cuadro 5.1."
+      ],
+      "CATALYST_ADDITION_WEIGHING": [
+        "Deja el tubo en la gradilla. Abre el frasco de MnO₂.",
+        "Con la espátula del MnO₂ toma una punta (≈ 0,1 g) y vuélcala en el tubo.",
+        "Cierra el frasco y pesa de nuevo el tubo."
+      ],
+      "KClO3_ADDITION_WEIGHING": [
+        "Con la espátula del KClO₃ agrega entre 1,0 y 2,0 g (dos o tres porciones).",
+        "No uses papel ni otra espátula; no devuelvas reactivo al frasco.",
+        "Pesa el tubo con la mezcla."
+      ],
+      "SAFE_MIXING": [
+        "Toma el tubo y dale golpecitos suaves de lado a lado hasta que el polvo se vea gris uniforme.",
+        "Nunca muelas ni triture el clorato."
+      ],
+      "APPARATUS_ASSEMBLY": [
+        "Aprieta la nuez y ajusta la pinza (presión media) en el tercio superior del tubo.",
+        "Inclina el tubo 15–30° con la boca hacia el fondo de la campana, sin tapón.",
+        "Coloca la pantalla entre el montaje y tú."
+      ],
+      "HEATING_CYCLE": [
+        "Pon el mechero bajo la muestra y enciéndalo con la técnica de la Práctica 3.",
+        "Empieza con llama pequeña y poco aire; mueve la llama a lo largo del tubo (A/D).",
+        "Tras unos 5 min suba a llama azul normal. Calienta 10 min en total (cronómetro)."
+      ],
+      "COOLING": [
+        "Cierra el gas y retira el mechero.",
+        "Con la pinza para tubo pasa el tubo a la gradilla refractaria; no usa agua.",
+        "Mide con el termómetro IR: pesa solo a temperatura ambiente (±3 °C)."
+      ],
+      "CONSTANT_MASS_CHECK": [
+        "Si dos pesadas seguidas difieren más de 0,1 g, vuelve a calentar 5 min, enfríe y pesa.",
+        "Repite hasta masa constante."
+      ],
+      "STOICHIOMETRY": [
+        "Calcula por diferencia la masa de MnO₂, de KClO₃ y del KCl obtenido.",
+        "Escribe la ecuación balanceada con el MnO₂ y el calor sobre la flecha.",
+        "Completa el Cuadro 5.2 y las cadenas de análisis dimensional."
+      ],
+      "YIELD_ANALYSIS": [
+        "Calcula el rendimiento porcentual y responde las preguntas de análisis."
+      ],
+      "WASTE_AND_SHUTDOWN": [
+        "Con el tubo frío, desecha el residuo (KCl + MnO₂) en el contenedor de sólidos.",
+        "Confirma el gas cerrado (válvula de mesa)."
+      ],
+      "DONE": [
+        "Revisa la libreta y entregue."
+      ]
+    },
+    "obj": {
+      "balance": "Balanza de triple brazo",
+      "tube": "Tubo de ensayo resistente al calor",
+      "rack": "Gradilla refractaria",
+      "tray": "Bandeja de mezcla",
+      "bottle_kclo3": "Frasco de KClO₃",
+      "bottle_mno2": "Frasco de MnO₂",
+      "spatula_kclo3": "Espátula del KClO₃",
+      "spatula_mno2": "Espátula del MnO₂",
+      "tongs": "Pinza para tubo",
+      "stopper": "Tapón de hule",
+      "brush": "Brocha",
+      "weigh_paper": "Papel para pesar",
+      "sugar": "Frasco de azúcar",
+      "pestle": "Mortero y mano",
+      "stand": "Soporte universal con pinza",
+      "shield": "Pantalla de seguridad",
+      "ir": "Termómetro infrarrojo",
+      "wash": "Piseta",
+      "waste": "Residuos sólidos",
+      "bottle": "Frasco",
+      "spatula": "Espátula",
+      "tube_kind": "Tubo"
+    },
+    "tag": {
+      "bottle_kclo3": "KClO₃",
+      "bottle_mno2": "MnO₂",
+      "spatula_kclo3": "Espátula KClO₃",
+      "spatula_mno2": "Espátula MnO₂",
+      "balance": "Balanza",
+      "tube": "Tubo",
+      "stand": "Soporte",
+      "ir": "Termómetro IR",
+      "weigh_paper": "Papel",
+      "sugar": "Azúcar",
+      "pestle": "Mortero",
+      "waste": "Residuos",
+      "shield": "Pantalla",
+      "rack": "Gradilla",
+      "tongs": "Pinza",
+      "stopper": "Tapón",
+      "brush": "Brocha",
+      "wash": "Piseta"
+    },
+    "temp": {
+      "room": "a temperatura ambiente",
+      "warm": "tibio",
+      "hot": "calienta",
+      "veryHot": "muy calienta",
+      "glowing": "al rojo"
+    },
+    "support": {
+      "bench": "sobre la mesada",
+      "hand": "en la mano",
+      "pan": "en el platillo",
+      "clamp": "en la pinza del soporte",
+      "rack": "en la gradilla",
+      "tongs": "sujeto con la pinza para tubo",
+      "disposed": "desechado"
+    },
+    "desc": {
+      "pointerSwinging": "el fiel oscila",
+      "pointerCentered": "el fiel está en la marca",
+      "pointerUp": "el fiel está arriba (falta peso en las pesas)",
+      "pointerDown": "el fiel está abajo (sobra peso en las pesas)",
+      "riders": "pesas: {{a}} g + {{b}} g + {{c}} g = {{sum}} g",
+      "tubeWet": "vacío, con gotas de humedad",
+      "tubeEmpty": "vacío",
+      "blackPowder": "polvo negro (MnO₂)",
+      "whitePowder": "polvo blanco",
+      "grayMix": "mezcla gris uniforme",
+      "layers": "capas: negro abajo, blanco arriba",
+      "molten": "la mezcla está fundida",
+      "gas": "burbujeo: se desprende gas",
+      "residue": "residuo sólido",
+      "moisture": "humedad en el vidrio",
+      "onPan": "en el platillo: {{o}}",
+      "panEmpty": "platillo vacío",
+      "notCalibrated": "cero sin comprobar",
+      "unlevel": "burbuja descentrada",
+      "draft": "corriente de aire",
+      "panDust": "polvo sobre el platillo",
+      "stoppered": "con tapón",
+      "cracked": "roto",
+      "crackFound": "tiene una grieta",
+      "clamp": "inclinación {{a}}°, pinza a {{h}} cm",
+      "nutTight": "nuez apretada",
+      "nutLoose": "nuez floja",
+      "gripLoose": "pinza floja",
+      "gripTight": "pinza demasiado apretada",
+      "gripOk": "presión de la pinza adecuada",
+      "mouthPerson": "la boca apunta a la persona",
+      "mouthAway": "boca hacia el fondo",
+      "open": "abierto",
+      "closed": "cerrado",
+      "contaminated": "contaminado",
+      "dedicated": "dedicada al {{r}}",
+      "loadLevel": "cargada (rasa)",
+      "loadSmall": "cargada (porción pequeña)",
+      "loadTip": "cargada (una punta)",
+      "residueFilm": "con restos de polvo",
+      "greasy": "tiene grasa",
+      "shieldPlaced": "colocada entre el montaje y tú",
+      "shieldIdle": "sin colocar",
+      "wasteUsed": "contiene el residuo de KCl + MnO₂"
+    },
+    "lens": {
+      "title": "Balanza",
+      "pointer": "Fiel: {{s}}",
+      "centered": "en la marca",
+      "up": "arriba",
+      "down": "abajo",
+      "r100": "Pesa de 100 g",
+      "r10": "Pesa de 10 g",
+      "r1": "Pesa fina",
+      "sum": "Suma de las pesas",
+      "ready": "✓ Fiel quieto en la marca: puedes leer (R)",
+      "wait": "Espera: el fiel debe quedar quieto en la marca"
+    },
+    "act": {
+      "title": "Acciones",
+      "none": "Selecciona un objeto (clic o flechas ← →) para ver sus acciones.",
+      "amount": "Porción",
+      "r100": "Pesa de 100 g",
+      "r10": "Pesa de 10 g",
+      "r1": "Pesa fina (0–10 g)",
+      "r1Less": "Mover la pesa fina 0,05 g a la izquierda",
+      "r1More": "Mover la pesa fina 0,05 g a la derecha",
+      "read": "Leer la balanza",
+      "zeroScrew": "Tornillo de cero",
+      "screwLess": "Girar el tornillo de cero a la izquierda",
+      "screwMore": "Girar el tornillo de cero a la derecha",
+      "level": "Nivelar la balanza",
+      "cleanPan": "Limpiar el platillo",
+      "draftOn": "Cerrar la ventana (quitar la corriente)",
+      "draftOff": "Ventana cerrada",
+      "eyeLevel": "Vista a la altura del fiel",
+      "inspect": "Inspeccionar",
+      "toPan": "Llevar el tubo al platillo",
+      "toClamp": "Montar el tubo en la pinza",
+      "toRackTongs": "Pasar a la gradilla con la pinza para tubo",
+      "takeHand": "Tomar el tubo con la mano",
+      "tap": "Golpecitos suaves",
+      "tapHard": "Golpe fuerte",
+      "unstopper": "Quitar el tapón",
+      "stopper": "Poner el tapón",
+      "inspectTube": "Inspeccionar el tubo",
+      "dry": "Secar el tubo",
+      "ir": "Medir con el termómetro IR",
+      "dispose": "Desechar el residuo",
+      "scoop": "Tomar una porción de {{r}}",
+      "tipAll": "Volcar en el tubo",
+      "tipHalf": "Volcar la mitad",
+      "wipe": "Limpiar la espátula",
+      "close": "Cerrar el frasco",
+      "open": "Abrir el frasco",
+      "angle": "Inclinación",
+      "mouth": "Boca del tubo hacia",
+      "height": "Altura de la pinza",
+      "grip": "Presión de la pinza",
+      "gripAt": "Punto de sujeción (fondo → boca)",
+      "nutLoosen": "Aflojar la nuez",
+      "nutTighten": "Apretar la nuez",
+      "shieldRemove": "Retirar la pantalla",
+      "shieldPlace": "Colocar la pantalla",
+      "tongsAim": "Acerca la punta al tercio superior del tubo",
+      "cleanSpills": "Barrer el polvo derramado ({{n}})",
+      "waterOnTube": "Echar agua sobre el tubo",
+      "grind": "Usar el mortero con la mezcla",
+      "underSample": "Mechero bajo la muestra",
+      "sweepLeft": "Mover la llama hacia el fondo del tubo",
+      "sweepRight": "Mover la llama hacia la boca",
+      "burnerAway": "Retirar el mechero"
+    },
+    "amount": {
+      "tip": "Una punta (poco)",
+      "small": "Porción pequeña",
+      "level": "Espátula rasa"
+    },
+    "yaw": {
+      "0": "el fondo de la campana",
+      "90": "la derecha",
+      "180": "la persona",
+      "270": "la izquierda"
+    },
+    "cmd": {
+      "BOTTLE_CLOSED": "El frasco está cerrado: ábrelo primero (clic en la tapa).",
+      "SPATULA_LOADED": "La espátula ya está cargada: vuélcala antes de tomar más.",
+      "EMPTY": "La espátula está vacía.",
+      "TUBE_HOT": "El tubo está calienta: no se agrega reactivo hasta que se enfríe.",
+      "HOLD_TUBE": "Toma el tubo (mano o pinza) para darle golpecitos.",
+      "HOT": "El tubo todavía está calienta.",
+      "NOT_EMPTY": "Solo se seca el tubo vacío.",
+      "GRINDING": "Prohibido: el clorato no se muele ni se tritura.",
+      "THERMAL_SHOCK": "No: el agua sobre el vidrio calienta lo rompe.",
+      "BURN": "Quema: toma el tubo calienta con la pinza para tubo.",
+      "PAN_NOT_EMPTY": "Retira primero lo que hay en el platillo.",
+      "PAN_BUSY": "El platillo está ocupado.",
+      "BLOCKED": "La estación está detenida por seguridad.",
+      "TEACHER_STOP": "El docente detuvo la simulación.",
+      "WAIT_COOL": "Espera a que el tubo se enfríe."
+    },
+    "hint": {
+      "zeroScrew": "Tornillo de cero: arrastra hacia arriba o abajo (o usa la rueda) con el platillo vacío y las pesas en cero.",
+      "amount": {
+        "tip": "Porción: una punta de espátula.",
+        "small": "Porción: pequeña.",
+        "level": "Porción: espátula rasa."
+      },
+      "useTongs": "El tubo está calienta: tómalo con la pinza para tubo.",
+      "spatula": "Acerca la cuchara a la boca del frasco abierto y pulsa P para tomar; sobre la boca del tubo, P vuelca.",
+      "tube": "Suelta el tubo sobre el platillo, en la pinza del soporte o en la gradilla. Moverlo de lado a lado con suavidad mezcla el polvo.",
+      "tongs": "Acerca la punta de la pinza al tercio superior del tubo y pulsa P.",
+      "waitPointer": "Espera a que el fiel deja de oscilar antes de mover las pesas y leer.",
+      "nut": "La nuez está floja: apriétala antes de calentar.",
+      "hotOnBench": "Un tubo calienta se deja en la gradilla refractaria, no sobre la mesada.",
+      "bottleClosed": "El frasco está cerrado.",
+      "spatulaEmpty": "La espátula está vacía: toma primero una porción del frasco.",
+      "tongsAim": "La punta de la pinza no alcanza el tubo.",
+      "washAim": "Acerca la piseta al tubo.",
+      "brushAim": "Acerca la brocha al platillo o al polvo derramado.",
+      "wasteP": "Sobre el contenedor: P desecha el residuo (con el tubo frío).",
+      "heatInClamp": "El tubo se calienta montado en la pinza del soporte, no en la mano."
+    },
+    "safety": {
+      "title": "Seguridad",
+      "tube": "Tubo",
+      "setup": "Montaje",
+      "setupOk": "listo para calentar"
+    },
+    "blocker": {
+      "CONTAMINATED_MIXTURE": "mezcla contaminada",
+      "TUBE_STOPPERED": "tubo tapado",
+      "MOUTH_TOWARD_PERSON": "boca hacia la persona",
+      "CRACKED_TUBE": "tubo agrietado",
+      "KCLO3_OVER_LIMIT": "demasiado KClO₃",
+      "SHIELD_MISSING": "sin pantalla",
+      "PPE_MISSING": "sin EPP",
+      "NUT_LOOSE": "nuez floja"
+    },
+    "block": {
+      "CONTAMINATED_MIXTURE": "La mezcla tiene material orgánico (grasa, papel o azúcar) junto a un oxidante fuerte: no se calienta. Deséchala como residuo especial y prepara una nueva con material limpio.",
+      "TUBE_STOPPERED": "El tubo está tapado: el O₂ que se libera aumentaría la presión. Quita el tapón antes de calentar.",
+      "MOUTH_TOWARD_PERSON": "La boca del tubo apunta hacia una persona. Gírala hacia el fondo de la campana.",
+      "CRACKED_TUBE": "El tubo tiene una grieta: no se calienta. Usa otro tubo.",
+      "KCLO3_OVER_LIMIT": "Hay más KClO₃ del permitido por el protocolo. No se calienta.",
+      "GRINDING": "Moler o triturar el clorato de potasio está prohibido: la fricción puede iniciar una reacción violenta. Se detuvo la acción.",
+      "THERMAL_SHOCK": "Se intentó enfriar con agua el vidrio calienta: choque térmico. El gas se cerró; deja enfriar al aire.",
+      "TUBE_FELL": "La pinza estaba floja y el tubo cayó. Se cerró el gas.",
+      "UNATTENDED": "Llama encendida sin supervisión: se cerró el gas por seguridad.",
+      "short": {
+        "CONTAMINATED_MIXTURE": "mezcla contaminada",
+        "TUBE_STOPPERED": "tubo tapado",
+        "MOUTH_TOWARD_PERSON": "boca hacia la persona",
+        "CRACKED_TUBE": "tubo agrietado",
+        "KCLO3_OVER_LIMIT": "exceso de KClO₃",
+        "GRINDING": "molienda",
+        "THERMAL_SHOCK": "choque térmico",
+        "TUBE_FELL": "caída del tubo",
+        "UNATTENDED": "llama sin supervisión"
+      },
+      "ack_CONTAMINATED_MIXTURE": "La mezcla sigue contaminada.",
+      "ack_TUBE_STOPPERED": "El tubo sigue tapado.",
+      "ack_MOUTH_TOWARD_PERSON": "La boca sigue apuntando a la persona.",
+      "ack_CRACKED_TUBE": "El tubo sigue agrietado.",
+      "ack_KCLO3_OVER_LIMIT": "Sigue habiendo demasiado KClO₃.",
+      "ack_WAIT_COOL": "Espera a que el tubo se enfríe.",
+      "ack_GAS_OPEN": "Cierra primero el gas."
+    },
+    "submit": {
+      "lead": "Al entregar se evalúa tu procedimiento y tus cálculos con las masas que TÚ mediste. Revisa la libreta antes de confirmar.",
+      "blocked": "No se puede entregar todavía:",
+      "b_LIT": "El mechero está encendido.",
+      "b_GAS_OPEN": "Hay una válvula de gas abierta.",
+      "b_HOT": "El tubo sigue calienta.",
+      "b_HELD": "El tubo está en la mano o en la pinza: déjelo en la gradilla."
+    },
+    "flag": {
+      "ppe": "Equipo de protección",
+      "calibrated": "Comprobación del cero de la balanza",
+      "emptyTube": "Pesada del tubo vacío",
+      "catalyst": "Pesada con MnO₂",
+      "reactant": "Pesada con KClO₃ (1,0–2,0 g)",
+      "mixed": "Mezcla homogénea",
+      "assembled": "Montaje seguro",
+      "heated": "Primer calentamiento",
+      "cooledWeighed": "Pesada en frío tras calentar",
+      "constantMass": "Masa constante",
+      "stoichiometry": "Cuadro 5.2 y ecuación",
+      "analysis": "Preguntas de análisis",
+      "waste": "Residuo desechado y gas cerrado"
+    },
+    "ev": {
+      "ADJUST_HOT": "Se ajustó la pinza con el tubo calienta: hazlo antes de calentar.",
+      "BALANCE_CALIBRATED": "Cero comprobado: con el platillo vacío y las pesas en cero, el fiel queda en la marca.",
+      "BALANCE_LEVELED": "Balanza nivelada: vuelve a comprobar el cero.",
+      "BALANCE_UNLEVEL": "La burbuja de nivel no está centrada: nivela la balanza antes de calibrar.",
+      "BURN_HOT_TUBE": "Quemadura simulada: el tubo estaba a {{tempC}} °C. Usa la pinza para tubo.",
+      "CLAMP_LOOSE": "La pinza está floja: el tubo podría resbalar al calentar.",
+      "CLAMP_TOO_TIGHT": "La pinza aprieta demasiado: el vidrio puede romperse al dilatarse.",
+      "CONSTANT_MASS": "Masa constante alcanzada: dos pesadas seguidas difieren menos de 0,1 g ({{g}} g).",
+      "DIRTY_SPATULA_IN_OXIDANT": "La espátula tenía {{what}} y entró al frasco del clorato: el reactivo quedó contaminado.",
+      "DRAFT_NEAR_BALANCE": "Hay una corriente de aire sobre la balanza: el fiel no se estabiliza.",
+      "FIRST_CYCLE_SHORT": "El primer calentamiento duró solo {{s}} min: puede quedar clorato sin descomponer.",
+      "GRINDING_BLOCKED": "Se detuvo: el clorato de potasio no se muele.",
+      "HEATING_ENDED": "Fin del calentamiento {{cycle}}.",
+      "HEATING_STARTED": "Comienza el calentamiento {{cycle}}.",
+      "HOT_TUBE_HANDLING": "Se sacó el tubo calienta sin la pinza para tubo.",
+      "HOT_WEIGHING": "Lectura no válida: el tubo estaba a {{tempC}} °C. El aire calienta que sube empuja el platillo y la masa aparente es menor. Espera a que se enfríe.",
+      "HOT_ON_BALANCE": "Tubo calienta ({{tempC}} °C) sobre la balanza: la lectura no será válida.",
+      "INCOMPATIBLE_ON_PAN": "Se colocó {{obj}} en el platillo.",
+      "INSPECTED": "Inspeccionado: {{target}}.",
+      "MIXTURE_CONTAMINATED": "La mezcla quedó contaminada con {{what}}: no puede calentarse.",
+      "NUT_LOOSE": "La nuez del soporte está floja.",
+      "PAN_CLEANED": "Platillo limpio: vuelve a comprobar el cero.",
+      "READING_RECORDED": "Lectura registrada: {{g}} g.",
+      "READING_UNCALIBRATED": "Lectura no válida: no se comprobó el cero de la balanza (o se movió el tornillo después).",
+      "READING_UNSTABLE": "Lectura no válida: el fiel todavía oscilaba o no estaba en la marca.",
+      "RESIDUE_DISPOSED": "Residuo (KCl + MnO₂) en el contenedor de sólidos.",
+      "RETURNED_TO_BOTTLE": "Se devolvió reactivo al frasco: el frasco puede quedar contaminado.",
+      "SHIELD_MISSING": "Falta la pantalla entre el montaje y tú.",
+      "SPATULA_CLEANED": "Espátula limpia.",
+      "SPATULA_DIRTY": "La espátula tiene {{what}}: no debe tocar el clorato.",
+      "STATION_RESET": "Estación restablecida.",
+      "TUBE_CRACKED": "El tubo se agrietó por tensión térmica.",
+      "TUBE_CRACK_FOUND": "El tubo tiene una grieta: no lo usa.",
+      "TUBE_DRIED": "Tubo seco.",
+      "TUBE_FELL": "El tubo resbaló de la pinza floja.",
+      "TUBE_STOPPERED": "Se tapó el tubo: nunca se calienta tapado.",
+      "TUBE_WET": "El tubo tiene humedad: la pesada inicial incluye agua que luego se evapora.",
+      "UNATTENDED": "La llama quedó sin supervisión.",
+      "VIOLENT_TAP": "Golpe demasiado fuerte: salió polvo del tubo ({{g}} g).",
+      "WATER_ON_HOT_TUBE": "No se enfría el vidrio calienta con agua.",
+      "WRONG_SPATULA": "Se usó la espátula de otro reactivo: contaminación cruzada.",
+      "SOLID_EXPELLED": "El gas sale tan rápido que arrastra sólido por la boca del tubo: se pierde masa. Baja la llama.",
+      "HEATING_TOO_FAST": "La muestra se calienta demasiado rápido: empieza con llama pequeña y mueve la llama.",
+      "FIXED_HOT_SPOT": "La llama calienta siempre el mismo punto: muévela a lo largo del tubo.",
+      "ORDER_KCLO3_FIRST": "Se agregó KClO₃ antes de pesar el MnO₂: ya no se puede obtener cada masa por diferencia.",
+      "MNO2_AFTER_KCLO3": "Se agregó MnO₂ después del KClO₃: el orden de las pesadas no permite separar las masas.",
+      "POWDER_ON_PAN": "Cayó polvo sobre el platillo: la balanza lo suma a la lectura.",
+      "POORLY_MIXED": "La mezcla está en capas: el catalizador no toca bien al clorato.",
+      "SOLID_ON_PAPER": "Se volcó reactivo sobre papel: el clorato no debe tocar material combustible.",
+      "SOLID_SPILLED": "Se derramó polvo sobre la mesada.",
+      "ZERO_NOT_ADJUSTED": "El fiel no queda en la marca con la balanza vacía: ajusta el tornillo de cero.",
+      "BALANCE_NOT_SETTLED": "El fiel todavía oscila: espera antes de leer el cero.",
+      "ZERO_ADJUSTED_WITH_LOAD": "Se movió el tornillo de cero con carga o con pesas fuera de cero: la calibración ya no vale.",
+      "TUBE_TOO_STEEP": "El tubo está muy inclinado ({{deg}}°).",
+      "TUBE_TOO_FLAT": "El tubo está casi horizontal ({{deg}}°).",
+      "CONTAMINATED_MIXTURE": "Mezcla contaminada: no se calienta.",
+      "MOUTH_TOWARD_PERSON": "La boca del tubo apunta hacia una persona: no se calienta.",
+      "CRACKED_TUBE": "Tubo agrietado: no se calienta.",
+      "KCLO3_OVER_LIMIT": "Demasiado KClO₃ para el protocolo: no se calienta."
+    },
+    "contaminant": {
+      "grasa": "grasa",
+      "papel": "papel",
+      "azucar": "azúcar"
+    },
+    "inspect": {
+      "tube": "tubo",
+      "balance": "balanza",
+      "spatula_kclo3": "espátula del KClO₃",
+      "spatula_mno2": "espátula del MnO₂",
+      "hose": "manguera",
+      "burner": "mechero",
+      "stand": "soporte",
+      "bottle_kclo3": "frasco de KClO₃",
+      "bottle_mno2": "frasco de MnO₂"
+    },
+    "live": {
+      "wait": "Cada vez que pone o mueve algo en la balanza, el fiel oscila. Espera a que quede quieto antes de leer.",
+      "hotLight": "Observa: el tubo calienta «pesa» menos. El aire calienta que sube empuja el platillo; por eso solo se pesa en frío.",
+      "molten": "El clorato se fundió (≈ 356 °C): el MnO₂ queda en contacto con el líquido y la descomposición se acelera.",
+      "o2": "Se desprende gas: es el O₂ que sale del KClO₃. La masa del tubo bajará.",
+      "notConstant": "Las dos últimas pesadas difieren {{d}} g: todavía no hay masa constante. Calienta otra vez 5 min.",
+      "range": "Con tus pesadas, la masa de KClO₃ es {{g}} g: el protocolo pide entre 1,0 y 2,0 g."
+    },
+    "mkind": {
+      "zero": "cero",
+      "tubeEmpty": "tubo vacío",
+      "tubeMnO2": "tubo + MnO₂",
+      "tubeInitial": "tubo + mezcla",
+      "afterHeat": "tras calentar",
+      "other": "otra"
+    },
+    "invalid": {
+      "OVERLOAD": "sobrecarga",
+      "HOT_LOAD": "carga calienta",
+      "UNSTABLE": "fiel inestable",
+      "NOT_CALIBRATED": "sin calibrar",
+      "EMPTY": "platillo vacío con pesas"
+    },
+    "nb": {
+      "tab": {
+        "masses": "Cuadro 5.1",
+        "calc": "Cuadro 5.2",
+        "chains": "Análisis dimensional",
+        "eq": "Ecuación",
+        "chart": "Gráfica",
+        "analysis": "Análisis",
+        "log": "Lecturas"
+      },
+      "t1": "Cuadro 5.1 — Masas medidas",
+      "t1Help": "Las masas medidas se importan solo desde lecturas válidas de la balanza (📥). Las masas por diferencia y el KCl obtenido los calculas tú.",
+      "col": {
+        "item": "Medición",
+        "value": "Masa (g)",
+        "obs": "Observaciones"
+      },
+      "row": {
+        "tubeEmpty": "Tubo vacío",
+        "tubeMnO2": "Tubo + MnO₂",
+        "mno2Diff": "MnO₂ (por diferencia)",
+        "tubeMnO2KClO3": "Tubo + MnO₂ + KClO₃",
+        "kclo3Diff": "KClO₃ (por diferencia)",
+        "heat1": "Tras el 1.er calentamiento",
+        "heat2": "Tras el 2.º calentamiento",
+        "heat3": "Tras el 3.er calentamiento",
+        "constant": "Masa constante",
+        "kclExp": "KCl obtenido (por diferencia)",
+        "nKClExp": "Moles de KCl obtenidos"
+      },
+      "import": "Importar una lectura válida",
+      "tempAt": "a {{c}} °C",
+      "uHelp": "Incertidumbre de cada lectura: ±{{u}} g. Para una diferencia de dos lecturas: u = √(u₁² + u₂²).",
+      "t2": "Cuadro 5.2 — Cálculos estequiométricos",
+      "t2Help": "Usa la masa de KClO₃ que TÚ mediste. Escribe los números con su unidad implícita (mol, g, %).",
+      "calc": {
+        "nKClO3": "Moles de KClO₃ (mol)",
+        "nKClTheo": "Moles de KCl teóricos (mol)",
+        "mKClTheo": "Masa de KCl teórica (g)",
+        "nO2Theo": "Moles de O₂ teóricos (mol)",
+        "mO2Theo": "Masa de O₂ teórica (g)",
+        "mKClExp": "Masa de KCl experimental (g)",
+        "yieldPct": "Rendimiento porcentual (%)"
+      },
+      "molar": "Masas molares: KClO₃ 122,55 g/mol · KCl 74,55 g/mol · O₂ 32,00 g/mol · MnO₂ 86,94 g/mol.",
+      "chainHelp": "Arma cada cadena con factores de conversión: masa molar (g ↔ mol de la misma especie) y relación molar de la ecuación balanceada. Cada factor debe cancelar la unidad anterior.",
+      "chain": {
+        "kcl": "g KClO₃ → g KCl",
+        "o2": "g KClO₃ → g O₂",
+        "noMass": "(falta la masa de KClO₃)",
+        "factor": "Factor {{n}}",
+        "numValue": "Numerador",
+        "denValue": "Denominador",
+        "unit": "Unidad",
+        "species": "Especie",
+        "noCancel": "La unidad no se cancela con la anterior",
+        "badFactor": "No es una equivalencia correcta",
+        "remove": "Quitar el factor",
+        "add": "Factor",
+        "unitPending": "(la unidad final aún no es la pedida)",
+        "gramsAsMoles": "Se usaron gramos como si fueran moles."
+      },
+      "eqHelp": "Escribe la ecuación balanceada con los estados. El MnO₂ es catalizador: va sobre la flecha, no como reactivo ni producto. Marca el calor (Δ).",
+      "eq": {
+        "reactants": "Reactivos",
+        "products": "Productos",
+        "coef": "Coeficiente",
+        "formula": "Fórmula",
+        "state": "Estado",
+        "remove": "Quitar",
+        "add": "Término",
+        "heat": "Calor (Δ) sobre la flecha",
+        "catalyst": "Sobre la flecha (catalizador)",
+        "v": {
+          "atoms": "Átomos balanceados",
+          "ratio": "Coeficientes en la menor relación entera",
+          "species": "Especies correctas",
+          "states": "Estados correctos",
+          "catalyst": "Catalizador como condición, no consumido",
+          "heat": "Calor indicado",
+          "unknown": "Fórmulas no reconocidas: {{f}}"
+        }
+      },
+      "chartTitle": "Masa del tubo frente al ciclo de calentamiento",
+      "chartEmpty": "Aún no hay lecturas válidas del tubo con la mezcla.",
+      "chartLabel": "Gráfica con {{n}} lecturas de la masa del tubo por ciclo",
+      "chartX": "ciclo de calentamiento",
+      "chartHelp": "La banda verde marca ±{{c}} g alrededor de la última lectura: si la anterior cae dentro, hay masa constante.",
+      "chartPoint": "Ciclo {{c}}: {{g}} g",
+      "q": {
+        "q1": "1. ¿Por qué se calienta hasta masa constante? ¿Qué indica que dos pesadas seguidas coincidan?",
+        "q2": "2. ¿Qué papel cumple el MnO₂? ¿Cambia su masa? ¿Por qué no aparece en la relación molar?",
+        "q3": "3. Explica tu rendimiento: ¿qué errores lo harían mayor que 100 % y cuáles menor?",
+        "q4": "4. ¿Por qué no se pesa el tubo calienta? Describe el efecto sobre la lectura.",
+        "q5": "5. ¿Qué precauciones exige el clorato de potasio y por qué (oxidante, fricción, tapón, dirección de la boca)?"
+      },
+      "readings": "Lecturas de la balanza",
+      "check": "Revisar",
+      "checkWrong": "{{n}} dato(s) no coinciden con tus masas: revísalos"
+    },
+    "review": {
+      "title": "Revisión — Práctica 5",
+      "quant": "Tus cálculos frente a lo que corresponde a TUS masas",
+      "basis": "Lecturas usadas: tubo {{a}} g · con MnO₂ {{b}} g · con la mezcla {{c}} g · final {{z}} g.",
+      "qty": "Magnitud",
+      "yours": "Tu valor",
+      "expected": "Con tus masas",
+      "row": {
+        "mno2": "MnO₂ (g)",
+        "kclo3": "KClO₃ (g)",
+        "nKClO3": "n KClO₃ (mol)",
+        "mKClTheo": "KCl teórico (g)",
+        "mO2Theo": "O₂ teórico (g)",
+        "mKClExp": "KCl experimental (g)",
+        "yieldPct": "Rendimiento (%)"
+      },
+      "eq": "Ecuación balanceada con el catalizador sobre la flecha: {{s}}",
+      "causes": "Qué explica tu rendimiento",
+      "conversion": "KClO₃ descompuesto al final: {{p}} %.",
+      "expelled": "Sólido arrastrado fuera del tubo: {{g}} g.",
+      "cycles": "Ciclos de calentamiento: {{n}} ({{list}})."
+    },
+    "cause": {
+      "unreacted": "Quedó clorato sin descomponer: la masa final es mayor que la del KCl puro y el rendimiento aparente sube (puede pasar de 100 %).",
+      "expelled": "El calentamiento brusco arrastró sólido fuera del tubo: se perdió masa y el rendimiento baja.",
+      "water": "El tubo tenía humedad: el agua evaporada se contó como masa perdida.",
+      "hotReading": "Hubo lecturas en calienta (no válidas): la corriente de aire hace que el tubo parezca más liviano.",
+      "uncalibrated": "Hubo lecturas sin comprobar el cero: todas las masas quedan desplazadas por el mismo error.",
+      "spill": "Quedó polvo derramado sin limpiar.",
+      "none": "No se detectaron fuentes de error importantes en tu procedimiento."
+    },
+    "comp": {
+      "safety": "Seguridad e inspección",
+      "balance": "Balanza y pesadas",
+      "prep": "Preparación y montaje",
+      "heating": "Calentamiento y masa constante",
+      "calc": "Cálculos estequiométricos",
+      "analysis": "Análisis y cierra"
+    },
+    "item": {
+      "ppe": "Equipo de protección confirmado",
+      "inspectTube": "Tubo inspeccionado",
+      "inspectSafety": "Extintor, manta y paro ubicados",
+      "noCritical": "Sin acciones críticas",
+      "shield": "Pantalla colocada",
+      "noBurns": "Sin quemaduras",
+      "dedicatedSpatulas": "Espátulas dedicadas, nada devuelto al frasco",
+      "calibrated": "Cero comprobado",
+      "noUncalibrated": "Sin lecturas sin calibrar",
+      "waitStable": "Esperó el fiel quieto",
+      "threeReadings": "Tres pesadas iniciales",
+      "order": "Orden tubo → MnO₂ → KClO₃",
+      "noHotReading": "Sin pesadas en calienta",
+      "recorded": "Lecturas anotadas en el Cuadro 5.1",
+      "kclo3Range": "KClO₃ entre 1,0 y 2,0 g",
+      "mno2Weighed": "MnO₂ pesado",
+      "mixed": "Mezcla homogénea",
+      "noGrind": "Sin moler ni golpes fuertes",
+      "assembled": "Montaje seguro",
+      "angle": "Inclinación adecuada",
+      "noStopper": "Sin tapón",
+      "gradual": "Calentamiento gradual sin pérdida de sólido",
+      "firstCycle": "Primer calentamiento completo",
+      "cooled": "Pesó en frío",
+      "twoReadings": "Dos pesadas tras calentar",
+      "constantMass": "Masa constante",
+      "noCrack": "Tubo sin romperse",
+      "equation": "Ecuación balanceada",
+      "nKClO3": "Moles de KClO₃",
+      "mKClTheo": "KCl teórico",
+      "mO2Theo": "O₂ teórico",
+      "mKClExp": "KCl experimental",
+      "yield": "Rendimiento",
+      "chains": "Cadenas de análisis dimensional",
+      "analysis": "Preguntas de análisis",
+      "disposal": "Residuo desechado y gas cerrado",
+      "safeEnd": "Cierra seguro"
+    },
+    "demo": {
+      "ui": {
+        "watchHelp": "El simulador hace la práctica completa con los mismos gestos que usarás (pesas de la balanza, espátulas, pinza, mechero), explicando cada paso.",
+        "doneText": "Viste la ruta completa: calibración, tres pesadas por diferencia, mezcla, montaje, dos calentamientos y masa constante. Los cálculos, la ecuación y el análisis quedan para ti.",
+        "partA": "A · Seguridad y balanza",
+        "partB": "B · Pesadas y mezcla",
+        "partC": "C · Montaje y calentamiento",
+        "partD": "D · Masa constante",
+        "partE": "E · Libreta y cierra",
+        "accelerated": "⏩ Tiempo acelerado ×{{x}}",
+        "waitPointer": "Esperando a que el fiel quede quieto…"
+      },
+      "steps": {
+        "start": {
+          "title": "Inspección",
+          "text": "Antes de empezar se revisa el tubo (sin grietas, seco), las espátulas (limpias, una por reactivo) y la balanza."
+        },
+        "calibrate": {
+          "title": "Calibrar la balanza",
+          "text": "Platillo vacío y las tres pesas en cero. Se espera que el fiel deja de oscilar y se gira el tornillo de cero hasta que quede en la marca. La lectura vacía comprueba el cero."
+        },
+        "weighEmpty": {
+          "title": "Tubo vacío",
+          "text": "Se pone el tubo en el platillo y se mueven las pesas: primero la de 100 g, luego la de 10 g y al final la fina, hasta que el fiel quede quieto en la marca. La masa es la suma de las pesas."
+        },
+        "addMnO2": {
+          "title": "Agregar MnO₂ y pesar",
+          "text": "Con su propia espátula se agrega una punta de MnO₂ (≈ 0,1 g). El frasco se cierra y el tubo se pesa otra vez: la diferencia es la masa del catalizador."
+        },
+        "addKClO3": {
+          "title": "Agregar KClO₃ y pesar",
+          "text": "Con la espátula del clorato se agregan unas porciones hasta ≈ 1,5 g, sin papel y sin devolver nada al frasco. Una nueva pesada da la masa de KClO₃ por diferencia."
+        },
+        "mix": {
+          "title": "Mezclar sin moler",
+          "text": "Golpecitos laterales suaves: el polvo negro y el blanco se vuelven un gris uniforme. Nunca se muele el clorato."
+        },
+        "assemble": {
+          "title": "Montaje",
+          "text": "Nuez apretada, pinza con presión media en el tercio superior, tubo inclinado 20° con la boca hacia el fondo de la campana y sin tapón. La pantalla queda entre el montaje y la persona."
+        },
+        "ignite": {
+          "title": "Encender el mechero",
+          "text": "Mechero bajo la muestra, manguera y ventilación revisadas. Se enciende con el aire cerrado y se deja una llama pequeña con poco aire para empezar con suavidad."
+        },
+        "heat1": {
+          "title": "Primer calentamiento (10 min)",
+          "text": "La llama se mueve a lo largo del tubo. El clorato funde y desprende O₂; tras unos minutos se pasa a llama azul normal. El tiempo se acelera."
+        },
+        "cool1": {
+          "title": "Enfriar",
+          "text": "Se cierra el gas y se retira el mechero. Con la pinza para tubo el tubo pasa a la gradilla refractaria; el termómetro IR indica cuándo llegó a temperatura ambiente."
+        },
+        "weigh1": {
+          "title": "Pesar en frío",
+          "text": "Solo un tubo a temperatura ambiente da una lectura válida. Esta es la primera masa después de calentar."
+        },
+        "heat2": {
+          "title": "Segundo calentamiento (5 min)",
+          "text": "Para comprobar que ya no cambia, se vuelve a calentar 5 minutos y se enfría de nuevo."
+        },
+        "weigh2": {
+          "title": "Masa constante",
+          "text": "Si dos pesadas seguidas difieren menos de 0,1 g, la reacción terminó. La gráfica muestra la masa por ciclo."
+        },
+        "notebook": {
+          "title": "Libreta",
+          "text": "Las lecturas válidas quedaron en el Cuadro 5.1. Las masas por diferencia, los moles, la ecuación, el rendimiento y el análisis los haces tú."
+        },
+        "dispose": {
+          "title": "Residuos",
+          "text": "Con el tubo frío, el residuo (KCl + MnO₂) va al contenedor de sólidos. El gas ya quedó cerrado."
+        },
+        "end": {
+          "title": "Fin",
+          "text": "Así se ve una ruta sin errores. Ahora hazlo tú: cada decisión cambia tus masas y tu rendimiento."
+        }
+      }
+    }
+  },
+  "p5fb": {
+    "ppe": "Confirma el equipo de protección antes de empezar.",
+    "inspectTube": "Inspecciona el tubo antes de usarlo: una grieta o humedad cambian el resultado.",
+    "inspectSafety": "Ubica el extintor, la manta y el paro de emergencia antes de encender el mechero.",
+    "noCritical": "Hubo acciones críticas de seguridad: {{list}}.",
+    "shield": "Coloca la pantalla entre el montaje y tú antes de calentar.",
+    "noBurns": "Hubo quemaduras simuladas: el tubo calienta se toma con la pinza para tubo.",
+    "dedicatedSpatulas": "Usa una espátula por reactivo y no devuelvas reactivo al frasco.",
+    "calibrated": "Comprueba el cero con el platillo vacío y las pesas en cero antes de pesar.",
+    "noUncalibrated": "Hubo lecturas sin el cero comprobado.",
+    "waitStable": "Espera a que el fiel quede quieto en la marca antes de leer.",
+    "threeReadings": "Faltan pesadas: tubo vacío, con MnO₂ y con la mezcla.",
+    "order": "El orden de las pesadas debe ser tubo → MnO₂ → KClO₃ para obtener cada masa por diferencia.",
+    "noHotReading": "Pesaste el tubo calienta: la convección hace que parezca más liviano.",
+    "recorded": "Anota en el Cuadro 5.1 las lecturas que realmente obtuviste.",
+    "kclo3Range": "La masa de KClO₃ ({{g}} g) está fuera del rango del protocolo (1,0–2,0 g).",
+    "mno2Weighed": "Pesa el MnO₂ por diferencia.",
+    "mixed": "La mezcla quedó poco homogénea ({{h}} %): dé golpecitos suaves hasta ver un gris uniforme.",
+    "noGrind": "No muelas el clorato ni golpee el tubo con fuerza.",
+    "assembled": "Monta el tubo con la nuez apretada, inclinado, la boca hacia el fondo y la pantalla.",
+    "angle": "Inclina el tubo entre 15 y 30°.",
+    "noStopper": "Nunca calienta un tubo tapado.",
+    "gradual": "El calentamiento fue brusco: se perdieron {{g}} g de sólido.",
+    "firstCycle": "El primer calentamiento duró {{min}} min: el protocolo pide 10 min.",
+    "cooled": "Pesa el tubo frío después de calentar.",
+    "twoReadings": "Se necesitan al menos dos pesadas tras calentar para comprobar la masa constante.",
+    "constantMass": "No llegaste a masa constante (±0,1 g).",
+    "noCrack": "El tubo se rompió por tensión térmica: calienta con suavidad y mueve la llama.",
+    "equation": "Revisa la ecuación: átomos, coeficientes mínimos, estados y el MnO₂ sobre la flecha.",
+    "nKClO3": "Revisa los moles de KClO₃ (masa ÷ masa molar).",
+    "mKClTheo": "Revisa la masa teórica de KCl (relación 2:2).",
+    "mO2Theo": "Revisa la masa teórica de O₂ (relación 3:2).",
+    "mKClExp": "Revisa la masa experimental de KCl (masa final − tubo con MnO₂).",
+    "yield": "Revisa el rendimiento (experimental ÷ teórico × 100).",
+    "chains": "Completa las dos cadenas de análisis dimensional con factores correctos.",
+    "analysis": "Responde las preguntas de análisis ({{n}} de 5).",
+    "disposal": "Desecha el residuo en el contenedor de sólidos y cierra el gas.",
+    "safeEnd": "Deja el montaje en estado seguro al terminar."
+  }
+}

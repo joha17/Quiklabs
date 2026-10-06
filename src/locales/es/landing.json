@@ -147,11 +147,11 @@
       "text": "En el laboratorio real cada reactivo cuesta, cada minuto cuenta y algunos errores queman. Aquí puedes acercar el etanol al mechero, olvidar la pantalla del magnesio o tirar el cobre al desagüe, y ver qué habría pasado. Después, en el laboratorio de verdad, ya sabes por qué no se hace.",
       "stats": [
         {
-          "n": "3",
+          "n": "5",
           "label": "prácticas completas de Química General I"
         },
         {
-          "n": "+90",
+          "n": "+190",
           "label": "errores simulados con consecuencia visible"
         },
         {

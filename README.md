@@ -136,3 +136,17 @@ Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA3.md](docs/PRACT
 Neutralización, precipitación (CaCO₃ y Fe(OH)₃), redox Fe/Cu²⁺ y combustión e hidratación del Mg, con editor de
 ecuaciones validado por átomos y carga, clasificación de residuos y demostración automática (`#p4`).
 Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA4.md](docs/PRACTICA4.md).
+
+## Práctica 5 — Relaciones estequiométricas
+
+Descomposición térmica del KClO₃ con MnO₂: balanza de triple brazo (calibración, pesadas por diferencia, fiel que
+oscila), mezcla segura, montaje inclinado, calentamiento gradual hasta masa constante, análisis dimensional y
+rendimiento porcentual calculado con las masas medidas; demostración automática (`#p5`).
+Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA5.md](docs/PRACTICA5.md).
+
+## Práctica 6 — Calorimetría
+
+Calor específico del hierro y de un metal incógnito con un calorímetro de vaso (agua y metal por diferencia, menisco,
+baño en ebullición, traslado, agitación y máximo de temperatura), modelo ideal y corregido, incertidumbre e
+identificación con z, y una bomba calorimétrica virtual opcional con enclavamientos; demostración automática (`#p6`).
+Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA6.md](docs/PRACTICA6.md).

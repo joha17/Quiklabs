@@ -1,0 +1,35 @@
+/* Práctica 6: piezas propias (mismos tokens de color y tipografía que las prácticas 2 a 5). */
+.canvas-wrap.p6 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+
+.instruments-bar {
+  position: absolute; right: 0.6rem; bottom: 0.6rem; z-index: 13; display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end;
+  max-width: calc(100% - 1.2rem); pointer-events: none;
+}
+.instruments-bar .instr {
+  background: #0d1a12; color: #6ef08a; border-radius: 8px; padding: 0.25rem 0.55rem; display: grid; line-height: 1.1; box-shadow: var(--shadow);
+  font-family: Consolas, ui-monospace, monospace;
+}
+.instruments-bar .instr small { color: #9fb3a6; font-family: inherit; font-size: 0.7rem; }
+.instruments-bar .instr strong { font-size: 1.05rem; }
+.instruments-bar .instr.bath { color: #ffb38a; }
+.model-badge {
+  position: absolute; left: 50%; top: 0.6rem; transform: translateX(-50%); z-index: 13; background: var(--panel); color: var(--ink);
+  border-left: 4px solid var(--warn); border-radius: 999px; padding: 0.25rem 0.8rem; font-weight: 600; box-shadow: var(--shadow); font-size: 0.85rem;
+}
+
+.p6-t .cell { display: flex; gap: 0.2rem; align-items: center; }
+.p6-t .cell input { width: 4.6rem; }
+.p6-t .cell input.u { width: 3rem; }
+.p6-t .cell select { max-width: 5.5rem; }
+
+.p6-chart { width: min(340px, 100%); height: auto; background: var(--panel-2); border-radius: 8px; }
+.p6-chart .axis { stroke: var(--ink-2); stroke-width: 1; }
+.p6-chart .tick, .p6-chart .lab { fill: var(--ink-2); font-size: 9px; }
+.p6-chart .line { fill: none; stroke: var(--accent, #2f7fd1); stroke-width: 1.4; }
+.p6-chart .mark { stroke: #c0392b; stroke-width: 1; stroke-dasharray: 3 2; }
+.p6-chart .cand { stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; opacity: 0.6; }
+.p6-chart .candPt { fill: var(--ink); }
+.p6-chart .band { fill: rgba(47, 127, 209, 0.18); }
+
+.bomb-controls { display: grid; gap: 0.35rem; width: 100%; }
+.bomb-controls .row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }

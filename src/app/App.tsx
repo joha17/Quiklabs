@@ -14,6 +14,8 @@ import { AdminPanel } from './platform/AdminPanel';
 
 const P3App = lazy(() => import('./p3/P3App'));
 const P4App = lazy(() => import('./p4/P4App'));
+const P5App = lazy(() => import('./p5/P5App'));
+const P6App = lazy(() => import('./p6/P6App'));
 
 const Loading = () => <div className="scene-loading" role="status">…</div>;
 
@@ -76,12 +78,14 @@ function LabHost({ id, mode }: { id: LabId; mode: string | null }) {
     if (id === 'p2') useLab.getState().setSettings({ mode: mode as never });
     if (id === 'p3') void import('./p3/store').then((m) => m.useP3.getState().setSettings({ mode: mode as never }));
     if (id === 'p4') void import('./p4/store').then((m) => m.useP4.getState().setSettings({ mode: mode as never }));
+    if (id === 'p5') void import('./p5/store').then((m) => m.useP5.getState().setSettings({ mode: mode as never }));
+    if (id === 'p6') void import('./p6/store').then((m) => m.useP6.getState().setSettings({ mode: mode as never }));
   }, [id, mode]);
   const back = () => open('panel');
   if (id === 'p2') return <P2App onBack={back} />;
   return (
     <Suspense fallback={<Loading />}>
-      {id === 'p3' ? <P3App onBack={back} /> : <P4App onBack={back} />}
+      {id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : <P6App onBack={back} />}
     </Suspense>
   );
 }
