@@ -10,7 +10,7 @@ import { newPractice6World } from '../../practices/practice-06';
 import { sanitizeOnResume6 } from '../../practices/practice-06/resume';
 import { emptyP6Notebook } from '../../practices/practice-06/notebook';
 import { evaluateP6 } from '../../practices/practice-06/rubric';
-import { RESUME, replayTape } from '../../practices/grading';
+import { RESUME, replayTape, type TapeEntry } from '../../practices/grading';
 import type { P6World } from '../../simulation/calorimetry-world/types';
 
 const frames = (rt: CalorRuntime, s: number, fps = 60) => {
@@ -34,7 +34,7 @@ describe('cinta del intento (TapeRecorder)', () => {
     rt.dispatch({ type: 'setPlate', knob: 0.6 });
     frames(rt, 4);
     // Guardado síncrono (como `save()`): el mundo serializado y la cola de la cinta.
-    const saved = JSON.parse(JSON.stringify({ world: rt.world, ...rt.tape.forSave() })) as { world: P6World; tapeBase: number; tapeTail: unknown[] };
+    const saved = JSON.parse(JSON.stringify({ world: rt.world, ...rt.tape.forSave() })) as { world: P6World; tapeBase: number; tapeTail: TapeEntry[]; tapeOptions: unknown };
     expect(saved.tapeBase).toBe(0);
     expect(saved.tapeTail.length).toBe(tape.entries.length);
     // Comandos después del guardado que se pierden al cerrar la pestaña.
