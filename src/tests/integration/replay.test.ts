@@ -32,6 +32,10 @@ vi.mock('../../simulation/stoich-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/stoich-world/world')>();
   return { ...m, dispatchStoich: wrap(m.dispatchStoich) };
 });
+vi.mock('../../simulation/gas-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/gas-world/world')>();
+  return { ...m, dispatchGas: wrap(m.dispatchGas) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -55,6 +59,9 @@ const h5 = await import('../helpers5');
 const { emptyP6Notebook } = await import('../../practices/practice-06/notebook');
 const { sanitizeOnResume6 } = await import('../../practices/practice-06/resume');
 const h6 = await import('../helpers6');
+const { emptyP10Notebook } = await import('../../practices/practice-10/notebook');
+const { sanitizeOnResume10 } = await import('../../practices/practice-10/resume');
+const h10 = await import('../helpers10');
 
 type W = { tick: number; seed: number };
 
@@ -186,6 +193,29 @@ describe('repetición determinista de la cinta (cinco prácticas)', () => {
     const nb = emptyP6Notebook();
     const { graded } = await verify('p6', r, nb);
     expect(graded.durationS).toBeGreaterThan(600);
+  });
+});
+
+describe('repetición determinista — Práctica 10', () => {
+  it('P10: pesada, disolución, reacción y Boyle con reanudación a mitad', async () => {
+    const opts = { mode: 'PRACTICE' as const, seed: 1010 };
+    const r = record('p10', opts, () => h10.world10(opts), (w, resume) => {
+      h10.cmd10(w, { type: 'confirmPpe' });
+      h10.setupGas(w);
+      h10.weighBicarb(w);
+      w = resume(w);
+      h10.prepareSolution(w);
+      h10.pipetteAliquot(w);
+      h10.measureVinegar(w);
+      h10.runReaction(w, { waitS: 120 });
+      h10.gasMeasurements(w);
+      w = resume(w);
+      h10.boyleSetup(w);
+      h10.boyleCollect(w, [5, 9, 13, 17]);
+      return w;
+    }, sanitizeOnResume10);
+    const { graded } = await verify('p10', r, emptyP10Notebook());
+    expect(graded.durationS).toBeGreaterThan(300);
   });
 });
 

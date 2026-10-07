@@ -2,7 +2,7 @@
  * Formato de la cinta de un intento (sin dependencias: lo importa el runtime de cada práctica sin arrastrar la
  * simulación de las demás). La repetición y la calificación están en `grading.ts`.
  */
-export type GradedLab = 'p2' | 'p3' | 'p4' | 'p5' | 'p6';
+export type GradedLab = 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p10';
 
 /** Marca de la cinta: al reanudar, la aplicación deja el mundo en estado seguro (`sanitizeOnResume*`). */
 export const RESUME = '#resume';

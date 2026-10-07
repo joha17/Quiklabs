@@ -41,12 +41,18 @@ async function pickPoint(page: Page, id: string, part?: string): Promise<Pt> {
     const s = (window as AnyState).__p3.getState();
     const o = s.runtime.world.objects[id];
     const r = document.querySelector('.canvas-host canvas')!.getBoundingClientRect();
-    for (let dz = 0; dz <= 16; dz += 0.5) {
-      for (const dx of [0, -2, 2, -5, 5, -9, -13]) {
-        for (const dy of [0, -2, 2, -4]) {
-          const a = s.stage.camera.screenOf(o.pose.x + dx, o.pose.y + dy, o.pose.z + dz);
-          const h = s.stage.controller.view.pick(a.x, a.y, null);
-          if (h?.id === id && (!part || h.part === part)) return { x: a.x + r.left, y: a.y + r.top };
+    // Primero lejos de los bordes laterales: sostener un objeto a menos de 30 px del borde desplaza la vista.
+    for (const margin of [40, 0]) {
+      for (let dz = 0; dz <= 16; dz += 0.5) {
+        for (const dx of [0, -2, 2, -5, 5, -9, -13]) {
+          for (const dy of [0, -2, 2, -4]) {
+            const a = s.stage.camera.screenOf(o.pose.x + dx, o.pose.y + dy, o.pose.z + dz);
+            if (a.x < margin || a.x > r.width - margin) continue;
+            // El punto tiene que caer sobre el lienzo, no debajo de un panel de la interfaz.
+            if (document.elementFromPoint(a.x + r.left, a.y + r.top)?.tagName !== 'CANVAS') continue;
+            const h = s.stage.controller.view.pick(a.x, a.y, null);
+            if (h?.id === id && (!part || h.part === part)) return { x: a.x + r.left, y: a.y + r.top };
+          }
         }
       }
     }
@@ -138,16 +144,32 @@ test('el asa entra sola al tubo (imán), se carga y la llama azul se colorea alr
   await d({ type: 'setPose', id: 'lighter', pose: { x: 170, y: 12, z: 1.2, rotationRad: 0 }, support: 'bench' });
   for (const a of [0.2, 0.4, 0.6, 0.7]) await d({ type: 'setValve', valve: 'AIR', value: a });
   await d({ type: 'setValve', valve: 'NEEDLE', value: 0.5 });
-  await page.evaluate(() => (window as AnyState).__p3.getState().stage.goToStation('C'));
+  // Encuadre con el asa y su tubo lejos de los bordes (cerca del borde, sostener un objeto desplaza la vista).
+  await page.evaluate(() => {
+    const s = (window as AnyState).__p3.getState();
+    const w = s.runtime.world;
+    const l = w.objects.loop_nacl.pose;
+    const t = w.objects.sol_nacl.pose;
+    s.stage.goToStation('C');
+    s.stage.camera.lookAt((l.x + t.x) / 2, (l.y + t.y) / 2, 8, 60);
+  });
   await settle(page);
   // Tomar el asa del NaCl con el ratón y llevarla sobre su tubo.
   const p = await pickPoint(page, 'loop_nacl');
   await page.mouse.move(p.x, p.y);
   await page.mouse.down();
+  // Un pequeño desplazamiento levanta el asa (un clic sin moverse solo la selecciona).
+  await page.mouse.move(p.x + 3, p.y - 6, { steps: 3 });
+  await page.waitForFunction(() => (window as AnyState).__p3.getState().stage.controller.held?.id === 'loop_nacl', undefined, { timeout: 10000 });
   const tube = w0.objects.sol_nacl.pose;
   await page.waitForTimeout(400);
-  const heldZ = (await st(page)).objects.loop_nacl.pose.z;
-  const over = await screenOf(page, tube.x, tube.y, heldZ);
+  // El controlador proyecta el puntero a la altura de transporte (no a la altura actual, que aún puede estar subiendo)
+  // y le suma el desfase del agarre: el punto de pantalla se calcula igual.
+  const g = (await page.evaluate(() => {
+    const h = (window as AnyState).__p3.getState().stage.controller.held;
+    return { z: h.z, ox: h.ox, oy: h.oy };
+  })) as { z: number; ox: number; oy: number };
+  const over = await screenOf(page, tube.x - g.ox, tube.y - g.oy, g.z);
   await page.mouse.move(over.x, over.y, { steps: 25 });
   await page.waitForTimeout(1500);
   let w = await st(page);

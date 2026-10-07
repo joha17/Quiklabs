@@ -62,7 +62,7 @@ src/app/platform/     login, cambio de contraseña, paneles de admin, docente y 
 src/practices/grading.ts  calificación en el servidor y repetición de la cinta (código puro compartido con el Worker)
 ```
 
-Rutas de la interfaz: portada (pública) · `#login` · `#panel` · `#p2` … `#p6` (exigen sesión; un estudiante solo
+Rutas de la interfaz: portada (pública) · `#login` · `#panel` · `#p2` … `#p6`, `#p10` (exigen sesión; un estudiante solo
 abre las prácticas abiertas en su curso).
 
 ## Desarrollo

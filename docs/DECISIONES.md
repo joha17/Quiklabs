@@ -127,6 +127,19 @@ Registro de ambigüedades resueltas eligiendo la opción más simple y segura (�
 | P6-7 | Bomba | Perfiles genéricos (sin marcas), enclavamientos en el dominio y explicación de que la operación real depende del fabricante; el registro de acciones se encadena por hash (§28.2). |
 | P6-8 | Plataforma | `p6` en `LabId`; migración `0003_course_labs_p6.sql`. |
 
+## Práctica 10 — Gases ideales y ley de Boyle
+
+| # | Decisión | Detalle |
+|---|---|---|
+| P10-1 | PixiJS → 3D | Se usa la escena 3D de las prácticas anteriores; los objetos se apoyan donde el controlador los deja. |
+| P10-2 | Dos modos | Curricular (tabla de vapor, 13,5, sin disolución: R ≈ −1 %) y realista (Henry, ρ(T), transitorios térmicos y elasticidad: R ≈ −12 %); el modo se muestra siempre en una etiqueta. |
+| P10-3 | Bureta | Nivel y volumen se resuelven juntos (la presión depende del nivel y el volumen de la presión); el aforo se hace con la llave dejando entrar aire. |
+| P10-4 | Balanza analítica | Módulo nuevo `simulation/instruments/analytical-balance.ts`; «estable» = lectura dentro de ±2 divisiones durante 1,5 s con las puertas cerradas. |
+| P10-5 | Émbolo | La mano es un resorte implícito con fuerza máxima: sostener el émbolo es necesario para una lectura estable; soltarlo deja que la presión lo mueva. |
+| P10-6 | Réplicas | Una réplica termina al vaciar el reactor; las lecturas se asignan a la réplica por tiempo. Sacar la bureta para rellenarla no cuenta como error. |
+| P10-7 | Panel accesible | La bureta se puede llevar al baño e invertir desde el panel, sin arrastrar. |
+| P10-8 | Plataforma | `p10` en `LabId`; migración `0005_course_labs_p10.sql`; adaptador `p10` en la calificación del servidor. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

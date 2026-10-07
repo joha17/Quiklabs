@@ -21,7 +21,7 @@ interface StudentCourse {
   labs: Array<{ labId: LabId; opensAt: string; closesAt: string; mode: LabMode; open: boolean }>;
 }
 
-const LAB_TITLE: Record<LabId, string> = { p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title' };
+const LAB_TITLE: Record<LabId, string> = { p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p10: 'menu.labs.p10.title' };
 
 export function StudentPanel() {
   const { t } = useTranslation();

@@ -151,9 +151,9 @@ describe('roles y permisos', () => {
   it('prácticas visibles según el curso y sus fechas de apertura', async () => {
     const p = platform();
     const labs = (r: { json: Record<string, unknown> }) => (r.json.labs as Array<{ labId: string }>).map((l) => l.labId).sort();
-    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p2', 'p3', 'p4', 'p5', 'p6']); // grupo 01
-    expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p2', 'p3', 'p5', 'p6']); // grupo 02: P4 abre el 12/10
-    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['p2', 'p3', 'p4', 'p5', 'p6']);
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p10', 'p2', 'p3', 'p4', 'p5', 'p6']); // grupo 01
+    expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p10', 'p2', 'p3', 'p5', 'p6']); // grupo 02: P4 abre el 12/10
+    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['p10', 'p2', 'p3', 'p4', 'p5', 'p6']);
   });
 });
 

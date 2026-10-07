@@ -287,7 +287,8 @@ export function ActionPanel5() {
       <div className="desc" id="action-desc" aria-live="polite">
         {id ? <><strong>{p5NameOf(w, id)}</strong>{desc ? ` — ${desc}` : ''}</> : t('p5.act.none')}
       </div>
-      {buttons.length > 0 && <div className="row">{buttons}</div>}
+      {/* La fila siempre ocupa su lugar: si apareciera al tomar un objeto, la escena 3D se encogería bajo el puntero. */}
+      <div className="row">{buttons}</div>
     </section>
   );
 }

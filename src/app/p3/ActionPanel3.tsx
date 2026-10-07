@@ -190,7 +190,8 @@ export function ActionPanel3() {
       <div className="desc" id="action-desc" aria-live="polite">
         {id ? <><strong>{p3NameOf(w, id)}</strong>{desc ? ` — ${desc}` : ''}</> : t('p3.act.none')}
       </div>
-      {buttons.length > 0 && <div className="row">{buttons}</div>}
+      {/* La fila siempre ocupa su lugar: si apareciera al tomar un objeto, la escena 3D se encogería bajo el puntero. */}
+      <div className="row">{buttons}</div>
     </section>
   );
 }

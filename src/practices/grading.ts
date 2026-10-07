@@ -20,6 +20,8 @@ import type { FlameWorld } from '../simulation/flame-world/types';
 import type { P4World } from '../simulation/reaction-world/types';
 import type { P5World } from '../simulation/stoich-world/types';
 import type { P6World } from '../simulation/calorimetry-world/types';
+import type { P10World } from '../simulation/gas-world/types';
+import { dispatchGas, elementTotals as gasElements, stepGasWorld } from '../simulation/gas-world/world';
 import { CTX, newPracticeWorld, type PracticeOptions } from './practice-02';
 import { stageEvidence } from './practice-02/evidence';
 import { evaluate } from './practice-02/rubric';
@@ -45,10 +47,15 @@ import { p6StageEvidence } from './practice-06/evidence';
 import { evaluateP6 } from './practice-06/rubric';
 import { sanitizeOnResume6 } from './practice-06/resume';
 import type { P6Notebook } from './practice-06/notebook';
+import { newPractice10World, type Practice10Options } from './practice-10';
+import { p10StageEvidence } from './practice-10/evidence';
+import { evaluateP10 } from './practice-10/rubric';
+import { sanitizeOnResume10 } from './practice-10/resume';
+import type { P10Notebook } from './practice-10/notebook';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p2', 'p3', 'p4', 'p5', 'p6'];
+export const GRADED_LABS: GradedLab[] = ['p2', 'p3', 'p4', 'p5', 'p6', 'p10'];
 
 interface WorldBase {
   tick: number;
@@ -133,6 +140,17 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     conserved: () => ({}),
     mode: (o) => opt<Practice6Options>(o).mode,
   },
+  p10: {
+    create: (o) => newPractice10World(opt<Practice10Options>(o)),
+    dispatch: (w, c) => void dispatchGas(w as P10World, c as never),
+    step: (w) => stepGasWorld(w as P10World),
+    sanitize: (w) => sanitizeOnResume10(w as P10World),
+    latch: (w, nb) => void p10StageEvidence(w as P10World, nb as P10Notebook),
+    evaluate: (w, s) => evaluateP10(w as P10World, s.notebook as P10Notebook),
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as P10World).scenarios, initialElements: (w as P10World).initialElements }),
+    conserved: (w) => gasElements(w as P10World),
+    mode: (o) => opt<Practice10Options>(o).mode,
+  },
 };
 
 export const isGradedLab = (x: unknown): x is GradedLab => GRADED_LABS.includes(x as GradedLab);
@@ -156,7 +174,7 @@ export interface GradeResult {
 
 /** El intento empezó con la semilla del identificador (`pN-<semilla base 36>-<marca>`). */
 export function seedFromAttemptId(attemptId: string): number | null {
-  const m = /^p[2-6]-([0-9a-z]+)-/.exec(attemptId);
+  const m = /^p(?:[2-6]|10)-([0-9a-z]+)-/.exec(attemptId);
   return m ? parseInt(m[1], 36) : null;
 }
 

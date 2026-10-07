@@ -150,3 +150,11 @@ Calor específico del hierro y de un metal incógnito con un calorímetro de vas
 baño en ebullición, traslado, agitación y máximo de temperatura), modelo ideal y corregido, incertidumbre e
 identificación con z, y una bomba calorimétrica virtual opcional con enclavamientos; demostración automática (`#p6`).
 Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA6.md](docs/PRACTICA6.md).
+
+## Práctica 10 — Gases ideales y ley de Boyle
+
+Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza
+analítica, balón aforado, pipeta, presión de vapor y corrección hidrostática con signo, dos réplicas) y ley de Boyle con
+jeringa y sensor de presión absoluta (volumen muerto, transitorios térmicos, ajuste potencial y residuos); modos
+curricular y realista y demostración automática (`#p10`).
+Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA10.md](docs/PRACTICA10.md).

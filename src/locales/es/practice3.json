@@ -60,6 +60,16 @@
           "Modelo ideal y corregido, incertidumbre e identificación; bomba calorimétrica virtual opcional."
         ],
         "duration": "75–110 min"
+      },
+      "p10": {
+        "title": "Gases ideales y ley de Boyle",
+        "subtitle": "Constante R con CO₂ recogido sobre agua y relación presión–volumen con un sensor de presión.",
+        "points": [
+          "Pesada por diferencia en balanza analítica, disolución en balón aforado y alícuota con pipeta volumétrica.",
+          "CO₂ de bicarbonato y vinagre por desplazamiento de agua en una bureta invertida; vapor de agua y altura con signo.",
+          "Jeringa y sensor de presión absoluta: volumen muerto, estabilidad térmica, ajuste potencial y residuos."
+        ],
+        "duration": "90–120 min"
       }
     }
   },

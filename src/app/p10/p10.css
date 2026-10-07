@@ -1,0 +1,10 @@
+/* Práctica 10: piezas propias (mismos tokens de color y tipografía que las prácticas 2 a 6). */
+.canvas-wrap.p10 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+.instruments-bar .instr.unstable strong { color: #f0c36e; }
+.instruments-bar .instr.over strong { color: #f06e6e; }
+.eq-row { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; font-size: 0.92rem; }
+.eq-row input.coef { width: 2.2rem; text-align: center; }
+@media print {
+  .hud, .actions, .zoom-ctrl, .instruments-bar, .canvas-wrap { display: none !important; }
+  .drawer { position: static !important; width: auto !important; max-height: none !important; }
+}

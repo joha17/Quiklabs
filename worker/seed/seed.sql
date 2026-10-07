@@ -27,6 +27,8 @@ INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p6', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p5', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p6', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p10', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p10', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO courses (id, code, name, term, grp, starts_at, ends_at, archived) VALUES ('c_qg1_2026i', 'QU-0100', 'Química General I', '2026-I', '01', '2026-03-02T06:00:00.000Z', '2026-07-04T05:59:00.000Z', 0);
 INSERT INTO course_teachers (course_id, teacher_id) VALUES ('c_qg1_2026i', 'u_doc01');
 INSERT INTO enrollments (id, course_id, student_id, status, enrolled_at, updated_at) VALUES ('e01', 'c_qg1_01', 'u_est01', 'active', '2026-08-03T15:00:00.000Z', '2026-08-03T15:00:00.000Z');

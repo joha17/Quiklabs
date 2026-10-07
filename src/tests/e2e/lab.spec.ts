@@ -72,8 +72,30 @@ async function lookAt(page: Page, x: number, y: number, z: number, dist: number)
 }
 
 async function waitIdle(page: Page) {
+  // Primero unos fotogramas: el controlador procesa el soltar y encola la animación en el fotograma siguiente
+  // (con renderizado por software, «idle» podía consultarse antes de que la animación existiera).
+  await page.evaluate(() => new Promise<void>((r) => {
+    let n = 0;
+    const tick = () => (++n >= 4 ? r() : requestAnimationFrame(tick));
+    requestAnimationFrame(tick);
+  }));
   await page.waitForFunction(() => (window as never as { __lab: { getState(): AnyState } }).__lab.getState().stage.animator.idle(), undefined, { timeout: 15000 });
   await page.waitForTimeout(100);
+}
+
+/** Sin animaciones ni física activa durante varios fotogramas seguidos (una acción puede encadenar la otra). */
+async function waitSettled(page: Page) {
+  await page.waitForFunction(() => {
+    const g = window as never as { __lab: { getState(): AnyState }; __still?: number };
+    const st = g.__lab.getState().stage;
+    const still = st.animator.idle() && st.physicsActive.size === 0 && !st.controller.held;
+    g.__still = still ? (g.__still ?? 0) + 1 : 0;
+    if (g.__still >= 6) {
+      g.__still = 0;
+      return true;
+    }
+    return false;
+  }, undefined, { timeout: 20000, polling: 'raf' });
 }
 
 async function waitPhysics(page: Page) {
@@ -123,12 +145,29 @@ async function heldPointerTo(page: Page, tx: number, ty: number): Promise<Pt> {
   }, [tx, ty] as const);
 }
 
+/**
+ * Espera a que el objeto sostenido alcance el puntero (o quede acoplado) antes de soltar. Con renderizado por software
+ * hay pocos fotogramas por segundo y el objeto, que sigue al puntero con suavizado, puede llegar después de 300 ms.
+ */
+async function waitHeldArrived(page: Page) {
+  await page.waitForFunction(() => {
+    const c = (window as never as { __lab: { getState(): AnyState } }).__lab.getState().stage.controller;
+    const h = c.held;
+    if (!h || h.keyboard) return true;
+    if (c.pourDock?.sourceId === h.id) return c.pourDock.settled;
+    const w = (window as never as { __lab: { getState(): AnyState } }).__lab.getState().runtime.world;
+    const p = (w.vessels[h.id] ?? w.props[h.id]).pose;
+    return Math.hypot(p.x - h.tx, p.y - h.ty) < 0.3;
+  }, undefined, { timeout: 5000 }).catch(() => undefined);
+}
+
 async function drag(page: Page, from: Pt, to: Pt, steps = 25) {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
   await page.mouse.move(from.x + 8, from.y + 4, { steps: 3 });
   await page.mouse.move(to.x, to.y, { steps });
   await page.waitForTimeout(300);
+  await waitHeldArrived(page);
   await page.mouse.up();
   await page.waitForTimeout(200);
 }
@@ -411,8 +450,8 @@ test.describe('Laboratorio 3D', () => {
       const p = (await world(page)).vessels[id].pose;
       await lookAt(page, (p.x + tx) / 2, (p.y + ty) / 2, 2, Math.max(60, Math.abs(p.x - tx) * 1.6));
       await dragObj(page, id, tx, ty, dz);
-      await waitIdle(page); // animación de la acción
-      await waitPhysics(page); // y que la física apoye lo soltado
+      // La acción (cargar, depositar, acoplar) se anima y la física apoya lo soltado, en ese orden o al revés.
+      await waitSettled(page);
     };
     // Espátula: soltar la punta sobre el frasco de zinc (carga) … y luego sobre el tubo 1 (deposita).
     const zn = w.vessels.jar_zn.pose;

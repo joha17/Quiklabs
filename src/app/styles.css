@@ -143,7 +143,7 @@ textarea { width: 100%; resize: vertical; min-height: 3.2rem; }
 .actions { background: var(--panel); border-top: 1px solid var(--line); padding: 0.5rem 0.7rem; display: grid; gap: 0.4rem; min-height: 3.4rem; }
 .actions .desc { font-size: 0.9rem; color: var(--ink-2); }
 .actions .desc strong { color: var(--ink); }
-.actions .row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.actions .row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; min-height: 2.3rem; }
 .readout { font-variant-numeric: tabular-nums; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 6px; background: #0f1a12; color: #6ef08a; font-family: ui-monospace, Consolas, monospace; }
 .slider { display: inline-flex; align-items: center; gap: 0.4rem; }
 .slider input[type='range'] { width: min(220px, 40vw); }

@@ -1,14 +1,14 @@
 /**
  * Rutas de la aplicación en el hash de la URL: portada (sin hash), `#login`, `#panel` (panel según el rol) y los
- * laboratorios (`#p2` … `#p6`). Así se pueden enlazar y «atrás» del navegador funciona.
+ * laboratorios (`#p2` … `#p6`, `#p10`). Así se pueden enlazar y «atrás» del navegador funciona.
  */
 import { create } from 'zustand';
 
-export type LabId = 'p2' | 'p3' | 'p4' | 'p5' | 'p6';
+export type LabId = 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p10';
 export type Route = LabId | 'login' | 'panel';
-const ROUTES: Route[] = ['p2', 'p3', 'p4', 'p5', 'p6', 'login', 'panel'];
+const ROUTES: Route[] = ['p2', 'p3', 'p4', 'p5', 'p6', 'p10', 'login', 'panel'];
 
-export const isLab = (r: Route | null): r is LabId => r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6';
+export const isLab = (r: Route | null): r is LabId => r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6' || r === 'p10';
 
 function fromHash(): Route | null {
   if (typeof window === 'undefined') return null;
