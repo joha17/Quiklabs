@@ -830,6 +830,8 @@ test.describe('Laboratorio 3D', () => {
     const p = await pickPoint(page, 'piseta');
     await page.mouse.move(p.x, p.y);
     await page.mouse.down();
+    // Al presionar un panel táctil el cursor se corre unos píxeles: eso no debe levantar la piseta.
+    await page.mouse.move(p.x + 8, p.y + 2, { steps: 3 });
     await page.waitForTimeout(1800);
     await page.mouse.up();
     await page.waitForTimeout(300);

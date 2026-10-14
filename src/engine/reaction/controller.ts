@@ -14,7 +14,7 @@ import type { ReactionHost } from './host';
 import type { ReactionLab3D } from './ReactionLab3D';
 import type { P4Command } from '../../simulation/reaction-world/commands';
 import type { P4ObjKind, P4World, Pose, VesselKind } from '../../simulation/reaction-world/types';
-import { disposalRefusal, ethanolNearBurner, liquidMl, mouthOf, surfaceZ } from '../../simulation/reaction-world/world';
+import { disposalRefusal, ethanolNearBurner, incidentAllows, liquidMl, mouthOf, surfaceZ } from '../../simulation/reaction-world/world';
 import { hosePoints, isLit, mouthPos } from '../../simulation/flame-world/world';
 import type { ValveId } from '../../simulation/flame-world/commands';
 import { BURNER } from '../../practices/practice-03/instruments';
@@ -77,6 +77,8 @@ const KNOB_PARTS: Record<string, ValveId> = { needleValve: 'NEEDLE', airCollar: 
 const POUR_CAPTURE_CM = 2.5;
 const POUR_RELEASE_CM = 5;
 const POUR_DWELL_S = 0.35;
+/** Puntos por lado del contorno del recipiente que se revisan para que no atraviese el receptor al acoplarse. */
+const EDGE_SAMPLES = 12;
 const POUR_TILT_SPEED = (38 * Math.PI) / 180;
 const POUR_RETURN_SPEED = (120 * Math.PI) / 180;
 const POUR_MAX_TILT = (125 * Math.PI) / 180;
@@ -144,8 +146,10 @@ export class ReactionController {
     return this.host.runtime.dispatch(c);
   }
 
-  private blocked(): boolean {
-    return !!this.w.safety.incident || this.w.safety.stoppedByTeacher;
+  /** Interacción bloqueada (incidente o parada del docente); durante un incidente sí se usan sus herramientas (`id`). */
+  private blocked(id?: string | null): boolean {
+    if (this.w.safety.stoppedByTeacher) return true;
+    return !!this.w.safety.incident && !(id && incidentAllows(this.w, id));
   }
 
   /** Objeto (de la práctica o del mechero) con su tipo. */
@@ -181,7 +185,7 @@ export class ReactionController {
       return false;
     }
     this.host.select(hit.id);
-    if (this.blocked()) return true;
+    if (this.blocked(hit.id)) return true;
     if (hit.part && KNOB_PARTS[hit.part]) {
       const valve = KNOB_PARTS[hit.part];
       this.knob = { valve, sx, sy, start: this.valveValue(valve) };
@@ -269,7 +273,7 @@ export class ReactionController {
   /** P, clic derecho o el botón de acción: acción principal de lo que se tiene en la mano. */
   primaryDown() {
     const h = this.held;
-    if (!h || this.primary || this.blocked()) return;
+    if (!h || this.primary || this.blocked(h.id)) return;
     this.primary = true;
     const w = this.w;
     switch (h.kind) {
@@ -406,7 +410,7 @@ export class ReactionController {
 
   beginDrag(id: string, keyboard: boolean, sx?: number, sy?: number): boolean {
     const o = this.obj(id);
-    if (!o || !o.movable || this.blocked()) return false;
+    if (!o || !o.movable || this.blocked(id)) return false;
     if (o.support.startsWith('tongs:') || o.support.startsWith('disposed:')) return false;
     if (this.held) this.release();
     const r = o.gas ? this.dispatch({ type: 'gas', cmd: { type: 'pickUp', id, tool: 'HAND' } }) : this.dispatch({ type: 'pickUp', id, tool: 'HAND' });
@@ -1020,8 +1024,18 @@ export class ReactionController {
     const lowest = Math.min(...corners.map((q) => q[1]));
     // Ninguna parte del recipiente baja por debajo del borde del receptor dentro de su anchura.
     const rt = this.w.vessels[targetId].kind === 'SINK' ? 10 : footR(this.w.vessels[targetId].kind);
+    // Se revisa todo el contorno, no solo las esquinas: con poca inclinación la pared del lado del pico pasa justo
+    // sobre la boca y bajaba entre dos esquinas (un frasco alto atravesaba la probeta).
     let over = Infinity;
-    for (const q of corners) if (Math.abs(x + q[0] - m.x) < rt) over = Math.min(over, q[1]);
+    for (let i = 0; i < corners.length; i++) {
+      const p = corners[i];
+      const q = corners[(i + 1) % corners.length];
+      for (let k = 0; k <= EDGE_SAMPLES; k++) {
+        const u = k / EDGE_SAMPLES;
+        const px = p[0] + (q[0] - p[0]) * u;
+        if (Math.abs(x + px - m.x) < rt) over = Math.min(over, p[1] + (q[1] - p[1]) * u);
+      }
+    }
     const z = Math.max(m.z + 0.6 - lip[1], Number.isFinite(over) ? m.z + 0.15 - over : -Infinity, -lowest);
     return { x, y: m.y, z };
   }
@@ -1034,7 +1048,9 @@ export class ReactionController {
     if (!v || !o || !sh) return;
     const theta = o.pose.rotationRad;
     const deg = Math.abs((theta * 180) / Math.PI);
-    const lv = liquidMl(v);
+    // Solo cuenta lo que puede salir: la película que moja las paredes (`holdupMl`) se queda en el recipiente. Con
+    // ella incluida el caudal nunca llegaba a cero y el chorro (y su sonido) seguían para siempre con la probeta vacía.
+    const lv = Math.max(0, liquidMl(v) - (w.params.holdupMl[v.kind] ?? 0));
     const rate = lv > 0 && deg > 2 ? pourRate(sh, theta, lv, 1) : 0;
     const lp = lipPoint(sh, theta);
     const lipX = o.pose.x + lp[0];

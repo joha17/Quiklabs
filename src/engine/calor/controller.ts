@@ -17,6 +17,7 @@ import type { P6ObjKind, P6World, Pose } from '../../simulation/calorimetry-worl
 import { piecesAt, tubeTempC } from '../../simulation/calorimetry-world/world';
 import { BALANCE_GEO6, CUP_POS, GEO6, PLATE_POS, PLATE_TOP, RACK_POS6 } from '../../practices/practice-06/definition';
 import { BEAM } from '../instruments/tripleBeam3d';
+import { pourDockPose } from '../interaction/pourDock';
 
 export interface PickHit6 {
   id: string;
@@ -55,6 +56,12 @@ export interface Held6 {
 }
 
 const POURABLE = new Set(['water_bottle', 'cylinder', 'beaker']);
+/** Borde de vertido (radio y altura sobre la base, cm) de lo que se vierte inclinándolo; la vista dibuja el chorro desde ahí. */
+export const POUR_LIP6: Record<string, { r: number; h: number }> = {
+  water_bottle: { r: GEO6.bottle.r, h: GEO6.bottle.h },
+  cylinder: { r: GEO6.cylinder.r, h: GEO6.cylinder.h },
+  beaker: { r: GEO6.beaker.r, h: GEO6.beaker.h },
+};
 const CARRY_Z: Partial<Record<P6ObjKind, number>> = {
   spatula: 14, tubeTongs: 16, tube: 14, thermometer: 14, stirrer: 14, cylinder: 4, waterBottle: 4, washBottle: 6, beaker: 4, towel: 3, bomb: 4,
 };
@@ -654,9 +661,18 @@ export class CalorController {
     return best;
   }
 
+  /** Pose que deja el pico sobre la boca del receptor mientras se vierte (null si no hay acople). */
+  private pourDock(h: Held6): { x: number; y: number; z: number } | null {
+    if (!POURABLE.has(h.id) || h.tilt <= 4 || !h.pourTarget) return null;
+    const m = this.mouthOf(h.pourTarget);
+    const lip = POUR_LIP6[h.id];
+    return m && lip ? pourDockPose(lip, (h.tilt * Math.PI) / 180, m, h) : null;
+  }
+
   private updatePour(h: Held6, dt: number) {
     const o = this.obj(h.id)!;
-    const target = this.pourTargetAt(h.id, o.pose.x, o.pose.y, o.pose.z);
+    // Acoplado, el receptor no cambia aunque el cuerpo se haya corrido para poner el pico sobre la boca.
+    const target = this.pourDock(h) ? h.pourTarget : this.pourTargetAt(h.id, o.pose.x, o.pose.y, o.pose.z);
     this.dockTarget = target;
     const want = this.primary;
     h.tilt = want ? Math.min(135, h.tilt + TILT_SPEED * dt) : Math.max(0, h.tilt - TILT_RETURN * dt);
@@ -906,9 +922,16 @@ export class CalorController {
         ty = h.magnet.y;
         tz = h.magnet.z;
       }
+      // Vertiendo: el pico queda sobre la boca del receptor (el cuerpo se corre al inclinarlo).
+      const dock = this.pourDock(h);
+      if (dock) {
+        tx = dock.x;
+        ty = dock.y;
+        tz = dock.z;
+      }
       const floor = this.clearZ(tx, ty, RADIUS[h.id] ?? 1, h.id) + 0.3;
       if (!h.magnet) tz = Math.max(tz, floor);
-      const k = Math.min(1, dt * (h.magnet ? 8 : 16));
+      const k = Math.min(1, dt * (h.magnet || dock ? 8 : 16));
       const nx = o.pose.x + (tx - o.pose.x) * k;
       const ny = o.pose.y + (ty - o.pose.y) * k;
       h.curZ += (tz - h.curZ) * Math.min(1, dt * 10);

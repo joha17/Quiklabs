@@ -19,6 +19,7 @@ import { InteractionBridge } from './InteractionBridge';
 import { Effects3D } from '../effects/Effects3D';
 import { NameTags3D } from '../effects/NameTags3D';
 import { DemoCursor3D } from '../effects/DemoCursor3D';
+import { Toon3D, outlineOccluder } from '../effects/Toon3D';
 import { useLab } from '../../app/store';
 
 /** Pasos por fotograma como máximo al reproducir acelerado (demostración). */
@@ -109,7 +110,12 @@ export function Lights({ q }: { q: QualityLevel }) {
 }
 
 export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p10' }) {
-  const room = useMemo(() => createRoom(q, variant), [q, variant]);
+  const room = useMemo(() => {
+    const g = createRoom(q, variant);
+    // La sala tapa los contornos de lo que queda detrás, pero no lleva contorno propio.
+    outlineOccluder(g);
+    return g;
+  }, [q, variant]);
   return (
     <>
       <primitive object={room} />
@@ -222,6 +228,7 @@ export function LabScene({ lab }: { lab: Lab3D }) {
         <CameraRig />
         <InteractionBridge />
         <PerfProbe onQuality={setAuto} />
+        <Toon3D />
       </LabContext.Provider>
     </Canvas>
   );

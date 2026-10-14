@@ -28,6 +28,8 @@
   --kicker: var(--teal-dark);
   --on-accent: #ffffff;
   --on-bright: #0f1b1d;
+  /* Texto de la etiqueta «tipo» de las tarjetas: el mismo verde azulado legible del kicker en claro y en oscuro. */
+  --tag-type-ink: var(--kicker);
   --hover: #ffffff;
   --meter-bg: #e2ded6;
   --muted-text: #6f7675;

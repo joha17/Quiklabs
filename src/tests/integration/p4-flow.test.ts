@@ -263,7 +263,12 @@ describe('§28.6 integración — Práctica 4', () => {
     run4(w, 25);
     expect(w.safety.incident?.code).toBe('SPILL');
     expect(submissionBlockers(w, ctx)).toContain('SPILL');
+    // Durante el incidente no se toma nada… salvo las toallas, que son con lo que se resuelve.
+    expect(cmd4(w, { type: 'pickUp', id: 'beaker', tool: 'HAND' }).code).toBe('INCIDENT');
+    expect(cmd4(w, { type: 'pickUp', id: 'towel', tool: 'HAND' }).ok).toBe(true);
     for (const s of w.spills) cmd4(w, { type: 'cleanSpill', spillId: s.id });
+    // Limpio el derrame, las toallas ya no son una excepción: el resto sigue bloqueado hasta «Registrar y continuar».
+    expect(cmd4(w, { type: 'pickUp', id: 'bottle_naoh10', tool: 'HAND' }).code).toBe('INCIDENT');
     expect(cmd4(w, { type: 'acknowledge' }).ok).toBe(true);
     const t1 = globalTotals(w, ctx);
     for (const k of Object.keys(t0)) expect(Math.abs((t1[k] ?? 0) - t0[k]) <= 1e-12 || Math.abs((t1[k] ?? 0) - t0[k]) / Math.abs(t0[k]) < 1e-9).toBe(true);

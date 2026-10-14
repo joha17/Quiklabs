@@ -19,7 +19,22 @@
           "Parte B: disolución, filtración, evaporación y cristalización.",
           "Balanza, placa calefactora, embudo, baño de hielo."
         ],
-        "duration": "35–55 min"
+        "duration": "35–55 min",
+        "tags": {
+          "type": [
+            "Propiedades físicas",
+            "Separación de mezclas"
+          ],
+          "reactions": [],
+          "features": [
+            "Balanza",
+            "Placa calefactora",
+            "Filtración",
+            "Evaporación y cristalización",
+            "Baño de hielo",
+            "Lectura del menisco"
+          ]
+        }
       },
       "p3": {
         "title": "Mechero de Bunsen y prueba de cationes a la llama",
@@ -29,7 +44,23 @@
           "Cápsula de porcelana en llama amarilla y en llama azul (hollín).",
           "Li⁺, Na⁺, K⁺, Ca²⁺, Cu²⁺ y Ba²⁺ con asas de nicromio, vidrio de cobalto e incógnita."
         ],
-        "duration": "35–50 min"
+        "duration": "35–50 min",
+        "tags": {
+          "type": [
+            "Combustión",
+            "Análisis cualitativo"
+          ],
+          "reactions": [
+            "Combustión completa e incompleta",
+            "Ensayo a la llama: Li⁺, Na⁺, K⁺, Ca²⁺, Cu²⁺, Ba²⁺"
+          ],
+          "features": [
+            "Mechero de Bunsen",
+            "Asas de nicromio",
+            "Vidrio de cobalto",
+            "Muestra incógnita"
+          ]
+        }
       },
       "p4": {
         "title": "Reacciones químicas",
@@ -39,7 +70,28 @@
           "B: precipitación de CaCO₃ y Fe(OH)₃ (reactivo limitante, iones espectadores).",
           "C: Fe/Cu²⁺ con cronómetro, combustión del Mg con pantalla y MgO + agua."
         ],
-        "duration": "45–65 min"
+        "duration": "45–65 min",
+        "tags": {
+          "type": [
+            "Reacciones químicas",
+            "Ecuaciones balanceadas"
+          ],
+          "reactions": [
+            "Neutralización HCl + NaOH",
+            "Precipitación de CaCO₃",
+            "Precipitación de Fe(OH)₃",
+            "Desplazamiento Fe / Cu²⁺",
+            "Combustión del Mg",
+            "MgO + H₂O"
+          ],
+          "features": [
+            "Fenolftaleína",
+            "Sonda de temperatura",
+            "Cronómetro",
+            "Editor de ecuaciones",
+            "Clasificación de residuos"
+          ]
+        }
       },
       "p5": {
         "title": "Relaciones estequiométricas",
@@ -49,7 +101,22 @@
           "Mezcla segura, montaje inclinado en el soporte y calentamiento gradual hasta masa constante.",
           "Análisis dimensional, KCl y O₂ teóricos, rendimiento y fuentes de error."
         ],
-        "duration": "60–90 min"
+        "duration": "60–90 min",
+        "tags": {
+          "type": [
+            "Estequiometría",
+            "Gravimetría"
+          ],
+          "reactions": [
+            "2 KClO₃ → 2 KCl + 3 O₂ (MnO₂)"
+          ],
+          "features": [
+            "Balanza de triple brazo",
+            "Mechero de Bunsen",
+            "Masa constante",
+            "Rendimiento porcentual"
+          ]
+        }
       },
       "p6": {
         "title": "Calorimetría",
@@ -59,7 +126,23 @@
           "Baño de agua en ebullición, traslado rápido del metal y máximo de temperatura en un calorímetro de vaso.",
           "Modelo ideal y corregido, incertidumbre e identificación; bomba calorimétrica virtual opcional."
         ],
-        "duration": "75–110 min"
+        "duration": "75–110 min",
+        "tags": {
+          "type": [
+            "Calorimetría",
+            "Termoquímica"
+          ],
+          "reactions": [
+            "Combustión de un alimento"
+          ],
+          "features": [
+            "Calorímetro de vaso",
+            "Baño en ebullición",
+            "Metal incógnito",
+            "Bomba calorimétrica virtual",
+            "Incertidumbre"
+          ]
+        }
       },
       "p10": {
         "title": "Gases ideales y ley de Boyle",
@@ -69,8 +152,30 @@
           "CO₂ de bicarbonato y vinagre por desplazamiento de agua en una bureta invertida; vapor de agua y altura con signo.",
           "Jeringa y sensor de presión absoluta: volumen muerto, estabilidad térmica, ajuste potencial y residuos."
         ],
-        "duration": "90–120 min"
+        "duration": "90–120 min",
+        "tags": {
+          "type": [
+            "Leyes de los gases",
+            "Volumetría"
+          ],
+          "reactions": [
+            "NaHCO₃ + CH₃COOH → CO₂"
+          ],
+          "features": [
+            "Balanza analítica",
+            "Bureta invertida",
+            "Sensor de presión",
+            "Ajuste potencial (Boyle)",
+            "Modo curricular y realista"
+          ]
+        }
       }
+    },
+    "tagsLabel": "Características del laboratorio",
+    "tagKind": {
+      "type": "Tipo",
+      "reactions": "Reacción",
+      "features": "Funcionalidad"
     }
   },
   "p3": {

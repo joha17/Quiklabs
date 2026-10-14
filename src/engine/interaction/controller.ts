@@ -106,6 +106,13 @@ const FUNNEL_WALL_INSET_CM = 0.5;
 const FUNNEL_DOCK_CM = 6;
 /** Pulsación quieta sobre la piseta en reposo que se interpreta como «apretar» (s). */
 const REST_SQUEEZE_DELAY_S = 0.18;
+/**
+ * Movimiento del puntero (px) que convierte la pulsación sobre la piseta en reposo en «levantarla»: antes de apretar
+ * y mientras se aprieta. Más holgado que para otros objetos (5 px): al presionar un panel táctil el cursor se corre
+ * varios píxeles, y eso levantaba la piseta (que al soltarla se volvía a acoplar) sin echar agua.
+ */
+const REST_LIFT_PX = 14;
+const SQUEEZE_LIFT_PX = 24;
 type MagnetKind ='scoop' | 'tap' | 'aspirate' | 'align';
 const STATIC_PROPS = new Set(['tray']);
 const CLICK_PROPS = new Set(['tongs']);
@@ -448,7 +455,7 @@ export class InteractionController {
     }
     // Mover lo pulsado lo levanta (también la piseta en reposo, aunque ya se esté apretando).
     const moved = pr ? Math.hypot(sx - pr.sx, sy - pr.sy) : 0;
-    const lift = pr?.mode === 'pending' || pr?.mode === 'restTool' ? moved > 5 : pr?.mode === 'squeeze' && moved > 12;
+    const lift = pr?.mode === 'pending' ? moved > 5 : pr?.mode === 'restTool' ? moved > REST_LIFT_PX : pr?.mode === 'squeeze' && moved > SQUEEZE_LIFT_PX;
     if (pr?.id && lift) {
       if (pr.mode === 'squeeze') this.stopSqueeze();
       this.beginDrag(pr.id, false, pr.sx, pr.sy);

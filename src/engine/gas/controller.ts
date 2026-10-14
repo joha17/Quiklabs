@@ -14,11 +14,12 @@
  * - Lecturas (V, T, H, B, R): con la cámara a la altura del ojo no hay paralaje (doble clic sobre el instrumento).
  */
 import type { GasHost } from './host';
+import { pourDockPose } from '../interaction/pourDock';
 import type { GasLab3D } from './GasLab3D';
 import type { P10Command } from '../../simulation/gas-world/commands';
 import type { P10ObjKind, P10World, Pose } from '../../simulation/gas-world/types';
 import { ABALANCE_PAN } from '../../practices/practice-10/definition';
-import { VIS, buretteInBathXY, buretteZ, cylinderLevelZ, erlenMouth, flaskLevelZ, pipetteLevelZ, sensorPort } from './layout';
+import { POUR_LIP10, VIS, buretteInBathXY, buretteZ, cylinderLevelZ, erlenMouth, flaskLevelZ, pipetteLevelZ, sensorPort } from './layout';
 
 export interface PickHit10 {
   id: string;
@@ -609,9 +610,20 @@ export class GasController {
     return best;
   }
 
+  /** Pose que deja el pico sobre la boca del receptor mientras se vierte (null si no hay acople). */
+  private pourDock(h: Held10): { x: number; y: number; z: number } | null {
+    if (!POURABLE.has(h.id) || h.tilt <= 4 || !h.pourTarget) return null;
+    // Con el embudo montado se vierte en el embudo (el destino del dominio sigue siendo el balón).
+    const aim = h.pourTarget === 'flask' && this.w.objects.funnel?.support === 'funnel:flask' ? 'funnel' : h.pourTarget;
+    const m = this.mouthOf(aim);
+    const lip = POUR_LIP10[h.id];
+    return m && lip ? pourDockPose(lip, (h.tilt * Math.PI) / 180, m, h) : null;
+  }
+
   private updatePour(h: Held10, dt: number) {
     const o = this.obj(h.id)!;
-    const target = this.pourTargetAt(h.id, o.pose.x, o.pose.y, o.pose.z);
+    // Acoplado, el receptor no cambia aunque el cuerpo se haya corrido para poner el pico sobre la boca.
+    const target = this.pourDock(h) ? h.pourTarget : this.pourTargetAt(h.id, o.pose.x, o.pose.y, o.pose.z);
     this.dockTarget = target;
     h.tilt = this.primary ? Math.min(135, h.tilt + TILT_SPEED * dt) : Math.max(0, h.tilt - TILT_RETURN * dt);
     if (h.tilt > 4) {
@@ -843,9 +855,16 @@ export class GasController {
         ty = h.magnet.y;
         tz = h.magnet.z;
       }
+      // Vertiendo: el pico queda sobre la boca del receptor (el cuerpo se corre al inclinarlo).
+      const dock = this.pourDock(h);
+      if (dock) {
+        tx = dock.x;
+        ty = dock.y;
+        tz = dock.z;
+      }
       const floor = this.clearZ(tx, ty, FOOT[h.kind] ?? 1, h.id) + 0.3;
       if (!h.magnet) tz = Math.max(tz, floor);
-      const k = Math.min(1, dt * (h.magnet ? 8 : 16));
+      const k = Math.min(1, dt * (h.magnet || dock ? 8 : 16));
       const nx = o.pose.x + (tx - o.pose.x) * k;
       const ny = o.pose.y + (ty - o.pose.y) * k;
       h.curZ += (tz - h.curZ) * Math.min(1, dt * 10);

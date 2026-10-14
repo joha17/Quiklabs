@@ -7,3 +7,4 @@
 - [RENDIMIENTO.md](RENDIMIENTO.md): niveles de calidad, presupuestos y mediciones por estación.
 - Catálogo de errores simulables (§8): `src/practices/practice-02/error-scenarios.ts`.
 - [PRACTICA3.md](PRACTICA3.md) y [PRACTICA4.md](PRACTICA4.md): mechero y cationes; reacciones químicas.
+- [GUIA_NUEVO_LABORATORIO.md](GUIA_NUEVO_LABORATORIO.md): cómo especificar y construir una práctica nueva (tecnologías, arquitectura, física, evaluación, pruebas, plataforma y tipos de decisiones), con plantilla de especificación.

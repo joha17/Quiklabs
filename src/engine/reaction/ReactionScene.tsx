@@ -21,11 +21,21 @@ import { GRAVITY, fromScene, poseToScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture, softDotTexture } from '../renderers/textures';
 import { gasFlows, isLit } from '../../simulation/flame-world/world';
-import { surfaceZ } from '../../simulation/reaction-world/world';
-import type { P4Object } from '../../simulation/reaction-world/types';
+import { liquidMl, surfaceZ } from '../../simulation/reaction-world/world';
+import type { P4Object, P4World } from '../../simulation/reaction-world/types';
 import { lipPoint } from '../physics/geometry';
 import { PROFILE_OF, RACK4, TILE4, WASH_NOZZLE } from '../../practices/practice-04/instruments';
 import { BURNER } from '../../practices/practice-03/instruments';
+
+/**
+ * ¿Sale líquido de verdad? Un vertido sigue registrado mientras el recipiente esté inclinado, pero la película que moja
+ * las paredes (`holdupMl`) no sale; la piseta (`keepHoldup = false`) se vacía del todo. Sin esta comprobación el chorro,
+ * su sonido y la pausa de la aceleración del tiempo seguían con el recipiente ya vacío.
+ */
+function flows(w: P4World, id: string, keepHoldup = true): boolean {
+  const v = w.vessels[id];
+  return !!v && liquidMl(v) - (keepHoldup ? w.params.holdupMl[v.kind] ?? 0 : 0) > 0.005;
+}
 
 // ─────────────────────────── Avance del dominio, interacción y audio ───────────────────────────
 
@@ -39,7 +49,7 @@ function Driver() {
     const w = rt.world;
     // La aceleración del tiempo se suspende mientras se manipula, se vierte, gotea o arde el Mg.
     const mgBurning = Object.values(w.ribbons).some((r) => r.phase === 'BRIGHT_COMBUSTION' || r.phase === 'IGNITION_THRESHOLD');
-    const busy = !!lab.controller.held || Object.keys(w.pours).length > 0 || Object.keys(w.squeezes).length > 0 || mgBurning || w.gas.lighter.sparking;
+    const busy = !!lab.controller.held || Object.keys(w.pours).some((id) => flows(w, id)) || Object.keys(w.squeezes).some((id) => flows(w, id, false)) || mgBurning || w.gas.lighter.sparking;
     const scale = rt.timeScale;
     if (busy) rt.timeScale = 1;
     rt.advance(dt);
@@ -56,7 +66,7 @@ function Driver() {
       flow: b.flame.fuelFlow,
       abnormal: b.flameState === 'FLASHBACK' ? 1 : b.flameState === 'LIFTED' ? 0.8 : b.flame.stability < 0.6 && isLit(g) ? 0.4 : 0,
       alarm: g.room.alarm,
-      pouring: Object.values(w.pours).reduce((s, p) => s + p.rateMlS, 0) + Object.values(w.squeezes).reduce((s, p) => s + p.rateMlS, 0),
+      pouring: Object.entries(w.pours).reduce((s, [id, p]) => s + (flows(w, id) ? p.rateMlS : 0), 0) + Object.entries(w.squeezes).reduce((s, [id, p]) => s + (flows(w, id, false) ? p.rateMlS : 0), 0),
       mgBurning,
     });
     // Protección visual (§13.1): mientras arde el Mg la exposición baja; nunca hay un destello real.
@@ -302,7 +312,7 @@ function Effects() {
       const v = w.vessels[sid];
       const o = w.objects[sid];
       const sh = v ? SHAPES4[v.kind] : undefined;
-      if (!v || !o || !sh || p.rateMlS < 0.01) continue;
+      if (!v || !o || !sh || p.rateMlS < 0.01 || !flows(w, sid)) continue;
       const lp = lipPoint(sh, o.pose.rotationRad);
       const from = new THREE.Vector3(...toScene(o.pose.x + lp[0], o.pose.y, o.pose.z + lp[1]));
       const toZ = p.targetId ? surfaceZ(w, rctx, p.targetId) : 0;
@@ -312,7 +322,7 @@ function Effects() {
     }
     for (const [wid, s] of Object.entries(w.squeezes)) {
       const o = w.objects[wid];
-      if (!o) continue;
+      if (!o || !flows(w, wid, false)) continue;
       const from = new THREE.Vector3(...toScene(o.pose.x + WASH_NOZZLE.dx, o.pose.y, o.pose.z + WASH_NOZZLE.z));
       const toZ = s.targetId ? surfaceZ(w, rctx, s.targetId) : 0;
       streams.push({ from, to: new THREE.Vector3(from.x, toZ, from.z), color: [0.9, 0.95, 1], r: 0.06 });

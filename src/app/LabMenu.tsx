@@ -10,6 +10,9 @@ import { loadP6Attempt } from './p6/persistence';
 import { loadP10Attempt } from './p10/persistence';
 import './menu.css';
 
+/** Grupos de etiquetas de cada tarjeta (textos en `menu.labs.<id>.tags.<grupo>`), en este orden. */
+const TAG_KINDS = ['type', 'reactions', 'features'] as const;
+
 interface LabCard {
   id: LabId;
   number: number;
@@ -50,6 +53,16 @@ export function LabCards({ locked = false, only, extra }: { locked?: boolean; on
               <div className="kicker">{t('menu.practice', { n: c.number })}</div>
               <h3>{t(`${c.key}.title`)}</h3>
               <p>{t(`${c.key}.subtitle`)}</p>
+              <ul className="lab-tags" aria-label={t('menu.tagsLabel')}>
+                {TAG_KINDS.flatMap((k) =>
+                  tList(`${c.key}.tags.${k}`).map((tag) => (
+                    <li key={`${k}:${tag}`} className={`lab-tag tag-${k}`} title={t(`menu.tagKind.${k}`)}>
+                      <span className="sr-only">{t(`menu.tagKind.${k}`)}: </span>
+                      {tag}
+                    </li>
+                  )),
+                )}
+              </ul>
               <ul>
                 {tList(`${c.key}.points`).map((p) => <li key={p}>{p}</li>)}
               </ul>

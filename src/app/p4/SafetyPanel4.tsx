@@ -44,7 +44,7 @@ export function SafetyPanel4() {
             <dt>{t('p4.safety.ethanol')}</dt>
             <dd className={ethanol ? 'bad' : 'ok'}>{ethanol ? `▲▲ ${t('p4.safety.ethanolNear')}` : `● ${t('p4.safety.ethanolFar')}`}</dd>
             <dt>{t('p4.safety.mg')}</dt>
-            <dd className={mgMissing.length ? 'pending' : 'ok'}>{mgMissing.length ? `▲ ${t('p4.safety.mgPending', { n: mgMissing.length })}` : `● ${t('p4.safety.mgReady')}`}</dd>
+            <dd className={mgMissing.length ? 'pending' : 'ok'}>{mgMissing.length ? `▲ ${t('p4.safety.mgPending', { count: mgMissing.length })}` : `● ${t('p4.safety.mgReady')}`}</dd>
             <dt>{t('p4.safety.gloves')}</dt>
             <dd className={w.safety.gloves ? 'ok' : 'pending'}>{w.safety.gloves ? t('p4.safety.glovesOn') : t('p4.safety.glovesOff')}</dd>
           </dl>

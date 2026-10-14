@@ -16,6 +16,8 @@ import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture, softDotTexture } from '../renderers/textures';
 import { GEO6 } from '../../practices/practice-06/definition';
+import { POUR_LIP6 } from './controller';
+import { lipOffset } from '../interaction/pourDock';
 
 // ─────────────────────────── Avance del dominio, interacción y audio ───────────────────────────
 
@@ -26,8 +28,10 @@ function Driver() {
     const dt = Math.min(dtRaw, 0.1) * lab.playback.speed;
     const rt = lab.runtime;
     const w = rt.world;
-    // La aceleración del tiempo se suspende mientras se manipula algo o se vierte.
-    const busy = !!lab.controller.held || Object.keys(w.pours).length > 0;
+    // La aceleración del tiempo se suspende mientras se manipula algo o se vierte (solo si de verdad sale líquido:
+    // un recipiente vacío inclinado no suena ni frena el tiempo).
+    const pouring = Object.keys(w.pours).some((id) => (w.vessels[id]?.waterG ?? 0) > 0.01);
+    const busy = !!lab.controller.held || pouring;
     const scale = rt.timeScale;
     if (busy) rt.timeScale = 1;
     rt.advance(dt);
@@ -36,7 +40,7 @@ function Driver() {
     lab.onFrame?.(dt);
     lab.audio.ambient({
       unlitFlow: 0, lit: false, blueness: 0, flow: 0, abnormal: 0, alarm: false,
-      pouring: Object.values(w.pours).length ? 2 + w.bath.vigor : w.bath.vigor * 0.6,
+      pouring: pouring ? 2 + w.bath.vigor : w.bath.vigor * 0.6,
       mgBurning: false,
     });
   });
@@ -129,12 +133,12 @@ function Effects() {
     // Chorro del vertido: del borde del recipiente inclinado al receptor (o a la mesada).
     const pr = Object.values(w.pours)[0];
     stream.visible = false;
-    if (pr && c.held?.id === pr.sourceId && c.held.tilt > 20) {
+    // Solo mientras queda agua por salir: vacío (o con la película de las paredes), el chorro se corta.
+    if (pr && c.held?.id === pr.sourceId && c.held.tilt > 20 && (w.vessels[pr.sourceId]?.waterG ?? 0) > 0.01) {
       const o = w.objects[pr.sourceId];
-      const r = pr.sourceId === 'water_bottle' ? GEO6.bottle.r : pr.sourceId === 'cylinder' ? GEO6.cylinder.r : GEO6.beaker.r;
-      const top = pr.sourceId === 'water_bottle' ? GEO6.bottle.h : pr.sourceId === 'cylinder' ? GEO6.cylinder.h : GEO6.beaker.h;
-      const th = o.pose.rotationRad;
-      a.set(o.pose.x + Math.sin(th) * top + Math.cos(th) * r, o.pose.z + Math.cos(th) * top - Math.sin(th) * r, -o.pose.y);
+      // El chorro sale del pico (el borde más bajo), que el controlador mantiene sobre la boca del receptor.
+      const [dx, dz] = lipOffset(POUR_LIP6[pr.sourceId] ?? POUR_LIP6.beaker, o.pose.rotationRad);
+      a.set(o.pose.x + dx, o.pose.z + dz, -o.pose.y);
       const m = pr.targetId ? c.mouthOf(pr.targetId) : null;
       b.set(a.x, m ? m.z - 2 : 0.05, a.z);
       const len = Math.max(0.2, a.y - b.y);

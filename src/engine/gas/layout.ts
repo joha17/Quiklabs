@@ -18,6 +18,12 @@ export const VIS = {
   syringe: { barrelLen: 8.6, r: Math.sqrt(GEO10.syringe.areaCm2 / Math.PI) },
 };
 
+/** Borde de vertido (radio y altura sobre la base, cm) de cada recipiente que se vierte inclinándolo. */
+export const POUR_LIP10: Record<string, { r: number; h: number }> = {
+  water_bottle: { r: 4.6, h: 22 }, tap_jug: { r: 5.5, h: 22 }, vinegar_bottle: { r: 3.6, h: 18 }, beaker150: { r: VIS.beaker150.r, h: VIS.beaker150.h },
+  cylinder: { r: VIS.cylinder.r, h: VIS.cylinder.h + VIS.cylinder.floor }, erlenmeyer: { r: VIS.erlen.mouthR, h: VIS.erlen.mouthZ }, flask: { r: VIS.flask.neckR, h: VIS.flask.neckZ1 },
+};
+
 /** Altura del menisco del balón (z). */
 export function flaskLevelZ(w: P10World): number {
   const F = VIS.flask;

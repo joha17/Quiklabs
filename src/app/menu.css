@@ -15,6 +15,12 @@
 .lab-card-body p { margin: 0; color: var(--ink-2); }
 .lab-card-body ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); font-size: 0.9rem; display: grid; gap: 0.15rem; }
 .lab-card-body .btn { justify-self: start; margin-top: 0.3rem; min-height: 2.5rem; }
+/* Etiquetas bajo la descripción: tipo de laboratorio, reacciones y funcionalidades (color por grupo). */
+.lab-card-body .lab-tags { list-style: none; margin: 0.1rem 0 0.2rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.lab-tag { border-radius: 999px; padding: 0.12rem 0.55rem; font-size: 0.78rem; font-weight: 700; line-height: 1.4; border: 1px solid transparent; }
+.lab-tag.tag-type { background: var(--accent-soft); color: var(--tag-type-ink, color-mix(in srgb, var(--accent) 75%, var(--ink))); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.lab-tag.tag-reactions { background: var(--warn-soft); color: color-mix(in srgb, var(--warn) 75%, var(--ink)); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+.lab-tag.tag-features { background: var(--panel-2); color: var(--ink-2); border-color: var(--line); font-weight: 600; }
 .lab-card-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--ink-2); }
 .saved-pill { background: var(--ok-soft); color: var(--ok); border-radius: 999px; padding: 0.1rem 0.55rem; font-weight: 700; }
 .menu-back { position: fixed; top: 0.7rem; left: 0.7rem; z-index: 50; }

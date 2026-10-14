@@ -445,7 +445,8 @@
       "glovesOff": "sin guantes",
       "glovesPut": "Ponerse guantes",
       "glovesRemove": "Quitarse guantes",
-      "mgPending": "faltan {{n}} requisitos"
+      "mgPending_one": "falta {{count}} requisito",
+      "mgPending_other": "faltan {{count}} requisitos"
     },
     "block": {
       "ETHANOL_NEAR_FLAME": "La fenolftaleína está disuelta en etanol (inflamable) y está cerca del mechero. Aléjala al menos 30 cm antes de encender o mientras la llama esté encendida.",

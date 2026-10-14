@@ -15,7 +15,8 @@ import { Environment, Lights, Room } from '../scene/LabScene';
 import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture, softDotTexture } from '../renderers/textures';
-import { VIS, buretteZ, erlenMouth } from './layout';
+import { POUR_LIP10, buretteZ, erlenMouth } from './layout';
+import { lipOffset } from '../interaction/pourDock';
 
 // ─────────────────────────── Avance del dominio, interacción y audio ───────────────────────────
 
@@ -26,8 +27,10 @@ function Driver() {
     const dt = Math.min(dtRaw, 0.1) * lab.playback.speed;
     const rt = lab.runtime;
     const w = rt.world;
-    // La aceleración del tiempo se suspende mientras se manipula algo o se vierte.
-    const busy = !!lab.controller.held || Object.keys(w.pours).length > 0;
+    // La aceleración del tiempo se suspende mientras se manipula algo o se vierte (solo si de verdad sale líquido:
+    // un recipiente vacío inclinado no suena ni frena el tiempo).
+    const pouring = Object.keys(w.pours).some((id) => (w.liquids[id]?.ml ?? 0) > 0.01);
+    const busy = !!lab.controller.held || pouring;
     const scale = rt.timeScale;
     if (busy) rt.timeScale = 1;
     rt.advance(dt);
@@ -36,7 +39,7 @@ function Driver() {
     lab.onFrame?.(dt);
     lab.audio.ambient({
       unlitFlow: 0, lit: false, blueness: 0, flow: 0, abnormal: 0, alarm: false,
-      pouring: Object.values(w.pours).length ? 2 : 0,
+      pouring: pouring ? 2 : 0,
       mgBurning: false,
     });
   });
@@ -81,10 +84,6 @@ function Objects() {
 
 // ─────────────────────────── Chorro, gotas, manguera, burbujas y charcos ───────────────────────────
 
-const POUR_GEO: Record<string, { r: number; h: number }> = {
-  water_bottle: { r: 4.6, h: 22 }, tap_jug: { r: 5.5, h: 22 }, vinegar_bottle: { r: 3.6, h: 18 }, beaker150: { r: VIS.beaker150.r, h: VIS.beaker150.h },
-  cylinder: { r: VIS.cylinder.r, h: VIS.cylinder.h + VIS.cylinder.floor }, erlenmeyer: { r: VIS.erlen.mouthR, h: VIS.erlen.mouthZ }, flask: { r: VIS.flask.neckR, h: VIS.flask.neckZ1 },
-};
 
 function Effects() {
   const lab = useGasLab();
@@ -139,11 +138,12 @@ function Effects() {
     // Chorro del vertido: del borde del recipiente inclinado al receptor (o a la mesada).
     const pr = Object.values(w.pours)[0];
     stream.visible = false;
-    if (pr && c.held?.id === pr.sourceId && c.held.tilt > 20) {
+    // Solo mientras queda líquido por salir: con el recipiente vacío el chorro se corta.
+    if (pr && c.held?.id === pr.sourceId && c.held.tilt > 20 && (w.liquids[pr.sourceId]?.ml ?? 0) > 0.01) {
       const o = w.objects[pr.sourceId];
-      const g = POUR_GEO[pr.sourceId] ?? { r: 2, h: 10 };
-      const th = o.pose.rotationRad;
-      a.set(o.pose.x + Math.sin(th) * g.h + Math.cos(th) * g.r, o.pose.z + Math.cos(th) * g.h - Math.sin(th) * g.r, -o.pose.y);
+      // El chorro sale del pico (el borde más bajo), que el controlador mantiene sobre la boca del receptor.
+      const [dx, dz] = lipOffset(POUR_LIP10[pr.sourceId] ?? { r: 2, h: 10 }, o.pose.rotationRad);
+      a.set(o.pose.x + dx, o.pose.z + dz, -o.pose.y);
       const m = pr.targetId ? c.mouthOf(pr.targetId) : null;
       b.set(a.x, m ? m.z - 2 : 0.05, a.z);
       const len = Math.max(0.2, a.y - b.y);

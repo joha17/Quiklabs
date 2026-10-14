@@ -716,10 +716,24 @@ function acknowledge(w: P4World, ctx: ReactionContext): P4DispatchResult {
   return r;
 }
 
+/** Lo que se puede tomar durante un incidente para resolverlo (lo demás queda bloqueado). */
+const INCIDENT_TOOLS: Record<string, string[]> = { CLEAN_SPILL: ['towel'] };
+
+/**
+ * ¿Se puede tomar este objeto con el incidente activo? Solo las herramientas de sus pasos pendientes: el derrame se
+ * limpia con las toallas, y antes el incidente las bloqueaba también (no había forma de salir de él).
+ */
+export function incidentAllows(w: P4World, id: string): boolean {
+  const inc = w.safety.incident;
+  if (!inc) return true;
+  const kind = w.objects[id]?.kind;
+  return !!kind && inc.needs.some((n) => !inc.done.includes(n) && (INCIDENT_TOOLS[n] ?? []).includes(kind));
+}
+
 function pickUp(w: P4World, _ctx: ReactionContext, id: string, tool: 'HAND' | 'TONGS'): P4DispatchResult {
   const o = w.objects[id];
   if (!o) return { ok: false, code: 'NO_OBJECT' };
-  if (w.safety.incident) return { ok: false, code: 'INCIDENT' };
+  if (!incidentAllows(w, id)) return { ok: false, code: 'INCIDENT' };
   if (tool === 'HAND') {
     let t = o.temperatureC;
     const v = w.vessels[id];

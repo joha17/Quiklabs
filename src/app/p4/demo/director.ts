@@ -316,6 +316,12 @@ export class DemoDirector4 {
    * Vierte `ml` de `src` en `target` con el gesto real: acercar hasta el acople, mantener «verter» y soltarlo cuando
    * el receptor recibió lo pedido. Respaldo: el comando de vertido equivalente.
    */
+  /** Líquido que aún puede salir del recipiente (sin la película que queda en las paredes). */
+  private pourable(id: string): number {
+    const v = this.w.vessels[id];
+    return Math.max(0, liquidMl(v) - (this.w.params.holdupMl[v.kind] ?? 0));
+  }
+
   async pourInto(src: string, target: string, ml: number, opts: { drain?: boolean } = {}) {
     if (!(await this.grab(src))) return;
     const to = this.pose(target)!;
@@ -331,7 +337,7 @@ export class DemoDirector4 {
       const hh = this.c.held;
       console.warn(`[demo p4] sin acople ${src} → ${target}; respaldo`, JSON.stringify({ held: hh?.id, x: hh?.x, y: hh?.y, ox: hh?.ox, oy: hh?.oy, lifting: hh?.lifting, pose: this.pose(src), to, dock: this.c.pourDock, ml: liquidMl(this.w.vessels[src]) }));
       this.dispatch({ type: 'setPour', sourceId: src, targetId: target, rateMlS: 1.2, tiltDeg: 60 });
-      await this.until(() => got() >= ml - 0.02 || liquidMl(this.w.vessels[src]) < 0.05, 30);
+      await this.until(() => got() >= ml - 0.02 || this.pourable(src) < 0.05, 30);
       this.dispatch({ type: 'stopPour', sourceId: src });
       await this.release();
       return;
@@ -341,7 +347,7 @@ export class DemoDirector4 {
     const precise = ml < liquidMl(this.w.vessels[src]) - 0.3;
     const coarse = precise ? ml - (this.w.vessels[src].kind === 'BOTTLE' ? 1.6 : 0.6) : ml;
     this.c.primaryDown();
-    await this.until(() => got() >= coarse || liquidMl(this.w.vessels[src]) < 0.08, 40);
+    await this.until(() => got() >= coarse || this.pourable(src) < 0.08, 40);
     this.c.primaryUp();
     await this.until(() => Math.abs(this.w.objects[src].pose.rotationRad) < 0.05, 4);
     if (opts.drain) {
@@ -354,6 +360,9 @@ export class DemoDirector4 {
     for (let i = 0; precise && i < 40 && got() < ml - 0.06; i++) {
       this.c.primaryDown();
       const before = got();
+      // Cada pulso sostiene la inclinación hasta que vuelve a salir líquido: con menos contenido hace falta inclinar
+      // más, y un frasco grande se inclina despacio (antes el pulso se cortaba a los 3 s, sin llegar a verter nunca).
+      await this.until(() => !!this.w.pours[src] || got() >= ml - 0.06, 10);
       await this.until(() => got() > before + 0.02 || got() >= ml - 0.06, 3);
       this.c.primaryUp();
       await this.until(() => Math.abs(this.w.objects[src].pose.rotationRad) < 0.6, 2);

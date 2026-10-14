@@ -17,6 +17,7 @@ import { fromScene, poseToScene } from '../units';
 import { useLab } from '../../app/store';
 import * as THREE from 'three';
 import { QUALITY } from '../quality';
+import { outlineObject } from '../effects/Toon3D';
 
 /** Velocidad de impacto (cm/s) a partir de la cual el golpe se informa al dominio (≈ caída de 30 cm). */
 const IMPACT_CM_S = 250;
@@ -48,6 +49,12 @@ function ContactShadow({ r, y = 0.03 }: { r: number; y?: number }) {
   );
 }
 
+/** Cada objeto lleva su propio contorno (estilo cel shading, ver Toon3D). */
+function withOutline<T extends { group: THREE.Object3D }>(visual: T): T {
+  outlineObject(visual.group);
+  return visual;
+}
+
 function registerHits(lab: ReturnType<typeof useLab3D>, root: THREE.Object3D) {
   const list: THREE.Mesh[] = [];
   root.traverse((o) => {
@@ -65,7 +72,7 @@ export function VesselBody({ id }: { id: string }) {
   const body = useRef<RapierRigidBody>(null);
   const v0 = lab.runtime.world.vessels[id];
   const quality = lab.quality;
-  const visual = useMemo(() => createVesselVisual(v0, quality), [id, quality]);  
+  const visual = useMemo(() => withOutline(createVesselVisual(v0, quality)), [id, quality]);  
   const st = useRef({ dynamic: false, still: 0, speed: 0, lastWrite: '' });
   const eye = useLab((s) => s.levelView);
   useEffect(() => registerHits(lab, visual.group), [lab, visual]);
@@ -181,7 +188,7 @@ export function PropBody({ id }: { id: string }) {
   const body = useRef<RapierRigidBody>(null);
   const p0 = lab.runtime.world.props[id];
   const quality = lab.quality;
-  const visual = useMemo(() => createPropVisual(p0, quality), [id, quality]);  
+  const visual = useMemo(() => withOutline(createPropVisual(p0, quality)), [id, quality]);  
   const eye = useLab((s) => s.levelView);
   useEffect(() => registerHits(lab, visual.group), [lab, visual]);
   const init = poseToScene(p0.pose);
