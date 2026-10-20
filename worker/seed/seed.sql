@@ -15,11 +15,15 @@ INSERT INTO users (id, role, email, name, code, status, password_hash, must_chan
 INSERT INTO users (id, role, email, name, code, status, password_hash, must_change_password, token_version, failed_logins, locked_until, created_at, last_login_at) VALUES ('u_est10', 'student', 'mateo.calderon@estudiante.uni.example', 'Mateo Calderón Ulate', 'B60110', 'active', 'pbkdf2$sha256$30000$qRtiXoJ7739KeXFUmcYqOw$Pbvv4owpT8xrIJj2P-cnY0NiEmGie63MDPsaJdmeINY', 0, 1, 0, NULL, '2026-07-01T06:00:00.000Z', NULL);
 INSERT INTO courses (id, code, name, term, grp, starts_at, ends_at, archived) VALUES ('c_qg1_01', 'QU-0100', 'Química General I', '2026-II', '01', '2026-08-10T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 0);
 INSERT INTO course_teachers (course_id, teacher_id) VALUES ('c_qg1_01', 'u_doc01');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p01', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p7', '2026-10-19T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p2', '2026-08-17T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p3', '2026-09-07T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_01', 'p4', '2026-09-28T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'EVALUATION');
 INSERT INTO courses (id, code, name, term, grp, starts_at, ends_at, archived) VALUES ('c_qg1_02', 'QU-0100', 'Química General I', '2026-II', '02', '2026-08-10T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 0);
 INSERT INTO course_teachers (course_id, teacher_id) VALUES ('c_qg1_02', 'u_doc02');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p01', '2026-10-05T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
+INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p7', '2026-10-19T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p2', '2026-08-17T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p3', '2026-09-07T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'PRACTICE');
 INSERT INTO course_labs (course_id, lab_id, opens_at, closes_at, mode) VALUES ('c_qg1_02', 'p4', '2026-10-12T06:00:00.000Z', '2026-12-12T05:59:00.000Z', 'EVALUATION');

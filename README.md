@@ -151,6 +151,21 @@ baño en ebullición, traslado, agitación y máximo de temperatura), modelo ide
 identificación con z, y una bomba calorimétrica virtual opcional con enclavamientos; demostración automática (`#p6`).
 Detalles, supuestos científicos y accesibilidad: [docs/PRACTICA6.md](docs/PRACTICA6.md).
 
+## Práctica 1 — Instrumentación científica y densidades
+
+Reconocimiento de instrumentos y densidad del agua a dos temperaturas (pipeta aforada, masa por diferencia y
+termómetro), de clavos por desplazamiento en una probeta y de un cilindro metálico por geometría con pie de rey, con
+propagación de incertidumbres (convención rectangular o directa) y demostración automática (`#p01`).
+Detalles, supuestos científicos pendientes de validación y accesibilidad: [docs/PRACTICA01.md](docs/PRACTICA01.md).
+
+## Práctica 7 — Enlaces y propiedades
+
+¿Se deduce cómo está organizada una sustancia por cómo conduce y cómo se mezcla? Comparación de disolventes hasta el
+equilibrio (agua y n-heptano), detector de dos puntas sobre metales, grafito y cristales secos, conductímetro calibrado
+con blanco, NaCl en dos concentraciones, sacarosa y ácido acético, y dos incógnitas con pruebas independientes;
+demostración automática (`#p7`). Detalles, supuestos pendientes de validación y accesibilidad:
+[docs/PRACTICA7.md](docs/PRACTICA7.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza

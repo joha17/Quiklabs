@@ -61,7 +61,7 @@ function instancedBoxes(size: [number, number, number], mat: THREE.Material, pos
 }
 
 /** `variant`: cartelería de la práctica (la sala y la mesada son las mismas). */
-export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p10' = 'p2'): THREE.Group {
+export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p10' = 'p2'): THREE.Group {
   const g = new THREE.Group();
   const detail = QUALITY[q].roomDetail;
   const L = BENCH.length;
@@ -217,6 +217,12 @@ export function createRoom(q: QualityLevel, variant: 'p2' | 'p3' | 'p4' | 'p5' |
   } else if (variant === 'p6') {
     poster(posterTexture('CALIENTE', ['Tubos y beaker:', 'siempre con pinza'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('BOMBA', ['Solo simulación:', 'nunca improvisar'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'p01') {
+    poster(posterTexture('MEDIR', ['Ojo a la altura', 'del menisco'], '#1565c0', 'eye'), 318, 60);
+    poster(posterTexture('PIPETA', ['Siempre con pera,', 'nunca con la boca'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'p7') {
+    poster(posterTexture('ELECTRICIDAD', ['Nunca con las', 'manos mojadas'], '#f2a900', 'goggles'), 318, 60);
+    poster(posterTexture('DISOLVENTES', ['Frascos tapados,', 'sin llamas'], '#d0021b', 'nofood'), 318, 92);
   } else if (variant === 'p10') {
     poster(posterTexture('PRESIÓN', ['Nunca obstruir un', 'sistema que genera gas'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('SENSOR', ['Sin líquido en el', 'sensor de presión'], '#d0021b', 'nofood'), 318, 92);

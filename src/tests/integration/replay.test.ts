@@ -36,6 +36,14 @@ vi.mock('../../simulation/gas-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/gas-world/world')>();
   return { ...m, dispatchGas: wrap(m.dispatchGas) };
 });
+vi.mock('../../simulation/density-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/density-world/world')>();
+  return { ...m, dispatchP01: wrap(m.dispatchP01) };
+});
+vi.mock('../../simulation/bonding-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/bonding-world/world')>();
+  return { ...m, dispatchP07: wrap(m.dispatchP07) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -62,6 +70,9 @@ const h6 = await import('../helpers6');
 const { emptyP10Notebook } = await import('../../practices/practice-10/notebook');
 const { sanitizeOnResume10 } = await import('../../practices/practice-10/resume');
 const h10 = await import('../helpers10');
+const { emptyP01Notebook } = await import('../../practices/practice-01/notebook');
+const { sanitizeOnResume01 } = await import('../../practices/practice-01/resume');
+const h01 = await import('../helpers01');
 
 type W = { tick: number; seed: number };
 
@@ -216,6 +227,41 @@ describe('repetición determinista — Práctica 10', () => {
     }, sanitizeOnResume10);
     const { graded } = await verify('p10', r, emptyP10Notebook());
     expect(graded.durationS).toBeGreaterThan(300);
+  });
+});
+
+describe('repetición determinista — Práctica 1', () => {
+  it('P01: balanza, dos series de agua, clavos y cilindro con reanudación a mitad', async () => {
+    const opts = { mode: 'PRACTICE' as const, seed: 1001 };
+    const r = record('p01', opts, () => h01.world01(opts), (w, resume) => {
+      h01.ppe(w);
+      h01.recognize(w);
+      h01.balanceCheck(w);
+      h01.waterSeries(w, 'room');
+      w = resume(w);
+      h01.coolReservoir(w, 200);
+      h01.waterSeries(w, 'cold');
+      w = resume(w);
+      h01.displacement(w);
+      h01.geometry(w);
+      return w;
+    }, sanitizeOnResume01);
+    const { graded } = await verify('p01', r, emptyP01Notebook());
+    expect(graded.durationS).toBeGreaterThan(300);
+  });
+});
+
+describe('repetición determinista — Práctica 7', () => {
+  it('P7: hipótesis, disolventes, detector, conductímetro e incógnitas con reanudación en A, C y D', async () => {
+    const h07 = await import('../helpers07');
+    const { sanitizeOnResume07 } = await import('../../practices/practice-07/resume');
+    const { emptyP07Notebook } = await import('../../practices/practice-07/notebook');
+    const opts = { mode: 'PRACTICE' as const, seed: 7007 };
+    const nb = emptyP07Notebook();
+    const r = record('p7', opts, () => h07.world07(opts), (w, resume) => h07.runIdealRoute07(w, nb, resume).w, sanitizeOnResume07);
+    const { graded } = await verify('p7', r, nb);
+    expect(graded.durationS).toBeGreaterThan(200);
+    expect(graded.evaluation.total).toBeGreaterThan(0.9);
   });
 });
 

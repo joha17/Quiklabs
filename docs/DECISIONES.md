@@ -140,6 +140,50 @@ Registro de ambigüedades resueltas eligiendo la opción más simple y segura (�
 | P10-7 | Panel accesible | La bureta se puede llevar al baño e invertir desde el panel, sin arrastrar. |
 | P10-8 | Plataforma | `p10` en `LabId`; migración `0005_course_labs_p10.sql`; adaptador `p10` en la calificación del servidor. |
 
+## Práctica 1 — Instrumentación científica y densidades
+
+| # | Decisión | Detalle |
+|---|---|---|
+| P01-1 | Secuencia propia | Reconocimiento inicial, B→C→D y análisis final; no se reproduce el manual y se atribuye su procedencia. |
+| P01-2 | Estadística separada | Media, desviación absoluta media, desviación estándar e incertidumbre son funciones distintas (`metrology/uncertainty.ts`). |
+| P01-3 | Material del cilindro | Aluminio didáctico 2,70 g/cm³ por defecto; latón y acero desde la portada del docente (hipótesis declarada). |
+| P01-4 | Clavos | Hierro idealizado; el escenario de lote mezclado incluye un clavo de aluminio rotulado como tal. |
+| P01-5 | Probeta para ~2,5 mL | Se conserva como limitación pedagógica: la incertidumbre relativa grande se cuantifica en la tabla C. |
+| P01-6 | ρ(T) del agua | Polinomio restringido a 0–40 °C (fuera devuelve NaN); su procedencia queda pendiente de validación antes de publicar. |
+| P01-7 | Convención metrológica | Rectangular (a/√3) o directa, elegida por el docente y declarada en la libreta; nunca se confunde semiancho con incertidumbre estándar. |
+| P01-8 | Un perfil geométrico | `density-world/geometry.ts` gobierna volúmenes, niveles, menisco, graduaciones y la escena. |
+| P01-9 | Balanza compartida | Reutiliza el modelo de balanza analítica de la P10 con parámetros de granataria (600 g, 0,01 g). |
+| P01-10 | Apoyos y acoples | El controlador decide apoyos y receptor del vertido (la boca más alta en alcance recibe el chorro: la probeta, no la bandeja); derrames y golpes se registran en el dominio. |
+| P01-11 | Comparación justa | Los cálculos se califican contra las lecturas del propio estudiante; la técnica se evalúa aparte. |
+| P01-12 | Etapas por evidencia | La máquina avanza por banderas de evidencia, con libertad de orden local. |
+| P01-13 | Seguridad recuperable | Propipeta contaminada y platillo mojado muestran una banda persistente con la acción para resolverlos; nunca un modal irreversible. |
+| P01-14 | Reanudación segura | `sanitizeOnResume01` interrumpe vertidos y pipeteo al restaurar un intento. |
+| P01-15 | Temperatura real | La muestra evoluciona térmicamente; la lectura registra la temperatura del instante en que se lee. |
+| P01-16 | Respuestas abiertas | Procedimiento, fuentes y preguntas se derivan a revisión docente cuando no hay criterio determinista fiable. |
+| P01-17 | Plataforma | `p01` en `LabId`; migración `0006_course_labs_p01.sql`; adaptador `p01` en la calificación del servidor. |
+
+## Práctica 7 — Enlaces y propiedades
+
+| # | Decisión | Detalle |
+|---|---|---|
+| P7-01 | Identificador | Se consultaron los `LabId` ocupados (`p01`, `p2`–`p6`, `p10`) y se asignó `p7`, libre y coincidente con el documento temático. |
+| P7-02 | Selección de sustancias | Núcleo (Cu, grafito, NaCl, sacarosa, etanol, isopropanol, ácido acético, aceite mineral, parafina, agua, heptano) y ampliación (Al, Fe, bronce, KCl, NaHCO₃, CuSO₄·5H₂O, glicerina, acetona, naftaleno); el magnesio y el sulfato de sodio quedaron fuera para no alargar la experiencia. |
+| P7-03 | Disolvente apolar | n-Heptano de composición definida en lugar del éter de petróleo; este queda bloqueado sin ficha (S14). |
+| P7-04 | Sin reglas absolutas | El resultado de cada mezcla sale del par soluto–disolvente con ficha, no de «lo semejante disuelve a lo semejante». |
+| P7-05 | Dos instrumentos | Detector de dos puntas (corriente con fuente limitada) y conductímetro (κ con celda, calibración y temperatura) con modelos distintos; la luz del detector no es una medida de κ. |
+| P7-06 | Contrastes obligatorios | Grafito (red covalente que conduce) y ácido acético (molecular, ionización parcial) están en la ruta y en la matriz. |
+| P7-07 | Pares sin ficha | Etanol, isopropanol, acetona y ácido acético con heptano, y todo lo del éter de petróleo y del NaOH en agua, quedan sin simular: se avisa en lugar de inventar un resultado. |
+| P7-08 | Observación e interpretación | Las observaciones se guardan con fases, sólido remanente, turbidez y tiempo; la interpretación del estudiante se califica aparte (no hay doble penalización). |
+| P7-09 | Seguridad | Solo virtual, sin fuego; NaOH bloqueado salvo permiso docente; guantes elegidos según la ficha (látex incompatible con hidrocarburos); frascos de disolvente tapados; equipo eléctrico mojado no enciende. |
+| P7-10 | Sensor | Factor de celda real ≠ 1 sin calibrar; la calibración ajusta al valor ELEGIDO en el equipo (un valor que no corresponde al vial sesga todo lo siguiente). Rangos y valores pendientes de la hoja técnica. |
+| P7-11 | Lecturas propias | Se evalúa el razonamiento sobre lo que el estudiante podía medir; la verdad del motor solo se muestra en Docente y después de la entrega. |
+| P7-12 | Incógnitas | Una iónica soluble y una molecular por semilla (S10 fija NaCl/sacarosa, S07 pone ácido acético); su identidad no aparece en la escena, el DOM ni las descripciones accesibles. |
+| P7-13 | Etapas por evidencia | XState con `always` y banderas fijadas (`stage:*`); ninguna exige acertar una hipótesis o una clasificación. |
+| P7-14 | Reanudación | `sanitizeOnResume07` detiene vertidos, goteros y agitación, abre el circuito, retira las puntas y deja la sonda sin medición activa; no limpia nada. |
+| P7-15 | Perfil común | `bonding-world/geometry.ts` gobierna niveles de las fases, menisco, marcas, profundidad de la sonda y la escena. |
+| P7-16 | Indeterminado | «Indeterminado» con limitación justificada recibe crédito parcial; una categoría sin dos pruebas independientes, no. |
+| P7-17 | Traslados por compartimento | Lo disuelto viaja disuelto y el sedimento como sólido (corrigió un error en el que una solución vertida volvía a «disolverse» en el vaso). |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

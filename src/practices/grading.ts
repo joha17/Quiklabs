@@ -22,6 +22,8 @@ import type { P5World } from '../simulation/stoich-world/types';
 import type { P6World } from '../simulation/calorimetry-world/types';
 import type { P10World } from '../simulation/gas-world/types';
 import { dispatchGas, elementTotals as gasElements, stepGasWorld } from '../simulation/gas-world/world';
+import type { P01World } from '../simulation/density-world/types';
+import { conservedTotals as densityTotals, dispatchP01, stepP01World } from '../simulation/density-world/world';
 import { CTX, newPracticeWorld, type PracticeOptions } from './practice-02';
 import { stageEvidence } from './practice-02/evidence';
 import { evaluate } from './practice-02/rubric';
@@ -52,10 +54,22 @@ import { p10StageEvidence } from './practice-10/evidence';
 import { evaluateP10 } from './practice-10/rubric';
 import { sanitizeOnResume10 } from './practice-10/resume';
 import type { P10Notebook } from './practice-10/notebook';
+import { newPractice01World, type Practice01Options } from './practice-01';
+import type { P07World } from '../simulation/bonding-world/types';
+import { conservedTotals as bondingTotals, dispatchP07, stepP07World } from '../simulation/bonding-world/world';
+import { newPractice07World, type Practice07Options } from './practice-07';
+import { p07StageEvidence } from './practice-07/evidence';
+import { evaluateP07 } from './practice-07/rubric';
+import { sanitizeOnResume07 } from './practice-07/resume';
+import type { P07Notebook } from './practice-07/notebook';
+import { p01StageEvidence } from './practice-01/evidence';
+import { evaluateP01 } from './practice-01/rubric';
+import { sanitizeOnResume01 } from './practice-01/resume';
+import type { P01Notebook } from './practice-01/notebook';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p2', 'p3', 'p4', 'p5', 'p6', 'p10'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p10'];
 
 interface WorldBase {
   tick: number;
@@ -85,6 +99,28 @@ interface Adapter {
 const opt = <T>(o: unknown) => o as T;
 
 const ADAPTERS: Record<GradedLab, Adapter> = {
+  p01: {
+    create: (o) => newPractice01World(opt<Practice01Options>(o)),
+    dispatch: (w, c) => void dispatchP01(w as P01World, c as never),
+    step: (w) => stepP01World(w as P01World),
+    sanitize: (w) => sanitizeOnResume01(w as P01World),
+    latch: (w, nb) => void p01StageEvidence(w as P01World, nb as P01Notebook),
+    evaluate: (w, s) => evaluateP01(w as P01World, s.notebook as P01Notebook),
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as P01World).scenarios, initialTotals: (w as P01World).initialTotals }),
+    conserved: (w) => densityTotals(w as P01World),
+    mode: (o) => opt<Practice01Options>(o).mode,
+  },
+  p7: {
+    create: (o) => newPractice07World(opt<Practice07Options>(o)),
+    dispatch: (w, c) => void dispatchP07(w as P07World, c as never),
+    step: (w) => stepP07World(w as P07World),
+    sanitize: (w) => sanitizeOnResume07(w as P07World),
+    latch: (w, nb) => void p07StageEvidence(w as P07World, nb as P07Notebook),
+    evaluate: (w, s) => evaluateP07(w as P07World, s.notebook as P07Notebook),
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as P07World).scenarios, unknowns: (w as P07World).unknowns, initialTotals: (w as P07World).initialTotals }),
+    conserved: (w) => bondingTotals(w as P07World),
+    mode: (o) => opt<Practice07Options>(o).mode,
+  },
   p2: {
     create: (o) => newPracticeWorld(opt<PracticeOptions>(o)),
     dispatch: (w, c) => void dispatchMut(w as World, c as never, CTX),
@@ -174,7 +210,7 @@ export interface GradeResult {
 
 /** El intento empezó con la semilla del identificador (`pN-<semilla base 36>-<marca>`). */
 export function seedFromAttemptId(attemptId: string): number | null {
-  const m = /^p(?:[2-6]|10)-([0-9a-z]+)-/.exec(attemptId);
+  const m = /^p(?:01|[2-7]|10)-([0-9a-z]+)-/.exec(attemptId);
   return m ? parseInt(m[1], 36) : null;
 }
 

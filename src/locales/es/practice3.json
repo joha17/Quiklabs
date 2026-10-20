@@ -11,6 +11,32 @@
     "submitted": "Intento entregado",
     "note": "Los simuladores funcionan en el navegador (WebGL 2), con ratón, pantalla táctil o teclado. No se envía información a ningún servidor.",
     "labs": {
+      "p01": {
+        "title": "Instrumentación científica y densidades",
+        "subtitle": "Reconocimiento de instrumentos y densidad del agua, de clavos y de un cilindro metálico, con su incertidumbre.",
+        "points": [
+          "Balanza, pipeta volumétrica, probeta, termómetro y pie de rey: capacidad, división e incertidumbre.",
+          "Densidad del agua a dos temperaturas con pipeta aforada y masa por diferencia.",
+          "Clavos por desplazamiento en probeta y cilindro por geometría; propagación de incertidumbres."
+        ],
+        "duration": "90–120 min",
+        "tags": {
+          "type": [
+            "Medición",
+            "Incertidumbre"
+          ],
+          "reactions": [
+            "ρ = m/V"
+          ],
+          "features": [
+            "Pipeta y propipeta",
+            "Lectura sin paralaje",
+            "Pie de rey",
+            "Baño de hielo",
+            "Modo curricular y realista"
+          ]
+        }
+      },
       "p2": {
         "title": "Clasificación de la materia y técnicas de separación",
         "subtitle": "Propiedades físicas de elementos y compuestos; separación de carbón y KNO₃.",
@@ -141,6 +167,33 @@
             "Metal incógnito",
             "Bomba calorimétrica virtual",
             "Incertidumbre"
+          ]
+        }
+      },
+      "p7": {
+        "title": "Enlaces y propiedades",
+        "subtitle": "Inferir cómo está organizada una sustancia a partir de su conducción y de cómo se mezcla con agua y con un disolvente apolar.",
+        "points": [
+          "Comparación de disolventes hasta el equilibrio: disolución, disolución parcial o dos fases.",
+          "Detector de sólidos con dos puntas y conductímetro calibrado: metal, grafito, sal seca y disoluciones.",
+          "Dos incógnitas con pruebas independientes; excepciones como el grafito y el ácido acético."
+        ],
+        "duration": "70–95 min",
+        "tags": {
+          "type": [
+            "Enlace químico",
+            "Conductividad"
+          ],
+          "reactions": [
+            "NaCl(aq) → Na⁺ + Cl⁻",
+            "CH₃COOH ⇌ H₃O⁺ + CH₃COO⁻"
+          ],
+          "features": [
+            "Detector de conducción",
+            "Conductímetro con calibración",
+            "Fases y equilibrio",
+            "Incógnitas por semilla",
+            "Modo curricular"
           ]
         }
       },

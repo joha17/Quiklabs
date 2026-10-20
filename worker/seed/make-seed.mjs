@@ -51,11 +51,13 @@ for (const [id, code, name, mail] of students) {
 }
 
 const labs = (p4Opens) => [
+  { labId: 'p01', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p2', opensAt: '2026-08-17T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p3', opensAt: '2026-09-07T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p4', opensAt: p4Opens, closesAt: '2026-12-12T05:59:00.000Z', mode: 'EVALUATION' },
   { labId: 'p5', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p6', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
+  { labId: 'p7', opensAt: '2026-10-19T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p10', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
 ];
 const courses = [
