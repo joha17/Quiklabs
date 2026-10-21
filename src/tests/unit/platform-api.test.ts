@@ -153,10 +153,15 @@ describe('roles y permisos', () => {
     const labs = (r: { json: Record<string, unknown> }) => (r.json.labs as Array<{ labId: string }>).map((l) => l.labId).sort();
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6']); // grupo 01
     expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p5', 'p6']); // grupo 02: P4 abre el 12/10
-    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']); // la docente ve todas las del curso
-    // La Práctica 7 abre el 19/10.
+    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['b01', 'p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']); // la docente ve todas las de sus cursos (Química y Biología)
+    // La Práctica 7 abre el 19/10; la 8 y la 9, el 20/10.
     p.setNow('2026-10-20T18:00:00.000Z');
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('p7');
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('p8');
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('p9');
+    // Biología General: la primera práctica (b01) abre el 20/10 para quien está matriculado en ese curso.
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('b01');
+    expect(labs(await p.loginAs(EMAIL.camila, PW.student))).not.toContain('b01');
   });
 });
 

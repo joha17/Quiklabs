@@ -5,7 +5,8 @@ import { IntroScreen } from './practice-config/IntroScreen';
 import { LabScreen } from './hud/LabScreen';
 import { ReviewScreen } from './review/ReviewScreen';
 import { Landing } from './landing/Landing';
-import { isLab, useShell, type LabId } from './shell';
+import { isLab, isLegal, useShell, type LabId } from './shell';
+import { LegalPage } from './landing/LegalPage';
 import { labAccess, usePlatform } from './platform/session';
 import { ChangePasswordScreen, LoginScreen } from './platform/LoginScreen';
 import { StudentPanel } from './platform/StudentPanel';
@@ -18,7 +19,10 @@ const P5App = lazy(() => import('./p5/P5App'));
 const P6App = lazy(() => import('./p6/P6App'));
 const P01App = lazy(() => import('./p01/P01App'));
 const P07App = lazy(() => import('./p7/P07App'));
+const P08App = lazy(() => import('./p8/P08App'));
+const P09App = lazy(() => import('./p9/P09App'));
 const P10App = lazy(() => import('./p10/P10App'));
+const B01App = lazy(() => import('./b01/B01App'));
 
 const Loading = () => <div className="scene-loading" role="status">…</div>;
 
@@ -30,7 +34,7 @@ function Go({ to }: { to: Parameters<ReturnType<typeof useShell.getState>['open'
 }
 
 /**
- * Rutas: la portada es pública; `#login` es el único acceso; `#panel` y los laboratorios exigen sesión. Un estudiante
+ * Rutas: la portada y las páginas legales son públicas; `#login` es el único acceso; `#panel` y los laboratorios exigen sesión. Un estudiante
  * solo abre las prácticas que su curso tiene abiertas, en el modo que fijó su docente.
  */
 export function App() {
@@ -42,6 +46,7 @@ export function App() {
     void refresh();
   }, [refresh]);
   if (route === null) return <Landing />;
+  if (isLegal(route)) return <LegalPage doc={route} />;
   if (status === 'unknown') return <Loading />;
   if (route === 'login') return me ? <Go to="panel" /> : <LoginScreen />;
   if (!me) return <Go to="login" />;
@@ -85,13 +90,16 @@ function LabHost({ id, mode }: { id: LabId; mode: string | null }) {
     if (id === 'p6') void import('./p6/store').then((m) => m.useP6.getState().setSettings({ mode: mode as never }));
     if (id === 'p01') void import('./p01/store').then((m) => m.useP01.getState().setSettings({ mode: mode as never }));
     if (id === 'p7') void import('./p7/store').then((m) => m.useP07.getState().setSettings({ mode: mode as never }));
+    if (id === 'p8') void import('./p8/store').then((m) => m.useP08.getState().setSettings({ mode: mode as never }));
+    if (id === 'p9') void import('./p9/store').then((m) => m.useP09.getState().setSettings({ mode: mode as never }));
     if (id === 'p10') void import('./p10/store').then((m) => m.useP10.getState().setSettings({ mode: mode as never }));
+    if (id === 'b01') void import('./b01/store').then((m) => m.useB01.getState().setSettings({ mode: mode as never }));
   }, [id, mode]);
   const back = () => open('panel');
   if (id === 'p2') return <P2App onBack={back} />;
   return (
     <Suspense fallback={<Loading />}>
-      {id === 'p01' ? <P01App onBack={back} /> : id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : id === 'p6' ? <P6App onBack={back} /> : id === 'p7' ? <P07App onBack={back} /> : <P10App onBack={back} />}
+      {id === 'p01' ? <P01App onBack={back} /> : id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : id === 'p6' ? <P6App onBack={back} /> : id === 'p7' ? <P07App onBack={back} /> : id === 'p8' ? <P08App onBack={back} /> : id === 'p9' ? <P09App onBack={back} /> : id === 'b01' ? <B01App onBack={back} /> : <P10App onBack={back} />}
     </Suspense>
   );
 }

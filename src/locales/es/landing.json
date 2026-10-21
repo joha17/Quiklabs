@@ -18,7 +18,7 @@
         "QUIK",
         "LABS"
       ],
-      "kicker": "Laboratorios virtuales de química en 3D · Química General I",
+      "kicker": "Laboratorios virtuales de ciencia en 3D",
       "scroll": "Desliza para entrar al laboratorio",
       "statement": [
         {
@@ -94,7 +94,8 @@
       "lead": "Cada práctica sigue la guía del curso: preparación, ensayo, registro y entrega. Tu docente las abre para tu grupo; las haces en modo Práctica, Guiado o Evaluación, y tu entrega queda registrada en el curso.",
       "login": "Iniciar sesión para entrar",
       "loginLabel": "Iniciar sesión para entrar: {{title}}",
-      "access": "El acceso es por licencia de tu universidad: la administración crea tu cuenta con el padrón de matrícula y puedes usar los laboratorios mientras estés matriculado en el curso."
+      "access": "El acceso es por licencia de tu universidad: la administración crea tu cuenta con el padrón de matrícula y puedes usar los laboratorios mientras estés matriculado en el curso.",
+      "more": "Y {{n}} prácticas más —densidades, estequiometría, calorimetría, enlaces, identificación de cationes…— disponibles en tu panel al iniciar sesión."
     },
     "features": {
       "kicker": "Lo que hay debajo",
@@ -148,7 +149,7 @@
       "stats": [
         {
           "n": "5",
-          "label": "prácticas completas de Química General I"
+          "label": "prácticas completas de laboratorio"
         },
         {
           "n": "+190",
@@ -214,9 +215,62 @@
       "cta": "Iniciar sesión"
     },
     "footer": {
-      "tagline": "Laboratorios virtuales de química para estudiantes de Química General I.",
-      "privacy": "Funciona en tu navegador. Tus intentos se guardan solo en este dispositivo.",
-      "copy": "© {{year}} Quiklabs"
+      "about": "Software educativo para la ciencia y la tecnología. Diseñamos laboratorios virtuales en 3D y plataformas de aprendizaje donde cada resultado sale de un modelo científico: los estudiantes practican, se equivocan sin riesgo y llegan al laboratorio real sabiendo qué hacer.",
+      "quickTitle": "Enlaces rápidos",
+      "quick": [
+        {
+          "label": "Laboratorios",
+          "href": "#labs"
+        },
+        {
+          "label": "Cómo funciona",
+          "href": "#how"
+        },
+        {
+          "label": "Para docentes",
+          "href": "#teachers"
+        },
+        {
+          "label": "Iniciar sesión",
+          "href": "#login"
+        },
+        {
+          "label": "Contacto",
+          "href": "#contacto"
+        }
+      ],
+      "solutionsTitle": "Soluciones",
+      "solutions": [
+        {
+          "label": "Laboratorios virtuales 3D",
+          "href": "#labs"
+        },
+        {
+          "label": "Plataforma docente y calificación",
+          "href": "#teachers"
+        },
+        {
+          "label": "Licencias institucionales",
+          "href": "mailto:"
+        },
+        {
+          "label": "Simuladores STEM a medida",
+          "href": "mailto:"
+        }
+      ],
+      "contactTitle": "Contacto",
+      "contact": {
+        "email": "contacto@quiklabs.baconpunch.xyz",
+        "phone": "",
+        "whatsapp": "",
+        "location": ""
+      },
+      "whatsapp": "WhatsApp",
+      "demo": "Solicitar una demostración",
+      "demoSubject": "Solicitud de demostración de Quiklabs",
+      "legalTitle": "Políticas",
+      "privacy": "Funciona en tu navegador: los intentos en curso se guardan en tu dispositivo y solo las entregas llegan a tu curso.",
+      "copy": "© {{year}} Quiklabs · Software educativo para ciencia y tecnología"
     },
     "sim": {
       "title": [
@@ -245,6 +299,144 @@
       "more": "Agregar 0,5 mL",
       "auto": "Seguir el scroll",
       "live": "NaOH {{ml}} mL, pH {{ph}}, {{color}}"
+    },
+    "legal": {
+      "kicker": "Políticas de Quiklabs",
+      "back": "Volver al inicio",
+      "updated": "Última actualización: {{date}}",
+      "privacidad": {
+        "short": "Privacidad",
+        "title": "Política de privacidad",
+        "updated": "20 de octubre de 2026",
+        "lead": "Quiklabs se usa dentro de cursos de instituciones educativas que contratan una licencia. Esta política explica qué datos tratamos, para qué y con quién se comparten.",
+        "sections": [
+          {
+            "h": "Qué datos tratamos",
+            "p": [
+              "Datos de cuenta: nombre, correo institucional, código de estudiante o docente, rol y cursos. Los carga la administración de tu institución a partir del padrón de matrícula; no hay registro libre.",
+              "Datos de uso del laboratorio: los intentos en curso se guardan en el almacenamiento local de tu navegador. Cuando entregas una práctica, se envían a tu curso la calificación, la libreta, las lecturas y el registro de acciones del intento.",
+              "Datos técnicos mínimos para mantener la sesión y la seguridad del servicio (por ejemplo, la cookie de sesión y los intentos fallidos de inicio de sesión)."
+            ]
+          },
+          {
+            "h": "Para qué los usamos",
+            "p": [
+              "Para darte acceso a las prácticas que tu curso tiene abiertas, registrar tus entregas, calcular y mostrar las calificaciones a ti y a tu docente, y proteger las cuentas.",
+              "No usamos tus datos para publicidad, no hacemos perfiles comerciales y no vendemos ni cedemos datos a terceros."
+            ]
+          },
+          {
+            "h": "Quién puede verlos",
+            "p": [
+              "Tu docente ve las entregas y calificaciones de su grupo; la administración de tu institución gestiona las cuentas y la licencia. El servicio se aloja en una infraestructura de nube que actúa como proveedor técnico."
+            ]
+          },
+          {
+            "h": "Cuánto tiempo se conservan",
+            "p": [
+              "Mientras dure la matrícula y la licencia de la institución, o el plazo que la institución determine. Los intentos guardados en tu navegador puedes borrarlos tú desde el propio laboratorio o limpiando los datos del sitio."
+            ]
+          },
+          {
+            "h": "Tus derechos",
+            "p": [
+              "Puedes solicitar acceso, rectificación o eliminación de tus datos a la administración de tu institución o escribiéndonos a la dirección de contacto del pie de página."
+            ]
+          }
+        ]
+      },
+      "terminos": {
+        "short": "Términos de uso",
+        "title": "Términos de uso",
+        "updated": "20 de octubre de 2026",
+        "lead": "Al usar Quiklabs aceptas estas condiciones. El acceso se ofrece por licencia institucional y es personal.",
+        "sections": [
+          {
+            "h": "Acceso y cuentas",
+            "p": [
+              "Las cuentas las crea la institución. Son personales e intransferibles: no compartas tu contraseña. El acceso dura mientras estés matriculado y la licencia esté vigente."
+            ]
+          },
+          {
+            "h": "Uso aceptable",
+            "p": [
+              "Usa la plataforma con fines educativos. No intentes acceder a cuentas o datos ajenos, alterar calificaciones, automatizar entregas ni afectar el funcionamiento del servicio."
+            ]
+          },
+          {
+            "h": "Naturaleza del simulador",
+            "p": [
+              "Los laboratorios son simulaciones con modelos científicos curriculares: sirven para preparar y repasar, pero no sustituyen la capacitación presencial ni las normas de seguridad de tu laboratorio.",
+              "Llamas, reacciones y procedimientos se representan de forma virtual. No reproduzcas fuera del simulador procedimientos marcados como virtuales."
+            ]
+          },
+          {
+            "h": "Propiedad intelectual",
+            "p": [
+              "El software, los modelos, los textos y los gráficos de Quiklabs están protegidos. Tus respuestas y entregas son tuyas; las usamos solo para prestarte el servicio dentro de tu curso."
+            ]
+          },
+          {
+            "h": "Disponibilidad y cambios",
+            "p": [
+              "Trabajamos para que el servicio esté disponible y seguro, pero puede haber interrupciones por mantenimiento. Podemos actualizar estos términos; la fecha de la última versión figura arriba."
+            ]
+          }
+        ]
+      },
+      "cookies": {
+        "short": "Cookies",
+        "title": "Política de cookies",
+        "updated": "20 de octubre de 2026",
+        "lead": "Quiklabs usa solo lo imprescindible para funcionar. No hay cookies de publicidad ni de analítica de terceros.",
+        "sections": [
+          {
+            "h": "Cookie de sesión",
+            "p": [
+              "Al iniciar sesión se crea una única cookie técnica (ql_session), protegida (HttpOnly, SameSite=Lax) y válida por unas 8 horas. Sin ella no es posible mantener la sesión."
+            ]
+          },
+          {
+            "h": "Almacenamiento local",
+            "p": [
+              "El navegador guarda tus intentos en curso, tu preferencia de tema claro u oscuro y los ajustes de cada práctica. Estos datos no salen de tu dispositivo hasta que entregas."
+            ]
+          },
+          {
+            "h": "Cómo gestionarlas",
+            "p": [
+              "Puedes borrar la cookie y el almacenamiento local desde la configuración de tu navegador. Si lo haces, se cerrará tu sesión y perderás los intentos no entregados."
+            ]
+          }
+        ]
+      },
+      "accesibilidad": {
+        "short": "Accesibilidad",
+        "title": "Declaración de accesibilidad",
+        "updated": "20 de octubre de 2026",
+        "lead": "Queremos que cualquier estudiante pueda hacer las prácticas. Nuestro objetivo es cumplir las pautas WCAG 2.1 nivel AA.",
+        "sections": [
+          {
+            "h": "Qué ofrecemos",
+            "p": [
+              "Cada gesto del laboratorio 3D tiene una alternativa con teclado y con el panel de acciones; las lecturas se describen en texto y el color nunca es la única evidencia.",
+              "Subtítulos para los sonidos, modo de movimiento reducido, escala de la interfaz y temas claro y oscuro. Las pantallas se revisan con pruebas automáticas de accesibilidad."
+            ]
+          },
+          {
+            "h": "Limitaciones conocidas",
+            "p": [
+              "Algunas vistas 3D pueden ser exigentes en equipos antiguos; la calidad gráfica se ajusta sola o desde los ajustes."
+            ]
+          },
+          {
+            "h": "Contacto",
+            "p": [
+              "Si encuentras una barrera de accesibilidad, escríbenos a la dirección de contacto del pie de página indicando la práctica y el problema."
+            ]
+          }
+        ]
+      }
     }
   }
 }

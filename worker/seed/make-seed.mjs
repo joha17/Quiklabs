@@ -58,12 +58,16 @@ const labs = (p4Opens) => [
   { labId: 'p5', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p6', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p7', opensAt: '2026-10-19T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
+  { labId: 'p8', opensAt: '2026-10-20T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
+  { labId: 'p9', opensAt: '2026-10-20T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
   { labId: 'p10', opensAt: '2026-10-05T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' },
 ];
 const courses = [
   { id: 'c_qg1_01', code: 'QU-0100', name: 'Química General I', term: '2026-II', group: '01', teacherIds: ['u_doc01'], startsAt: '2026-08-10T06:00:00.000Z', endsAt: '2026-12-12T05:59:00.000Z', labs: labs('2026-09-28T06:00:00.000Z'), archived: false },
   { id: 'c_qg1_02', code: 'QU-0100', name: 'Química General I', term: '2026-II', group: '02', teacherIds: ['u_doc02'], startsAt: '2026-08-10T06:00:00.000Z', endsAt: '2026-12-12T05:59:00.000Z', labs: labs('2026-10-12T06:00:00.000Z'), archived: false },
   { id: 'c_qg1_2026i', code: 'QU-0100', name: 'Química General I', term: '2026-I', group: '01', teacherIds: ['u_doc01'], startsAt: '2026-03-02T06:00:00.000Z', endsAt: '2026-07-04T05:59:00.000Z', labs: [], archived: false },
+  // Biología General: primer curso con prácticas de Biología (b01…).
+  { id: 'c_bg1_01', code: 'BI-0100', name: 'Biología General I', term: '2026-II', group: '01', teacherIds: ['u_doc01'], startsAt: '2026-08-10T06:00:00.000Z', endsAt: '2026-12-12T05:59:00.000Z', labs: [{ labId: 'b01', opensAt: '2026-10-20T06:00:00.000Z', closesAt: '2026-12-12T05:59:00.000Z', mode: 'PRACTICE' }], archived: false },
 ];
 
 const enr = (id, courseId, studentId, status = 'active') => ({ id, courseId, studentId, status, enrolledAt: '2026-08-03T15:00:00.000Z', updatedAt: '2026-08-03T15:00:00.000Z' });
@@ -74,6 +78,7 @@ const enrollments = [
   enr('e09', 'c_qg1_2026i', 'u_est09', 'completed'),
   // Mateo se retiró del grupo 01.
   enr('e10', 'c_qg1_01', 'u_est10', 'withdrawn'),
+  enr('e11', 'c_bg1_01', 'u_est01'), enr('e12', 'c_bg1_01', 'u_est03'),
 ];
 
 const sub = (id, userId, courseId, labId, score, at, mode = 'PRACTICE') => ({

@@ -1,0 +1,10 @@
+/* Práctica 8: piezas propias (mismos tokens de color y tipografía que las demás prácticas). */
+.canvas-wrap.p8 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+.instruments-bar .instr.unstable strong { color: #f0c36e; }
+.nb-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.nb-table th, .nb-table td { border-bottom: 1px solid var(--line, #d5dbe1); padding: 0.25rem 0.3rem; text-align: left; vertical-align: middle; }
+.nb-table input { width: 100%; min-width: 3.2rem; }
+@media print {
+  .hud, .actions, .zoom-ctrl, .instruments-bar, .canvas-wrap { display: none !important; }
+  .drawer { position: static !important; width: auto !important; max-height: none !important; }
+}

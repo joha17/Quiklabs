@@ -27,7 +27,7 @@ export interface Gradebook {
   rows: Array<{ student: RosterRow; cells: Record<string, { best: number; attempts: number; lastAt: string } | null> }>;
 }
 
-export const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p10: 'menu.labs.p10.title' };
+export const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p8: 'menu.labs.p8.title', p9: 'menu.labs.p9.title', p10: 'menu.labs.p10.title', b01: 'menu.labs.b01.title' };
 const MODES: LabMode[] = ['PRACTICE', 'GUIDED', 'EVALUATION'];
 
 /** Tabla de calificaciones (también la usa el administrador). */
@@ -45,7 +45,8 @@ export function GradebookTable({ gb }: { gb: Gradebook }) {
     <>
       <div className="pf-row-end"><button type="button" className="btn small" onClick={exportCsv}>{t('pf.teacher.export')}</button></div>
       {gb.rows.length === 0 ? <p className="pf-empty">{t('pf.teacher.noEnrolled')}</p> : (
-        <div className="table-scroll">
+        // Con muchas prácticas la tabla se desplaza: el contenedor debe poder enfocarse con el teclado.
+        <div className="table-scroll" tabIndex={0} role="region" aria-labelledby="pf-t-gb">
           <table className="pf-table">
             <thead>
               <tr>
@@ -203,7 +204,7 @@ export function TeacherPanel() {
       <section className="pf-section" aria-labelledby="pf-t-try">
         <h2 id="pf-t-try">{t('pf.labs.title')}</h2>
         <p className="pf-muted">{t('pf.labs.preview', { role: t('pf.role.teacher').toLowerCase() })}</p>
-        <LabCards />
+        <LabCards grouped />
       </section>
     </PanelShell>
   );

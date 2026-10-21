@@ -1,6 +1,6 @@
 {
   "menu": {
-    "title": "Laboratorios virtuales de Química General I",
+    "title": "Laboratorios virtuales",
     "lead": "Elige la práctica de laboratorio que vas a realizar. Cada una guarda su propio intento en este navegador.",
     "listLabel": "Laboratorios disponibles",
     "practice": "Práctica {{n}}",
@@ -9,7 +9,7 @@
     "back": "Laboratorios",
     "inProgress": "Intento guardado ({{mode}}, {{min}} min)",
     "submitted": "Intento entregado",
-    "note": "Los simuladores funcionan en el navegador (WebGL 2), con ratón, pantalla táctil o teclado. No se envía información a ningún servidor.",
+    "note": "Los simuladores funcionan en el navegador (WebGL 2), con ratón, pantalla táctil o teclado. Los intentos en curso quedan en tu dispositivo; solo tus entregas llegan al curso.",
     "labs": {
       "p01": {
         "title": "Instrumentación científica y densidades",
@@ -197,6 +197,58 @@
           ]
         }
       },
+      "p8": {
+        "title": "Síntesis orgánica comparativa",
+        "subtitle": "Preparar, separar y analizar un éster por una de tres rutas: acetato de isoamilo, aspirina o salicilato de metilo.",
+        "points": [
+          "Reactivo limitante con las cantidades realmente dispensadas y la pureza de cada ficha.",
+          "Fischer reversible con reflujo o acetilación con H₃PO₄; el catalizador cambia la velocidad, no el equilibrio.",
+          "Embudo de separación, secado y fracciones o cristalización y filtración al vacío; pureza medida, no supuesta."
+        ],
+        "duration": "70–110 min",
+        "tags": {
+          "type": [
+            "Química orgánica",
+            "Estequiometría"
+          ],
+          "reactions": [
+            "C₅H₁₂O + C₂H₄O₂ ⇌ C₇H₁₄O₂ + H₂O",
+            "C₇H₆O₃ + C₄H₆O₃ → C₉H₈O₄ + C₂H₄O₂"
+          ],
+          "features": [
+            "Tres rutas",
+            "Reflujo y extracción",
+            "Filtración al vacío",
+            "Analizador de pureza",
+            "Modo curricular"
+          ]
+        }
+      },
+      "p9": {
+        "title": "Identificación de cationes",
+        "subtitle": "Huellas de los iones: separar Sr²⁺, Fe³⁺ y K⁺ con precipitados y centrífuga, y confirmar con la emisión a la llama.",
+        "points": [
+          "Atlas de emisión con controles y blanco: el Na enmascara el violeta del K y la luz local cambia el contraste.",
+          "Asa, vidrio de reloj (solo representación virtual) y soporte refractario dentro de una campana con extracción y mampara.",
+          "Marcha SO₄²⁻ → OH⁻ con centrífuga equilibrada y decantación; la identificación depende de la muestra de cada intento."
+        ],
+        "duration": "70–100 min",
+        "tags": {
+          "type": [
+            "Análisis cualitativo",
+            "Espectroscopía"
+          ],
+          "reactions": [
+            "Sr²⁺ + SO₄²⁻ → SrSO₄(s)",
+            "Fe³⁺ + 3 OH⁻ → Fe(OH)₃(s)"
+          ],
+          "features": [
+            "Llama virtual en campana 3D",
+            "Centrífuga y decantación",
+            "Incógnitas por semilla"
+          ]
+        }
+      },
       "p10": {
         "title": "Gases ideales y ley de Boyle",
         "subtitle": "Constante R con CO₂ recogido sobre agua y relación presión–volumen con un sensor de presión.",
@@ -222,6 +274,30 @@
             "Modo curricular y realista"
           ]
         }
+      },
+      "b01": {
+        "title": "Del preparado a la observación",
+        "subtitle": "Microscopía y estereoscopía: montaje húmedo de Elodea, microscopio compuesto 4X → 40X, láminas fijas y estereoscopio con hoja e insecto.",
+        "points": [
+          "Preparación completa: fragmento, gota, cubreobjetos bajado en ángulo, burbujas y su corrección.",
+          "Cada mando por separado: pinza, platina X/Y, macro y micro, revólver, condensador, diafragma y luz; comprobación lateral antes de acercar.",
+          "Caja de láminas fijas con devolución a su ranura y estereoscopio con luz incidente, zoom y enfoque."
+        ],
+        "duration": "70–100 min",
+        "tags": {
+          "type": [
+            "Biología celular",
+            "Microscopía"
+          ],
+          "reactions": [
+            "Aumento = ocular × objetivo"
+          ],
+          "features": [
+            "Microscopio 3D",
+            "Estereoscopio",
+            "Ilustraciones didácticas"
+          ]
+        }
       }
     },
     "tagsLabel": "Características del laboratorio",
@@ -229,7 +305,17 @@
       "type": "Tipo",
       "reactions": "Reacción",
       "features": "Funcionalidad"
-    }
+    },
+    "subject": {
+      "chemistry": "Química",
+      "biology": "Biología",
+      "physics": "Física"
+    },
+    "subjectAll": "Todas las áreas",
+    "subjectFilter": "Filtrar por área",
+    "subjectCount_one": "{{count}} laboratorio",
+    "subjectCount_other": "{{count}} laboratorios",
+    "subjectList": "Laboratorios de {{subject}}"
   },
   "p3": {
     "app": {

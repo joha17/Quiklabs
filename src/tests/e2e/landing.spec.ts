@@ -13,8 +13,9 @@ test('la página de inicio presenta Quiklabs y lleva a los laboratorios', async 
   await expect(page.getByText('construye', { exact: true })).toBeVisible();
   // La escena 3D de fondo se dibuja (lienzo con tamaño).
   await expect(page.locator('canvas.lp-stage')).toBeVisible();
-  // Las tres prácticas están en la portada, pero no se entra directo: el botón lleva a iniciar sesión.
-  for (const name of [/Clasificación/, /Mechero/, /Reacciones químicas/]) {
+  // La portada muestra solo tres prácticas variadas; no se entra directo: el botón lleva a iniciar sesión.
+  await expect(page.getByRole('button', { name: /Iniciar sesión para entrar:/ })).toHaveCount(3);
+  for (const name of [/Mechero/, /Síntesis orgánica/, /Gases ideales/]) {
     await expect(page.getByRole('button', { name: new RegExp(`Iniciar sesión para entrar: ${name.source}`) })).toBeAttached();
   }
   await expect(page.getByRole('button', { name: /Entrar al laboratorio:/ })).toHaveCount(0);
@@ -40,7 +41,7 @@ test('la página de inicio presenta Quiklabs y lleva a los laboratorios', async 
   const ph = -Math.log10((d + Math.sqrt(d * d + 4e-14)) / 2);
   await expect(card.locator('dd').nth(1)).toHaveText(ph.toFixed(2).replace('.', ','));
   // Desde la tarjeta se llega al login; con la cuenta docente se entra al panel y de ahí al laboratorio.
-  await page.getByRole('button', { name: /Iniciar sesión para entrar: Reacciones químicas/ }).click();
+  await page.getByRole('button', { name: /Iniciar sesión para entrar: Mechero/ }).click();
   await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
   await page.getByLabel('Correo institucional').fill(ACCOUNTS.teacher.email);
   await page.getByLabel('Contraseña', { exact: true }).fill(ACCOUNTS.teacher.password);
@@ -101,4 +102,21 @@ test('cada rol entra a su panel', async ({ page }) => {
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
   }
+});
+
+test('el pie del sitio tiene enlaces, contacto y políticas; las páginas legales son públicas y accesibles', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const footer = page.locator('footer#contacto');
+  for (const h of ['Enlaces rápidos', 'Soluciones', 'Contacto']) await expect(footer.getByRole('heading', { name: h })).toBeVisible();
+  await expect(footer.getByRole('link', { name: 'Solicitar una demostración' })).toHaveAttribute('href', /^mailto:/);
+  for (const [name, title] of [['Privacidad', 'Política de privacidad'], ['Términos de uso', 'Términos de uso'], ['Cookies', 'Política de cookies'], ['Accesibilidad', 'Declaración de accesibilidad']]) {
+    await page.goto('/');
+    await page.locator('footer#contacto').getByRole('link', { name, exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious').map((v) => v.id)).toEqual([]);
+  }
+  await page.getByRole('link', { name: /Volver al inicio/ }).click();
+  await expect(page).toHaveURL(/\/$/);
 });

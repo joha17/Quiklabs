@@ -44,6 +44,18 @@ vi.mock('../../simulation/bonding-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/bonding-world/world')>();
   return { ...m, dispatchP07: wrap(m.dispatchP07) };
 });
+vi.mock('../../simulation/organic-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/organic-world/world')>();
+  return { ...m, dispatchP08: wrap(m.dispatchP08) };
+});
+vi.mock('../../simulation/cation-analysis-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/cation-analysis-world/world')>();
+  return { ...m, dispatchP09: wrap(m.dispatchP09) };
+});
+vi.mock('../../simulation/optical-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/optical-world/world')>();
+  return { ...m, dispatchB01: wrap(m.dispatchB01) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -263,6 +275,63 @@ describe('repetición determinista — Práctica 7', () => {
     expect(graded.durationS).toBeGreaterThan(200);
     expect(graded.evaluation.total).toBeGreaterThan(0.9);
   });
+});
+
+describe('repetición determinista — Práctica 8', () => {
+  for (const route of ['ISO', 'ASA', 'MS'] as const) {
+    it(`P8 ${route}: síntesis, aislamiento y análisis con reanudación tras dosificar, calentar y enfriar`, async () => {
+      const h08 = await import('../helpers08');
+      const { sanitizeOnResume08 } = await import('../../practices/practice-08/resume');
+      const opts = { mode: 'PRACTICE' as const, seed: 8008, route };
+      let nb: unknown = null;
+      const r = record('p8', opts, () => h08.world08(opts), (w, resume) => {
+        const out = h08.idealAttempt(route, 8008, [], resume, w);
+        nb = out.nb;
+        return out.w;
+      }, sanitizeOnResume08);
+      const { graded } = await verify('p8', r, nb);
+      expect(graded.durationS).toBeGreaterThan(1000);
+      expect(graded.evaluation.total).toBeGreaterThan(0.9);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Práctica 9', () => {
+  it('P9: atlas, soportes, marcha con centrífuga y confirmación con reanudación entre estaciones', async () => {
+    const h09 = await import('../helpers09');
+    const { sanitizeOnResume09 } = await import('../../practices/practice-09/resume');
+    const opts = { mode: 'PRACTICE' as const, seed: 9009, scenarios: [] };
+    let nb: unknown = null;
+    const r = record('p9', opts, () => h09.world09(opts), (w, resume) => {
+      const out = h09.idealAttempt09(9009, [], resume, w);
+      nb = out.nb;
+      return out.w;
+    }, sanitizeOnResume09);
+    const { graded } = await verify('p9', r, nb);
+    expect(graded.durationS).toBeGreaterThan(200);
+    expect(graded.evaluation.total).toBeGreaterThan(0.9);
+  }, 300000);
+});
+
+describe('repetición determinista — Biología B01', () => {
+  for (const seed of [1101, 7, 2026]) {
+    it(`B01 semilla ${seed}: montaje, microscopio, lámina fija y estereoscopio con reanudación entre estaciones`, async () => {
+      const hb = await import('../helpersB01');
+      const { sanitizeOnResumeB01 } = await import('../../practices/practice-b01/resume');
+      const { emptyB01Notebook } = await import('../../practices/practice-b01/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b01', opts, () => hb.worldB01(opts), (w, resume) => {
+        const out = hb.idealRouteB01(w, resume);
+        const n = emptyB01Notebook(`b01-${seed.toString(36)}-x`);
+        hb.fillNotebookB01(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB01);
+      const { graded } = await verify('b01', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.9);
+    }, 300000);
+  }
 });
 
 describe('calificación en el servidor', () => {

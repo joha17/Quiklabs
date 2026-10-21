@@ -166,6 +166,30 @@ con blanco, NaCl en dos concentraciones, sacarosa y ácido acético, y dos incó
 demostración automática (`#p7`). Detalles, supuestos pendientes de validación y accesibilidad:
 [docs/PRACTICA7.md](docs/PRACTICA7.md).
 
+## Práctica 8 — Síntesis orgánica comparativa
+
+Un éster por una de tres rutas fijadas en el intento: acetato de isoamilo y salicilato de metilo por Fischer reversible
+con reflujo, embudo de separación, secado y fracciones, o ácido acetilsalicílico por acetilación con ácido fosfórico,
+cristalización y filtración al vacío. Limitante con lo realmente dispensado, pureza medida (no supuesta), rendimientos
+aparente y corregido, 60 errores con consecuencia causal y demostración automática (`#p8`). Detalles y supuestos
+pendientes de revisión científica: [docs/PRACTICA8.md](docs/PRACTICA8.md).
+
+## Práctica 9 — Huellas de los iones
+
+Identificar Sr²⁺, Fe³⁺ y K⁺ en una muestra codificada que cambia con la semilla: atlas de emisión con controles, blanco
+e interferencia Na/K; asa, vidrio de reloj (solo representación virtual) y refractario dentro de una campana 3D con
+extracción, mampara y luz local; marcha con sulfato y álcali, centrífuga equilibrada y decantación; confirmación del K⁺
+con la vista espectral. 50 errores con consecuencia causal y demostración automática (`#p9`). Detalles y supuestos
+pendientes de revisión científica: [docs/PRACTICA9.md](docs/PRACTICA9.md).
+
+## Biología B01 — Del preparado a la observación
+
+Primera práctica de Biología General: montaje húmedo de *Elodea* (gota, cubreobjetos inclinado, burbujas y su
+corrección), microscopio compuesto con cada mando por separado (pinza, platina X/Y, macro y micro, revólver 4X → 40X,
+condensador, diafragma y luz), caja de láminas fijas y estereoscopio con hoja e insecto. Imágenes del ocular ilustradas
+(no microfotografías), 68 errores con consecuencia causal y demostración automática (`#b01`). Detalles y parámetros
+pendientes de calibración: [docs/BIOLOGIA_B01.md](docs/BIOLOGIA_B01.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza

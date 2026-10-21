@@ -66,10 +66,31 @@ import { p01StageEvidence } from './practice-01/evidence';
 import { evaluateP01 } from './practice-01/rubric';
 import { sanitizeOnResume01 } from './practice-01/resume';
 import type { P01Notebook } from './practice-01/notebook';
+import type { P08World } from '../simulation/organic-world/types';
+import { conservedTotals08, dispatchP08, stepP08World } from '../simulation/organic-world/world';
+import { newPractice08World, type Practice08Options } from './practice-08';
+import { p08StageEvidence } from './practice-08/evidence';
+import { evaluateP08 } from './practice-08/rubric';
+import { sanitizeOnResume08 } from './practice-08/resume';
+import type { P08Notebook } from './practice-08/notebook';
+import type { P09World } from '../simulation/cation-analysis-world/types';
+import { conservedTotals09, dispatchP09, stepP09World } from '../simulation/cation-analysis-world/world';
+import { newPractice09World, type Practice09Options } from './practice-09';
+import { p09StageEvidence } from './practice-09/evidence';
+import { evaluateP09 } from './practice-09/rubric';
+import { sanitizeOnResume09 } from './practice-09/resume';
+import type { P09Notebook } from './practice-09/notebook';
+import type { OpticalWorld } from '../simulation/optical-world/types';
+import { conservedB01, dispatchB01, stepB01World } from '../simulation/optical-world/world';
+import { newPracticeB01World, type PracticeB01Options } from './practice-b01';
+import { b01StageEvidence } from './practice-b01/evidence';
+import { evaluateB01 } from './practice-b01/rubric';
+import { sanitizeOnResumeB01 } from './practice-b01/resume';
+import type { B01Notebook } from './practice-b01/notebook';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p10'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01'];
 
 interface WorldBase {
   tick: number;
@@ -176,6 +197,30 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     conserved: () => ({}),
     mode: (o) => opt<Practice6Options>(o).mode,
   },
+  p8: {
+    create: (o) => newPractice08World(opt<Practice08Options>(o)),
+    dispatch: (w, c) => void dispatchP08(w as P08World, c as never),
+    step: (w) => stepP08World(w as P08World),
+    sanitize: (w) => sanitizeOnResume08(w as P08World),
+    latch: (w, nb) => void p08StageEvidence(w as P08World, nb as P08Notebook),
+    evaluate: (w, s) => evaluateP08(w as P08World, s.notebook as P08Notebook),
+    // La ruta es inmutable dentro del intento (§17.2).
+    fixed: (w) => ({ seed: w.seed, params: w.params, route: (w as P08World).route, scenarios: (w as P08World).scenarios, initialElements: (w as P08World).initialElements }),
+    conserved: (w) => conservedTotals08(w as P08World),
+    mode: (o) => opt<Practice08Options>(o).mode,
+  },
+  p9: {
+    create: (o) => newPractice09World(opt<Practice09Options>(o)),
+    dispatch: (w, c) => void dispatchP09(w as P09World, c as never),
+    step: (w) => stepP09World(w as P09World),
+    sanitize: (w) => sanitizeOnResume09(w as P09World),
+    latch: (w, nb) => void p09StageEvidence(w as P09World, nb as P09Notebook),
+    evaluate: (w, s) => evaluateP09(w as P09World, s.notebook as P09Notebook),
+    // La composición de la incógnita se fija con el escenario antes de la semilla (§7) y no puede cambiar.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as P09World).scenarios, unknown: (w as P09World).unknown, initialElements: (w as P09World).initialElements }),
+    conserved: (w) => conservedTotals09(w as P09World),
+    mode: (o) => opt<Practice09Options>(o).mode,
+  },
   p10: {
     create: (o) => newPractice10World(opt<Practice10Options>(o)),
     dispatch: (w, c) => void dispatchGas(w as P10World, c as never),
@@ -186,6 +231,18 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as P10World).scenarios, initialElements: (w as P10World).initialElements }),
     conserved: (w) => gasElements(w as P10World),
     mode: (o) => opt<Practice10Options>(o).mode,
+  },
+  b01: {
+    create: (o) => newPracticeB01World(opt<PracticeB01Options>(o)),
+    dispatch: (w, c) => void dispatchB01(w as OpticalWorld, c as never),
+    step: (w) => stepB01World(w as OpticalWorld),
+    sanitize: (w) => sanitizeOnResumeB01(w as OpticalWorld),
+    latch: (w, nb) => void b01StageEvidence(w as OpticalWorld, nb as B01Notebook),
+    evaluate: (w, s) => evaluateB01(w as OpticalWorld, s.notebook as B01Notebook),
+    // La asignación de activos (manifiestos versionados) se congela con el intento (§4.3).
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as OpticalWorld).scenarios, assignment: (w as OpticalWorld).assignment }),
+    conserved: (w) => conservedB01(w as OpticalWorld),
+    mode: (o) => opt<PracticeB01Options>(o).mode,
   },
 };
 
@@ -208,9 +265,9 @@ export interface GradeResult {
   durationS: number;
 }
 
-/** El intento empezó con la semilla del identificador (`pN-<semilla base 36>-<marca>`). */
+/** El intento empezó con la semilla del identificador (`pN-` o `bNN-<semilla base 36>-<marca>`). */
 export function seedFromAttemptId(attemptId: string): number | null {
-  const m = /^p(?:01|[2-7]|10)-([0-9a-z]+)-/.exec(attemptId);
+  const m = /^(?:p(?:01|[2-9]|10)|b(?:0[1-9]|10))-([0-9a-z]+)-/.exec(attemptId);
   return m ? parseInt(m[1], 36) : null;
 }
 

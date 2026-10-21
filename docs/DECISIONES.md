@@ -184,6 +184,66 @@ Registro de ambigüedades resueltas eligiendo la opción más simple y segura (�
 | P7-16 | Indeterminado | «Indeterminado» con limitación justificada recibe crédito parcial; una categoría sin dos pruebas independientes, no. |
 | P7-17 | Traslados por compartimento | Lo disuelto viaja disuelto y el sedimento como sólido (corrigió un error en el que una solución vertida volvía a «disolverse» en el vaso). |
 
+## Práctica 8 — Síntesis orgánica comparativa
+
+| # | Decisión | Detalle |
+|---|---|---|
+| P8-01 | Identificador | Ocupados `p01`, `p2`–`p7` y `p10`; se asignó `p8` (no se asumió por el título de la guía). Migración `0008_course_labs_p8.sql`. |
+| P8-02 | Tres rutas, una práctica | ISO (predeterminada), ASA y MS son configuración de `p8`; la ruta se fija al crear el intento y es parte del estado fijo que verifica el servidor. `compareTwo` = dos intentos independientes. |
+| P8-03 | Catalizador de ASA | La guía escribe «ácido sulfúrico (H3PO4)»: se usa ácido FOSFÓRICO (85 % m/m declarado en la ficha); el H₂SO₄ está en la mesada como distractor y se rechaza (ORG25). |
+| P8-04 | Pureza ≠ masa | Rendimiento aparente (sin recortar), pureza solo con ensayo del analizador, rendimiento corregido solo con esa pureza; el intervalo de fusión indica impurezas pero no da un porcentaje. |
+| P8-05 | Fischer reversible | Modelo cinético con K_eq = k_f/k_r; el agua (inicial, del catalizador o del lote) baja el avance; el catalizador cambia la velocidad, nunca K_eq ni la masa teórica. |
+| P8-06 | Constantes curriculares | k_ref, Ea, K_eq, K_D, S_ASA(T), capacidad del desecante y ventanas de destilación son didácticos (`scientificModel: 'curricular-calibrated'`); tiempos elegidos para 70–110 min con aceleración. |
+| P8-07 | Conservación por átomos | Las masas molares de la tabla §3.2 (PubChem) se usan tal cual para reproducir §8.1 con 2·10⁻⁵ g; la conservación se audita por elementos C/H/O/Na/P/S (las masas de tabla no suman exactamente las atómicas). |
+| P8-08 | Compartimentos de pérdida | Mesada, campana (vapores y CO₂), residuo del analizador, película exterior y herramientas: nada se borra; la limpieza de un derrame lo lleva al residuo sólido. |
+| P8-09 | Sin llama | Todas las rutas calientan con placa y baño; el mechero existe para que el intento de encenderlo con inflamables abiertos sea un bloqueo crítico (ORG45). |
+| P8-10 | Fases | Hay dos fases solo con un orgánico poco soluble y agua en exceso respecto de la saturación y de los codisolventes; la mezcla de reacción con mucho ácido acético o metanol es homogénea. |
+| P8-11 | Embudo | La llave descarga en el recipiente bajo el vástago (o el elegido en el panel); pasar la interfase se detecta solo si había una capa real abajo (> 0,3 mL). El CO₂ del bicarbonato presuriza el embudo tapado: agitar sin ventear bloquea (ORG39). |
+| P8-12 | Accidente consumado | Volcar el balón con su contenido (sin aro ni pinza) es el único incidente que anula la seguridad; los bloqueos preventivos se evalúan como conducta. |
+| P8-13 | Reanudación | `sanitizeOnResume08` deja nada en la mano, detiene vertidos, goteros, agitación manual y la llave; la placa, el agitador, el vacío y la estufa conservan su estado (apagarlos cambiaría la química). |
+| P8-14 | Libreta | Cuadros A/B/C y 10 actividades; las celdas instrumentales llevan `readingId` y `attemptId` (ORG60); las preguntas abiertas quedan para la docente. |
+| P8-15 | Demostración | Usa el controlador y los botones de los equipos (lo mismo que el panel accesible); acelera solo las esperas pasivas; un error deliberado no destructivo (paralaje) y su corrección; su cinta se repite por el dominio puro. |
+| P8-16 | Fracciones curriculares | El módulo no simula equilibrio líquido–vapor: ventanas gaussianas alrededor de la ebullición; el agua no secada co-destila con el éster (ORG40). |
+
+## Práctica 9 — Huellas de los iones (cationes y emisión a la llama)
+
+| # | Decisión | Detalle |
+|---|---|---|
+| P9-01 | Identificador | La especificación pide no asumir `p09`: ocupados `p01`, `p2`–`p8` y `p10`; se asignó `p9`. Migración `0009_course_labs_p9.sql`. |
+| P9-02 | Color del K⁺ | La guía impresa dice «rosa»; se enseña violeta/lila tenue, visible solo con poca luz local y enmascarable por Na, y se documenta la diferencia (PNN-1). |
+| P9-03 | Orden del procedimiento | Predicciones, controles y soportes antes de la separación, conservando la selectividad química: sulfato antes que álcali; álcali sobre la muestra original es E31 (PNN-2). |
+| P9-04 | Vidrio de reloj | Solo virtual: aviso permanente, sin combustible ni técnica de ignición; el daño (fisura por tensión térmica, fragmentos) es una consecuencia virtual; el refractario se ofrece para discutir el material (PNN-3). |
+| P9-05 | Luz local | `setObservationLight` con alcance `local` oscurece solo el interior de la campana; el alcance `room` se rechaza (E05). HUD, consola, señalización y avisos nunca cambian (PNN-4). |
+| P9-06 | Interferencia de Na | Superposición de emisiones en el espectro (no un error aleatorio): el mismo K con más Na se ve amarillo, pero su línea de 766,5 nm sigue en la vista espectral (PNN-5). |
+| P9-07 | Constantes por validar | Ksp, velocidades, sedimentación, catálogo de líneas y eficiencias son curriculares `[VALIDAR]`; bloquean la publicación hasta revisión (PNN-6). |
+| P9-08 | Reactivos de amonio | (NH₄)₂SO₄ y NH₄OH se modelan con NH₄⁺ para no introducir Na ni K que alteren la llama; la acidez de la muestra (HNO₃) consume álcali antes de precipitar el Fe (E35). |
+| P9-09 | Apoyos controlados | Gradilla, rotor, platillo, celda del turbidímetro, llama y soporte sobre el emisor son apoyos con nombre que fija el controlador, como en P7/P8; sin Rapier dinámico (PNN-7). Los recipientes bajos (vidrio, refractario) aceptan la punta con menos profundidad. |
+| P9-10 | Centrífuga determinista | Desbalance por masa de los tubos opuestos (≤ 0,3 g), simetría por posición, tapa y rampa; la sedimentación es un modelo del dominio, no una animación (PNN-8). |
+| P9-11 | Evaluación por escenario | La composición sale de la semilla y de los escenarios; la identificación se compara con lo inferible por las pruebas del intento y con la verdad del escenario (PNN-9). |
+| P9-12 | Percepción accesible | Cada observación tiene etiqueta textual y la vista espectral una tabla de líneas; en Evaluación no se nombra el catión (PNN-10). |
+| P9-13 | Color de la llama 3D | La vista mezcla la llama sola (azul) con el color de la MUESTRA según su contraste, igual que la categoría registrada; la llama no lleva contorno cel shading. |
+| P9-14 | Ganancia espectral | Las intensidades se escalan por la ganancia (×1/×4/×16) y saturan > 1 (E10); la línea débil del K exige subir la ganancia, como hace la demostración. |
+| P9-15 | Demostración | Diez secuencias de §15 con el controlador real; acelera solo esperas pasivas; termina sin errores de técnica; un contrapeso nuevo para la segunda centrifugación (no se quita agua). Su cinta se repite por el dominio puro. |
+
+## Biología B01 — Del preparado a la observación (microscopía y estereoscopía)
+
+| # | Decisión | Detalle |
+|---|---|---|
+| B01-01 | Identificador | Por decisión del usuario, Biología usa el prefijo `b` (`b01`…`b10`). Se amplió el formato en cliente (`LabId`, rutas), Worker (`LAB_IDS`), cinta y calificación (`seedFromAttemptId` acepta `bNN-`). Migración `0010_course_labs_b01.sql` (PNN-13). |
+| B01-02 | Fotografías | Por decisión del usuario se entregan ILUSTRACIONES didácticas procedurales rotuladas como tales (`captureQuality: 'illustrative'`). El manifiesto versionado con hash y regiones anotadas ya está en el dominio; la subida de fotos (almacenamiento de objetos + pantallas admin/docente) queda para otra iteración (PNN-1, PNN-11). |
+| B01-03 | Foto única = 2D | Una vista por objetivo; no se fabrica detalle de 40X que el manifiesto no declare observable; el estereoscopio se rotula «vista 2D» salvo el escenario S15 con par L/R (PNN-2, PNN-3). |
+| B01-04 | Fresco frente a fijo | Montaje húmedo completo solo para el portaobjetos en blanco; la lámina fija rechaza gota y otro cubreobjetos (E42, E43) y vuelve a su ranura (PNN-4). |
+| B01-05 | Instrumentos compartidos | `simulation/instruments/optical` y `simulation/specimens` sirven a las próximas prácticas de Biología; la práctica solo define muestras, errores y rúbrica (PNN-5, PNN-15). |
+| B01-06 | Parámetros pendientes | FN (18 mm), distancias de trabajo, pasos de mandos, σ de nitidez, gota y burbujas llevan `source` y estado `pending`/`hypothetical` en `params.ts`; no se presentan como reales (PNN-6). |
+| B01-07 | Forma del mundo | Se siguen las convenciones de las prácticas recientes (objetos con apoyo con nombre, evidencia, errores con latch) en lugar del esquema literal de §6.3; el contenido serializable es el mismo (asignación congelada, montajes, instrumentos, líquidos, observaciones). |
+| B01-08 | Burbujas | Fracción determinista f(ángulo, velocidad, líquido) y posiciones del RNG serializable; un descenso plano deja además una burbuja sobre el tejido; levantar la cubierta las elimina (PNN-8). |
+| B01-09 | Separación y choque | Banda persistente bajo 0,3 mm que impide seguir acercando con el macro; un salto que cruza el contacto o el micro hasta el contacto produce el choque: el accidente anula solo la seguridad (PNN-10). |
+| B01-10 | Observación | `observe` abre el ocular; `captureObservation` exige 1,5 s de vista estable y deriva la evidencia del estado (no recibe píxeles). La vista del ocular es solo presentación (PNN-7). |
+| B01-11 | E23 y E34 | E23 cuenta giros del micrométrico solo mirando por el ocular y se reinicia al usar el macro; E34 exige perder una estructura visible al alejarse (no basta con que cambie el número de regiones). |
+| B01-12 | EPP | Requeridos bata, calzado cerrado, cabello recogido y manos limpias; guantes opcionales (§11.1: no se universalizan para un microscopio limpio). |
+| B01-13 | Curso de la semilla | Se agregó «Biología General I» (`c_bg1_01`) con la docente de Química G01 y dos estudiantes, para probar la tarjeta, el panel y la entrega. |
+| B01-14 | Demostración | Error deliberado E10 (cubierta rápida y casi plana) y su recuperación (levantar y bajar inclinada y lenta), como pide §16. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

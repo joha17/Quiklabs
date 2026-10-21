@@ -61,7 +61,7 @@ function instancedBoxes(size: [number, number, number], mat: THREE.Material, pos
 }
 
 /** `variant`: cartelería de la práctica (la sala y la mesada son las mismas). */
-export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p10' = 'p2'): THREE.Group {
+export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' = 'p2'): THREE.Group {
   const g = new THREE.Group();
   const detail = QUALITY[q].roomDetail;
   const L = BENCH.length;
@@ -223,6 +223,15 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
   } else if (variant === 'p7') {
     poster(posterTexture('ELECTRICIDAD', ['Nunca con las', 'manos mojadas'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('DISOLVENTES', ['Frascos tapados,', 'sin llamas'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'p9') {
+    poster(posterTexture('CAMPANA', ['Llama solo con', 'extracción válida'], '#f2a900', 'goggles'), 318, 60);
+    poster(posterTexture('CENTRÍFUGA', ['Pares opuestos,', 'tapa cerrada'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'b01') {
+    poster(posterTexture('MICROSCOPIO', ['Bajar el objetivo', 'mirando de lado'], '#1565c0', 'eye'), 318, 60);
+    poster(posterTexture('VIDRIO ROTO', ['Al contenedor,', 'nunca con la mano'], '#d0021b', 'nofood'), 318, 92);
+  } else if (variant === 'p8') {
+    poster(posterTexture('SIN LLAMA', ['Metanol y ésteres:', 'calentar sin fuego'], '#f2a900', 'goggles'), 318, 60);
+    poster(posterTexture('EMBUDO', ['Ventear el CO₂', 'tras cada agitación'], '#d0021b', 'nofood'), 318, 92);
   } else if (variant === 'p10') {
     poster(posterTexture('PRESIÓN', ['Nunca obstruir un', 'sistema que genera gas'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('SENSOR', ['Sin líquido en el', 'sensor de presión'], '#d0021b', 'nofood'), 318, 92);

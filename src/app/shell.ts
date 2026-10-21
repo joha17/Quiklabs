@@ -1,14 +1,17 @@
 /**
- * Rutas de la aplicación en el hash de la URL: portada (sin hash), `#login`, `#panel` (panel según el rol) y los
- * laboratorios (`#p01`, `#p2` … `#p7`, `#p10`). Así se pueden enlazar y «atrás» del navegador funciona.
+ * Rutas de la aplicación en el hash de la URL: portada (sin hash), `#login`, `#panel` (panel según el rol), los
+ * laboratorios (`#p01`, `#p2` … `#p10` de Química; `#b01`… de Biología) y las páginas legales públicas (`#privacidad`, `#terminos`, `#cookies`, `#accesibilidad`). Así se pueden enlazar y «atrás» del navegador funciona.
  */
 import { create } from 'zustand';
 
-export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p10';
-export type Route = LabId | 'login' | 'panel';
-const ROUTES: Route[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p10', 'login', 'panel'];
+export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01';
+export type LegalRoute = 'privacidad' | 'terminos' | 'cookies' | 'accesibilidad';
+export type Route = LabId | 'login' | 'panel' | LegalRoute;
+const ROUTES: Route[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'login', 'panel', 'privacidad', 'terminos', 'cookies', 'accesibilidad'];
 
-export const isLab = (r: Route | null): r is LabId => r === 'p01' || r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6' || r === 'p7' || r === 'p10';
+export const isLegal = (r: Route | null): r is LegalRoute => r === 'privacidad' || r === 'terminos' || r === 'cookies' || r === 'accesibilidad';
+
+export const isLab = (r: Route | null): r is LabId => r === 'p01' || r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6' || r === 'p7' || r === 'p8' || r === 'p9' || r === 'p10' || r === 'b01';
 
 function fromHash(): Route | null {
   if (typeof window === 'undefined') return null;

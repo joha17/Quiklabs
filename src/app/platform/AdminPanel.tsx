@@ -85,7 +85,7 @@ function OverviewTab() {
       </article>
       <h2>{t('pf.labs.title')}</h2>
       <p className="pf-muted">{t('pf.labs.preview', { role: t('pf.role.admin').toLowerCase() })}</p>
-      <LabCards />
+      <LabCards grouped />
     </section>
   );
 }

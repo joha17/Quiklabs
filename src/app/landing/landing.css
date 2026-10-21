@@ -186,12 +186,13 @@
 
 /* ── Laboratorios ── */
 .lp-labs { margin-top: 2.5rem; display: grid; gap: 1rem; }
+.lp-more { margin: 0; font-family: var(--lp-font); font-weight: 800; color: var(--ink-2); }
 .lp-labs-title { margin: 0; font-family: var(--lp-font); font-size: 1.05rem; color: var(--ink-2); }
 .lp-labs .lab-card { border-radius: 24px; border: 2px solid var(--ink); background: var(--paper-2); }
 .lp-labs .lab-card:hover, .lp-labs .lab-card:focus-within { border-color: var(--ink); box-shadow: 6px 6px 0 var(--ink); transform: translate(-2px, -2px); }
 .lp-labs .lab-card-art { height: 150px; border-bottom: 2px solid var(--ink); }
 .lp-labs .lab-card-body .kicker { color: var(--kicker); }
-.lp-labs .lab-card-body h3 { font-family: var(--lp-font); font-size: 1.3rem; }
+.lp-labs .lab-card-art .lab-card-title { font-family: var(--lp-font); font-size: 1.35rem; }
 .lp-labs .btn.primary { border-radius: 999px; font-weight: 800; }
 .lp-note { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
 
@@ -224,9 +225,32 @@
 .lp-checks li::before { content: '✓'; position: absolute; left: 0; top: 0.75rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; font-size: 0.85rem; font-weight: 900; }
 
 /* ── Pie ── */
-.lp-footer { width: min(var(--lp-max), 100%); margin: 0 auto; padding: 2.5rem var(--lp-gutter) 3rem; display: grid; gap: 0.4rem; color: var(--ink-2); }
-.lp-footer p { margin: 0; }
-.lp-copy { font-size: 0.85rem; }
+/* Pie del sitio: banda oscura en ambos temas, cuatro columnas y barra de políticas. */
+.lp-site-footer { background: #0b111c; color: #b9c2cc; font-family: var(--lp-font); padding: clamp(3rem, 7vw, 4.5rem) var(--lp-gutter) 1.6rem; }
+.lp-sf-grid { width: min(var(--lp-max), 100%); margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: clamp(1.5rem, 4vw, 3.5rem); }
+.lp-sf-brand { color: #fff; font-size: 1.6rem; margin-bottom: 1rem; }
+.lp-sf-about p { margin: 0; line-height: 1.65; max-width: 24rem; font-size: 0.98rem; }
+.lp-site-footer h2 { margin: 0.35rem 0 1.1rem; color: #fff; font-size: 0.82rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+.lp-site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.lp-site-footer a { color: #b9c2cc; text-decoration: none; font-size: 0.98rem; border-radius: 4px; }
+.lp-site-footer a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.lp-site-footer a:focus-visible { outline: 2px solid #6fd0c6; outline-offset: 3px; color: #fff; }
+.lp-sf-plain { color: #b9c2cc; }
+.lp-sf-bottom { width: min(var(--lp-max), 100%); margin: clamp(2.5rem, 5vw, 3.5rem) auto 0; padding-top: 1.3rem; border-top: 1px solid #222c3a; display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; align-items: center; justify-content: space-between; font-size: 0.88rem; }
+.lp-sf-bottom p { margin: 0; }
+.lp-sf-note { flex: 1 1 18rem; color: #8c97a3; }
+.lp-sf-bottom ul { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; }
+.lp-sf-bottom a { font-size: 0.88rem; }
+@media (max-width: 900px) { .lp-sf-grid { grid-template-columns: 1fr 1fr; } .lp-sf-about { grid-column: 1 / -1; } }
+@media (max-width: 520px) { .lp-sf-grid { grid-template-columns: 1fr; } }
+/* Páginas legales. */
+.lp-legal-page { min-height: 100svh; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; }
+.lp-legal-nav { position: sticky !important; background: var(--paper); align-items: center; }
+.lp-legal { width: min(820px, 100%); margin: 0 auto; padding: clamp(2rem, 6vw, 4rem) var(--lp-gutter) 4rem; flex: 1; line-height: 1.7; }
+.lp-legal h1 { font-family: var(--lp-font); font-weight: 900; letter-spacing: -0.02em; font-size: clamp(2rem, 4vw, 3rem); margin: 0 0 0.4rem; }
+.lp-legal h2 { font-family: var(--lp-font); font-size: 1.25rem; margin: 2.2rem 0 0.6rem; }
+.lp-legal p { margin: 0 0 0.9rem; color: var(--ink-2); }
+.lp-legal-date { font-size: 0.9rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .lp-logo-liquid, .lp-scroll-hint { animation: none; }

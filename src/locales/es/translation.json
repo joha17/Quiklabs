@@ -2,7 +2,7 @@
   "app": {
     "title": "Laboratorio virtual · Práctica 2",
     "subtitle": "Clasificación de la materia y técnicas de separación",
-    "course": "Química General I"
+    "course": "Quiklabs"
   },
   "intro": {
     "lead": "Manipula el material como en el laboratorio: arrastra, inclina para verter, agita, calienta, filtra, evapora y enfría. No hay botón «Siguiente»: la práctica avanza con lo que hagas.",

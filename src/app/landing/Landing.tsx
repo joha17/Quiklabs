@@ -2,22 +2,26 @@
  * Página de inicio de Quiklabs. Detrás del contenido hay una escena Three.js en «dibujo lineal» (LabBackdrop) que la
  * cámara recorre con el scroll: matraz gigante en el inicio, una valoración real (HCl + NaOH con fenolftaleína) que
  * avanza con el scroll o con la tarjeta, una mesada isométrica y moléculas. Los titulares van en «píldoras» de color.
- * La lista de laboratorios (LabCards) se integra con los mismos botones de entrada del menú anterior.
+ * La portada muestra solo una muestra variada de laboratorios (LabCards con FEATURED); el resto se ve en el panel.
  */
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@fontsource-variable/nunito';
 import { LabCards } from '../LabMenu';
 import { useTheme } from '../theme';
-import { useShell } from '../shell';
+import { useShell, type LabId } from '../shell';
 import { usePlatform } from '../platform/session';
 import i18n, { tList } from '../i18n';
 import type { CamKey, LabBackdrop } from './scene/LabBackdrop';
 import { EQUIVALENCE_ML, TITRATION, phenolphthaleinPink, titrationPH } from './scene/titration';
+import { SiteFooter } from './SiteFooter';
 import './landing.css';
 
 const IMG = (name: string) => `${import.meta.env.BASE_URL}landing/${name}.webp`;
 const SLIDES = ['na', 'rack', 'swirl', 'flame', 'nail', 'yellow'];
+/** Muestra variada de la portada: combustión y llama, síntesis orgánica y gases. */
+const FEATURED: LabId[] = ['p3', 'p8', 'p10'];
+const TOTAL_LABS = 10;
 
 type Seg = { t: string; pill?: 'teal' | 'white' | 'coral' | 'ink' | 'yellow'; muted?: boolean };
 interface Item {
@@ -317,8 +321,8 @@ export function Landing() {
           <Pills k="landing.labs.title" id="lp-labs-title" />
           <p className="lp-lead">{t('landing.labs.lead')}</p>
           <div className="lp-labs">
-            <h3 className="lp-labs-title">{t('menu.title')}</h3>
-            <LabCards locked />
+            <LabCards locked only={FEATURED} />
+            <p className="lp-more">{t('landing.labs.more', { n: TOTAL_LABS - FEATURED.length })}</p>
             <div className="lp-access">
               <p>{t('landing.labs.access')}</p>
               <a className="lp-btn lp-btn-teal" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{loginText} →</a>
@@ -383,12 +387,7 @@ export function Landing() {
         </section>
       </main>
 
-      <footer className="lp-footer" data-cam="end">
-        <div className="lp-brand"><span>{t('landing.brand')}</span></div>
-        <p>{t('landing.footer.tagline')}</p>
-        <p>{t('landing.footer.privacy')}</p>
-        <p className="lp-copy">{t('landing.footer.copy', { year: new Date().getFullYear() })}</p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
