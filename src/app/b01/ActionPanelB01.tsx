@@ -156,7 +156,7 @@ export function ActionPanelB01() {
         if (prepSlide) {
           posSel();
           slider('force', 'b01.act.force', force, setForce);
-          btn('drop', `💧 ${t('b01.act.squeeze')}`, () => D({ type: 'squeezeDropper', dispenserId: id, targetId: prepSlide, force01: force, dxCm: dx, dyCm: dy }), 'btn primary');
+          btn('squeeze', `💧 ${t('b01.act.squeeze')}`, () => D({ type: 'squeezeDropper', dispenserId: id, targetId: prepSlide, force01: force, dxCm: dx, dyCm: dy }), 'btn primary');
         }
         for (const fx of Object.keys(w.slides).filter((s) => w.slides[s].kind === 'fixed' && w.objects[s].support === 'stage')) btn(`dropfx-${fx}`, t('b01.act.dropOnFixed'), () => D({ type: 'squeezeDropper', dispenserId: id, targetId: fx, force01: force, dxCm: 0, dyCm: 0 }), 'btn ghost');
         break;

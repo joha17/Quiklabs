@@ -11,7 +11,16 @@ export type StructureId =
   | 'leafBlade' | 'midrib' | 'leafMargin' | 'cellWall' | 'chloroplasts'
   | 'epidermalCells' | 'nucleus' | 'vascularBundle' | 'xylem' | 'phloem' | 'epidermis' | 'cortex'
   | 'venation' | 'trichomes'
-  | 'antenna' | 'compoundEye' | 'head' | 'thorax' | 'abdomen' | 'wing' | 'leg';
+  | 'antenna' | 'compoundEye' | 'head' | 'thorax' | 'abdomen' | 'wing' | 'leg'
+  // B02 — estructuras celulares (§3.1).
+  | 'fruitCells' | 'epithelialCells' | 'cellBorder' | 'cytoplasm' | 'chromoplasts' | 'starchGrains' | 'amyloplasts' | 'sclereids'
+  | 'vacuole' | 'cellMembrane';
+
+/**
+ * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
+ * se sabe que existe pero la foto no la muestra; `unavailable`, el recurso no permite evaluarla. Ausente = `visible`.
+ */
+export type EvidenceStatus = 'visible' | 'inferred' | 'unavailable';
 
 export interface ObservationView {
   viewId: string;
@@ -29,6 +38,7 @@ export interface Annotation {
   observableAtObjectiveX?: number[];
   /** Estereoscopio: zoom mínimo al que la estructura se distingue. */
   observableAtZoomMin?: number;
+  evidence?: EvidenceStatus;
 }
 
 export interface ObservationAssetManifest {
@@ -146,7 +156,99 @@ export const REFLECTIVE_INSECT: ObservationAssetManifest = (() => {
   return { ...rest, contentHash: stableHash(rest) };
 })();
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id]);
+// ─────────────── Paquete B02: células bajo la lente (§4.3, §4.4) ───────────────
+
+const DIDACTIC_B02 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Basada en la guía «Práctica 2. Estructuras y Organelas Celulares».';
+
+/** Contorno irregular y determinista de un fragmento de tejido (normalizado). */
+const blob = (r: number, seed: number, n = 18) =>
+  Array.from({ length: n }, (_, i) => {
+    const t = (2 * Math.PI * i) / n;
+    const k = 1 + 0.12 * Math.sin(3 * t + seed) + 0.07 * Math.cos(5 * t + 2 * seed);
+    return [0.5 + r * k * Math.cos(t), 0.5 + r * k * Math.sin(t)];
+  });
+
+function cellManifest(
+  m: Omit<ObservationAssetManifest, 'contentHash' | 'ownerRole' | 'ownerId' | 'captureQuality' | 'fallbackPolicy' | 'sourceAttribution' | 'version' | 'views' | 'sampleKind'>,
+  owner: { role: 'admin' | 'teacher'; id: string; version: number; attribution?: string } = { role: 'admin', id: 'u_admin', version: 1 },
+): ObservationAssetManifest {
+  const base = {
+    ...m, sampleKind: 'fresh' as const, views: micViews(), version: owner.version, ownerRole: owner.role, ownerId: owner.id, captureQuality: 'illustrative' as const,
+    fallbackPolicy: 'admin-version' as const, sourceAttribution: owner.attribution ?? DIDACTIC_B02,
+  };
+  return { ...base, contentHash: stableHash(base) };
+}
+
+type Ann = Annotation;
+const TISSUE = blob(0.4, 1.3);
+const SMEAR = blob(0.42, 2.1, 22);
+const fruit = (extra: Ann[]): Ann[] => [
+  { structureId: 'fruitCells', polygonNormalized: TISSUE, observableAtObjectiveX: [4, 10, 40] },
+  { structureId: 'cellWall', polygonNormalized: TISSUE, observableAtObjectiveX: [10, 40] },
+  { structureId: 'vacuole', polygonNormalized: TISSUE, observableAtObjectiveX: [10, 40], evidence: 'inferred' },
+  { structureId: 'cellMembrane', polygonNormalized: TISSUE, observableAtObjectiveX: [40], evidence: 'unavailable' },
+  { structureId: 'nucleus', polygonNormalized: TISSUE, observableAtObjectiveX: [40], evidence: 'unavailable' },
+  ...extra,
+];
+const chromo = (id: string, name: string, owner?: Parameters<typeof cellManifest>[1]): ObservationAssetManifest =>
+  cellManifest({ assetId: id, name, extentMm: [6, 6], annotations: fruit([{ structureId: 'chromoplasts', polygonNormalized: TISSUE, observableAtObjectiveX: [10, 40] }]) }, owner);
+const buccal = (id: string, name: string, nucleus: EvidenceStatus, cytoplasm: EvidenceStatus, lowMag: boolean): ObservationAssetManifest =>
+  cellManifest({
+    assetId: id, name, extentMm: [6, 6],
+    annotations: [
+      { structureId: 'epithelialCells', polygonNormalized: SMEAR, observableAtObjectiveX: lowMag ? [4, 10, 40] : [10, 40] },
+      { structureId: 'cellBorder', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40] },
+      { structureId: 'cytoplasm', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40], evidence: cytoplasm },
+      { structureId: 'nucleus', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40], evidence: nucleus },
+      { structureId: 'cellMembrane', polygonNormalized: SMEAR, observableAtObjectiveX: [40], evidence: 'inferred' },
+    ],
+  });
+const starch = (id: string, name: string, stained: boolean, owner?: Parameters<typeof cellManifest>[1]): ObservationAssetManifest =>
+  cellManifest({
+    assetId: id, name, extentMm: [6, 6],
+    annotations: [
+      { structureId: 'fruitCells', polygonNormalized: TISSUE, observableAtObjectiveX: [4, 10, 40] },
+      { structureId: 'cellWall', polygonNormalized: TISSUE, observableAtObjectiveX: [10, 40] },
+      // Sin Lugol los gránulos existen pero la foto no los distingue con contraste suficiente (§3.3).
+      { structureId: 'starchGrains', polygonNormalized: TISSUE, observableAtObjectiveX: stained ? [10, 40] : [40], evidence: stained ? 'visible' : 'inferred' },
+      { structureId: 'amyloplasts', polygonNormalized: TISSUE, observableAtObjectiveX: [40], evidence: 'inferred' },
+    ],
+  }, owner);
+const pear = (id: string, name: string, sclereidsAt: number[], status: EvidenceStatus = 'visible'): ObservationAssetManifest =>
+  cellManifest({ assetId: id, name, extentMm: [6, 6], annotations: fruit([{ structureId: 'sclereids', polygonNormalized: blob(0.18, 0.7, 12), observableAtObjectiveX: sclereidsAt, evidence: status }]) });
+
+const TEACHER_V2 = { role: 'teacher' as const, id: 'u_teacher_demo', version: 2, attribution: 'Activo docente de prueba asignado al curso (S17); ilustración didáctica, no microfotografía.' };
+
+/** Manifiestos de B02 (fruto, raspado, frotis), versionados; los de docente (`*T2`) tienen prioridad cuando se asignan. */
+export const CELL_ASSETS: Record<string, ObservationAssetManifest> = {
+  elodeaDense: cellManifest({ assetId: 'elodeaDense', name: 'Hoja de Elodea con cloroplastos abundantes (montaje fresco)', extentMm: [8, 8], annotations: ASSETS.elodea.annotations }),
+  potatoPlain: starch('potatoPlain', 'Raspado de papa sin teñir', false),
+  potatoLugol: starch('potatoLugol', 'Raspado de papa con Lugol', true),
+  potatoLugolT2: starch('potatoLugolT2', 'Raspado de papa con Lugol (activo docente v2)', true, TEACHER_V2),
+  tomato: chromo('tomato', 'Pulpa de tomate, corte fino'),
+  tomatoT2: chromo('tomatoT2', 'Pulpa de tomate, corte fino (activo docente v2)', TEACHER_V2),
+  pepper: chromo('pepper', 'Chile dulce amarillo, corte fino'),
+  pepperRed: chromo('pepperRed', 'Chile dulce rojo, corte fino'),
+  carrot: chromo('carrot', 'Raíz de zanahoria, corte fino'),
+  pear: pear('pear', 'Pulpa de pera, corte fino', [10, 40]),
+  pearClear: pear('pearClear', 'Pulpa de pera con esclereidas abundantes', [4, 10, 40]),
+  pearEosin: pear('pearEosin', 'Pulpa de pera con eosina 1 % (contraste)', [10, 40]),
+  guava: pear('guava', 'Pulpa de guayaba (sin regiones validadas)', [10, 40], 'unavailable'),
+  buccalPlain: buccal('buccalPlain', 'Frotis bucal sin teñir', 'unavailable', 'inferred', false),
+  buccalMB: buccal('buccalMB', 'Frotis bucal con azul de metileno', 'visible', 'visible', true),
+  buccalEosin: buccal('buccalEosin', 'Frotis bucal con eosina 1 %', 'inferred', 'visible', true),
+};
+
+/** Activo base que se dibuja para una versión docente (`tomatoT2` → `tomato`). */
+export const baseAssetId = (id: string) => id.replace(/T2$/, '');
+
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id]);
+
+/** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
+export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {
+  const an = a.annotations.find((x) => x.structureId === s);
+  return an ? an.evidence ?? 'visible' : 'unavailable';
+}
 
 // ─────────────── Geometría de visibilidad ───────────────
 
@@ -181,6 +283,7 @@ export function visibleStructures(a: ObservationAssetManifest, centerMm: [number
   const r = fovMm / 2 / Math.max(a.extentMm[0], a.extentMm[1]);
   const out = new Set<StructureId>();
   for (const an of a.annotations) {
+    if (an.evidence && an.evidence !== 'visible') continue;
     if (opts.objectiveX !== undefined && an.observableAtObjectiveX && !an.observableAtObjectiveX.includes(opts.objectiveX)) continue;
     if (opts.zoomX !== undefined && an.observableAtZoomMin !== undefined && opts.zoomX < an.observableAtZoomMin) continue;
     if (circleHitsPolygon(cx, cy, r, an.polygonNormalized)) out.add(an.structureId);

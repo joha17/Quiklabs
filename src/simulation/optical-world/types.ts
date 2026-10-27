@@ -11,13 +11,17 @@ import type { SlideCaseState } from '../instruments/optical/slide-carrier';
 import type { FreshMount, MountParams } from '../specimens/mount-world';
 import type { FluidLedger } from '../specimens/volumes';
 import type { StructureId } from '../specimens/assets';
+import type { CellPrepParams } from '../specimens/thin-section';
+import type { CellState } from '../cell-world/types';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
 
 export type B01ObjKind =
   | 'ppeTray' | 'prepBoard' | 'elodeaDish' | 'dropperBottle' | 'slide' | 'fixedSlide' | 'coverslip' | 'coverBox' | 'forceps' | 'scalpel'
   | 'paper' | 'lensPaper' | 'towel' | 'microscope' | 'slideCase' | 'stereo' | 'sampleTray' | 'leafSample' | 'insectSample'
-  | 'glassBin' | 'bioWaste' | 'cleanTray';
+  | 'glassBin' | 'bioWaste' | 'cleanTray'
+  // B02: fuentes de tejido, tabla de corte, espátula, hisopos, fuente virtual de epitelio y residuos comunes.
+  | 'tissueSource' | 'cuttingBoard' | 'spatula' | 'swabBox' | 'swab' | 'cheekSource' | 'trashBin';
 
 export interface OpticalObject {
   id: string;
@@ -63,7 +67,7 @@ export interface ForcepsState {
 
 export interface DispenserState {
   ml: number;
-  reagent: 'water' | 'lugol';
+  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct';
 }
 
 export interface StereoSample {
@@ -136,6 +140,13 @@ export interface B01Params {
   caseSlots: number;
   /** Tiempo con la caja abierta a partir del cual manipular el equipo es inseguro (s). */
   caseOpenRiskS: number;
+  /**
+   * Catálogo de errores de otra práctica que reutiliza este mundo (B02): código de B01 → código propio; `''` lo
+   * suprime (el hecho no es un error en esa práctica). Sin mapa, los códigos son los de B01.
+   */
+  codeMap?: Record<string, string>;
+  /** Parámetros de corte, raspado, frotis y tinción (B02). */
+  cellPrep?: CellPrepParams;
 }
 
 export interface OpticalWorld {
@@ -177,4 +188,6 @@ export interface OpticalWorld {
   evidence: Record<string, number>;
   scenarios: string[];
   ppe: boolean;
+  /** Estado celular de B02 (fuentes, herramientas, hisopos, balances por colorante); ausente en B01. */
+  cell?: CellState;
 }

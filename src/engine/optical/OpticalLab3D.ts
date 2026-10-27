@@ -74,7 +74,7 @@ export class OpticalLab3D {
 
   constructor(public host: OpticalHost, quality: QualityLevel) {
     this.quality = quality;
-    this.controller = new OpticalController(host, this);
+    this.controller = host.createController?.(host, this) ?? new OpticalController(host, this);
   }
 
   get runtime() {

@@ -265,6 +265,23 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 | B01-OPT-12 | Binocular del compuesto | Distancia interpupilar y dioptría izquierda en el estado; no cambian aumento ni nitidez. Con la separación lejos de la del usuario, el ocular muestra dos círculos desplazados (solo presentación). |
 | B01-OPT-13 | Escenarios S19–S22 | S19 empieza con la cámara de costado; S20 revólver a 60°; S21 portaobjetos torcido bajo la pinza cerrada; S22 estéreo con zoom máximo y la perilla en su tope. La ruta ideal pasa los 22 sin errores. |
 
+## Biología B02 — Células bajo la lente (estructuras y organelos celulares)
+
+| # | Decisión | Detalle |
+|---|---|---|
+| B02-01 | Mismo equipo, mismo motor | B02 reutiliza la sala, el microscopio articulado, el estereoscopio, la caja de láminas, el montaje húmedo, la observación y el runtime de B01. El motor se generalizó por inyección (`OpticalHost.stations/createController`, `OpticalRuntime<W>` con `OpticalSim`) sin cambiar el comportamiento de B01. |
+| B02-02 | Mundo celular envolvente | `dispatchCell` delega en `dispatchB01` y agrega fuentes de tejido, tabla de corte, restos en herramientas, hisopos, zonas por lámina y libros de colorantes y biomasa. La calificación y la cinta graban solo el comando de primer nivel. |
+| B02-03 | Gestos como hechos | Los comandos llevan el gesto (espesor y largo del corte, distancia y presión del raspado, duración del hisopado, recorrido del extendido), nunca el resultado. El controlador usa un gesto estándar y uno brusco (Mayús); el panel accesible expone los valores con deslizadores. |
+| B02-04 | La preparación filtra, no agrega | `zoneVisible` solo quita estructuras del activo (corte grueso, desgarro, sobretinción, extendido denso); ningún gesto hace aparecer algo que el manifiesto no declare visible. |
+| B02-05 | Tinción por receta | Cada muestra admite ciertos reactivos y puede exigir uno (papa → Lugol; frotis → cualquier colorante admitido). El Lugol revela con contacto ≥ 20 s bajo cubreobjetos; con menos, la imagen sigue «sin teñir» (CEL24), no se inventa un cambio. |
+| B02-06 | Errores de interpretación | CEL25, 26, 46–52, 54, 55 y 67 se juzgan en la libreta contra la captura importada (`nb:`). Las respuestas abiertas quedan `ok: null` para el docente. |
+| B02-07 | Recursos faltantes | S18 declara un activo faltante: la captura registra `incident:CEL68`, la rúbrica difiere (`null`) los ítems afectados y nunca descuenta. |
+| B02-08 | Epitelio virtual | La fuente de epitelio es virtual (sin muestra real); el hisopo usado va a residuos biológicos (CEL60 si va a los comunes). Guantes opcionales, como en B01. |
+| B02-09 | Bandeja compartida | En B02 la bandeja de limpieza admite todas las láminas (dos columnas por tres filas y luego apiladas) mediante el hook `sharedSpot/spotPose` del controlador; en B01 sigue un objeto por apoyo. |
+| B02-10 | Textos | `practiceB02.json` solo define `b02.*` y `b02fb.*` (los JSON se fusionan por nivel superior); el motor sigue usando `b01.cmd/hint/part/grip` como respaldo. Prueba `b02-locale`. |
+| B02-11 | Calendario de la semilla | `b02` abre el 2026-10-27 en «Biología General I» (`c_bg1_01`), una semana después de `b01`. Migración `0011_course_labs_b02.sql`. |
+| B02-12 | Demostración | Cuatro preparaciones (Elodea con la corrección de burbujas, papa con Lugol esperando el contacto, tomate, frotis bucal), 8 capturas válidas y un único error deliberado (CEL14). |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

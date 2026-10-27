@@ -16,6 +16,7 @@ import type { FrameCtxB01 } from './OpticalLab3D';
 import { buildCompoundMicroscope } from './models/CompoundMicroscopeRig';
 import { buildStereoMicroscope } from './models/StereoMicroscopeRig';
 import { hitMesh } from './parts';
+import { KIND_COLOR, STAIN_COLOR, buildCellObject, mountTint } from './objects3dCell';
 
 export interface ObjHandleB01 {
   group: THREE.Group;
@@ -114,13 +115,16 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
       }
       const bubbleMat = own(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false }));
       const bubbles = new THREE.Group();
-      inner.add(leaf, water, cover, crack, dirt, bubbles);
+      // B02: una mancha por zona de tejido (color de la muestra), en lugar de la hoja única de B01.
+      const zones = new THREE.Group();
+      inner.add(leaf, water, cover, crack, dirt, bubbles, zones);
       inner.add(at(hit(new THREE.BoxGeometry(S.w, 0.6, S.d + 0.4), id), 0, 0.3, 0));
       group.add(inner);
       ring = selRing(4.4);
       group.add(ring);
       customPose = true;
       let bubbleKey = '';
+      let zoneKey = '';
       update = (ctx, ob) => {
         const w = ctx.world;
         // Pose: en la platina sigue al carro X/Y y a la altura; en la caja, de canto.
@@ -145,7 +149,8 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
         const mt = w.mounts[id];
         const sl = w.slides[id];
         dirt.visible = !!sl && sl.dirty01 > 0.2;
-        leaf.visible = !!mt?.specimenId;
+        leaf.visible = !!mt?.specimenId && !mt.cell;
+        zones.visible = !!mt?.cell;
         water.visible = !!mt && mt.waterMl + mt.reagentMl > 0.002;
         cover.visible = !!mt?.coverId;
         crack.visible = !!mt?.broken;
@@ -157,7 +162,24 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
           const r = Math.min(1.6, 0.4 + Math.sqrt(mt.waterMl + mt.reagentMl) * 3.2);
           water.scale.set(r, r, 1);
           water.position.set(mt.waterCenterCm[0], S.h + 0.004, -mt.waterCenterCm[1]);
-          waterMat.color.setHex(mt.reagentId ? 0xb5651d : 0x9cc8ea);
+          waterMat.color.setHex(mt.cell ? mountTint(mt.cell.stainMl, mt.waterMl) : mt.reagentId ? 0xb5651d : 0x9cc8ea);
+          const zk = mt.cell ? mt.cell.zones.map((z) => `${z.kind},${z.centerCm},${z.areaMm2},${z.thicknessMm}`).join(';') : '';
+          if (zk !== zoneKey) {
+            zoneKey = zk;
+            for (const c of [...zones.children]) {
+              zones.remove(c);
+              (c as THREE.Mesh).geometry.dispose();
+              ((c as THREE.Mesh).material as THREE.Material).dispose();
+            }
+            for (const z of mt.cell?.zones ?? []) {
+              const L = Math.max(0.15, Math.min(1.4, Math.sqrt(2 * z.areaMm2) / 10));
+              const zm = new THREE.Mesh(new THREE.CircleGeometry(0.5, 16), new THREE.MeshStandardMaterial({ color: KIND_COLOR[z.kind], roughness: 0.6, transparent: true, opacity: z.prep === 'smear' ? 0.45 : 0.9 }));
+              zm.rotation.x = -Math.PI / 2;
+              zm.scale.set(L, z.prep === 'smear' ? L * 0.45 : L * 0.7, 1);
+              zm.position.set(z.centerCm[0], S.h + 0.008 + Math.min(0.3, z.thicknessMm / 10), -z.centerCm[1]);
+              zones.add(zm);
+            }
+          }
           cover.position.set(mt.coverOffsetCm[0] + (mt.floating ? 0.35 : 0), S.h + 0.03, -mt.coverOffsetCm[1]);
           crack.position.set(mt.coverOffsetCm[0], S.h + 0.045, -mt.coverOffsetCm[1]);
           const key = mt.bubbles.map((b) => `${b.x},${b.y},${b.r}`).join(';');
@@ -223,6 +245,8 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
         const w = ctx.world;
         const hd = w.forceps.holding;
         tipLeaf.visible = hd?.kind === 'specimen';
+        const frag = w.cell?.held.fc;
+        (tipLeaf.material as THREE.MeshStandardMaterial).color.setHex(frag ? KIND_COLOR[frag.kind] : LEAF_GREEN);
         tipCover.visible = hd?.kind === 'cover';
         tipSample.visible = hd?.kind === 'sample';
         if (hd?.kind === 'cover') {
@@ -249,17 +273,18 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
     }
     case 'dropperBottle': {
       const D = GEO_B01.dropperBottle;
-      const isLugol = id === 'iod';
+      const reagent = w0.dispensers[id]?.reagent ?? 'water';
+      const isLugol = reagent === 'lugol';
       const bottle = shadowed(cyl(D.r, D.h * 0.7, isLugol ? mats.amberGlass : mats.glass, seg));
       bottle.position.y = D.h * 0.35;
-      const liq = cyl(D.r - 0.15, D.h * 0.45, own(new THREE.MeshStandardMaterial({ color: isLugol ? 0xa0522d : 0x9cc8ea, transparent: true, opacity: 0.6 })), seg);
+      const liq = cyl(D.r - 0.15, D.h * 0.45, own(new THREE.MeshStandardMaterial({ color: isLugol ? 0xa0522d : reagent === 'water' ? 0x9cc8ea : STAIN_COLOR[reagent], transparent: true, opacity: 0.6 })), seg);
       liq.position.y = D.h * 0.25;
       const neck = shadowed(cyl(0.45, 1.2, mats.blackPlastic));
       neck.position.y = D.h * 0.7 + 0.6;
       const bulb = shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 8), mats.rubberRed));
       bulb.scale.set(1, 1.4, 1);
       bulb.position.y = D.h * 0.7 + 1.8;
-      const lbl = labelPlane([labelText || o.label || ''], 3, 1.4, own, isLugol ? '#6d4c41' : '#1565c0');
+      const lbl = labelPlane([labelText || o.label || ''], 3, 1.4, own, isLugol ? '#6d4c41' : reagent === 'methylene-blue' ? '#0d47a1' : reagent === 'eosin-1pct' ? '#ad1457' : '#1565c0');
       lbl.position.set(0, D.h * 0.4, D.r + 0.02);
       group.add(bottle, liq, neck, bulb, lbl, at(hit(new THREE.CylinderGeometry(D.r + 0.4, D.r + 0.4, D.h + 2, 10), id), 0, (D.h + 2) / 2, 0));
       ring = selRing(D.r + 0.8);
@@ -436,6 +461,15 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
       poster.position.set(0, P.h + 0.05, 7);
       group.add(tray, coat, shoes, poster, at(hit(new THREE.BoxGeometry(P.w, 3, P.d), id), 0, 1.5, 0));
       break;
+    }
+    default: {
+      // Objetos propios de B02 (fuentes de tejido, tabla, espátula, hisopos…).
+      const cv = buildCellObject(o, w0, group, mats, own, (lines, w, h, band) => labelPlane(lines, w, h, own, band), seg);
+      if (cv) {
+        ring = selRing(cv.ringR);
+        group.add(ring);
+        if (cv.update) update = cv.update;
+      }
     }
   }
 

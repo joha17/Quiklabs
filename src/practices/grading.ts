@@ -87,10 +87,17 @@ import { b01StageEvidence } from './practice-b01/evidence';
 import { evaluateB01 } from './practice-b01/rubric';
 import { sanitizeOnResumeB01 } from './practice-b01/resume';
 import type { B01Notebook } from './practice-b01/notebook';
+import { newPracticeB02World, type PracticeB02Options } from './practice-b02';
+import { b02StageEvidence } from './practice-b02/evidence';
+import { evaluateB02 } from './practice-b02/rubric';
+import { sanitizeOnResumeB02 } from './practice-b02/resume';
+import type { B02Notebook } from './practice-b02/notebook';
+import { conservedCell, dispatchCell, stepCellWorld } from '../simulation/cell-world/world';
+import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02'];
 
 interface WorldBase {
   tick: number;
@@ -243,6 +250,18 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as OpticalWorld).scenarios, assignment: (w as OpticalWorld).assignment }),
     conserved: (w) => conservedB01(w as OpticalWorld),
     mode: (o) => opt<PracticeB01Options>(o).mode,
+  },
+  b02: {
+    create: (o) => newPracticeB02World(opt<PracticeB02Options>(o)),
+    dispatch: (w, c) => void dispatchCell(w as CellWorld, c as never),
+    step: (w) => stepCellWorld(w as CellWorld),
+    sanitize: (w) => sanitizeOnResumeB02(w as CellWorld),
+    latch: (w, nb) => void b02StageEvidence(w as CellWorld, nb as B02Notebook),
+    evaluate: (w, s) => evaluateB02(w as CellWorld, s.notebook as B02Notebook),
+    // Asignación de activos, muestras asignadas, rutas opcionales y recursos docentes o faltantes: congelados con el intento.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as CellWorld).scenarios, assignment: (w as CellWorld).assignment, cellAssignment: { assigned: (w as CellWorld).cell.assigned, routes: (w as CellWorld).cell.routes, assetOverride: (w as CellWorld).cell.assetOverride, missingAssets: (w as CellWorld).cell.missingAssets } }),
+    conserved: (w) => conservedCell(w as CellWorld),
+    mode: (o) => opt<PracticeB02Options>(o).mode,
   },
 };
 

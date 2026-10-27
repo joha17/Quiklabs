@@ -13,11 +13,12 @@ import {
 } from '../instruments/optical/microscope-model';
 import { binocular, stereoFocus, stereoFovMm, stereoLight, stereoMagnification } from '../instruments/optical/stereo-model';
 import { misplaced, outsideCase, slotOf } from '../instruments/optical/slide-carrier';
-import { bubbleFractionFor, coveredFractionFor, dropVolumeMl, emptyMount, mountAboveMm, mountUsable, type FreshMount } from '../specimens/mount-world';
+import { bubbleFractionFor, coveredFractionFor, dropVolumeMl, emptyMount, liquidMl, mountAboveMm, mountUsable, reagentOk, type FreshMount } from '../specimens/mount-world';
+import { BLOCKING_CELL_ISSUES, cellMountIssues, zoneVisible, type CellZone } from '../specimens/thin-section';
 import { ledgerError } from '../specimens/volumes';
 import { assetById, centerOnSpecimen, nearestStructureMm, visibleStructures, type ObservationAssetManifest, type StructureId } from '../specimens/assets';
 import type { B01Command, B01DispatchResult } from './commands';
-import { bumpB, emitB, errB, flagB, latchB } from './events';
+import { bumpB, emitB, errB, flagB, hasErr, latchB } from './events';
 import type { LabObservation, OpticalObject, OpticalWorld, Pose } from './types';
 import { CLEAN_TRAY, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, caseSlotId } from './geometry';
 
@@ -61,22 +62,43 @@ export function stackFor(w: OpticalWorld, slideId: string): SlideStack | null {
   if (s.kind === 'fixed') return { slideMm: p.slideThicknessMm, aboveMm: p.fixedAboveMm, specimenDepthMm: p.specimenDepthMm, faceDown: s.faceDown };
   const m = w.mounts[slideId];
   const above = m ? mountAboveMm(m, p.coverThicknessMm) : 0;
-  return { slideMm: p.slideThicknessMm, aboveMm: above, specimenDepthMm: m?.specimenId ? Math.min(p.specimenDepthMm, above) : 0, faceDown: s.faceDown };
+  // B02: el plano útil queda a media altura del tejido (un corte grueso lo hunde bajo el cubreobjetos).
+  const depth = m?.cell?.zones.length ? Math.max(p.specimenDepthMm, ...m.cell.zones.map((z) => z.thicknessMm / 2)) : p.specimenDepthMm;
+  return { slideMm: p.slideThicknessMm, aboveMm: above, specimenDepthMm: m?.specimenId ? Math.min(depth, above) : 0, faceDown: s.faceDown };
+}
+
+/** Zona de tejido de un montaje B02 más cercana al centro del campo (mm sobre el portaobjetos). */
+export function nearestZone(m: FreshMount, centerSlideMm: [number, number]): CellZone | null {
+  const zs = m.cell?.zones ?? [];
+  let best: CellZone | null = null;
+  let bd = Infinity;
+  for (const z of zs) {
+    const d = Math.hypot(centerSlideMm[0] - z.centerCm[0] * 10, centerSlideMm[1] - z.centerCm[1] * 10);
+    if (d < bd) {
+      bd = d;
+      best = z;
+    }
+  }
+  return best;
 }
 
 /** Activo y centro del campo sobre la imagen (mm desde su centro) de la lámina en la platina. */
-function slideAsset(w: OpticalWorld, slideId: string, centerSlideMm: [number, number]): { asset: ObservationAssetManifest; centerMm: [number, number]; specimenId: string; mount: FreshMount | null } | null {
+function slideAsset(w: OpticalWorld, slideId: string, centerSlideMm: [number, number]): { asset: ObservationAssetManifest; centerMm: [number, number]; specimenId: string; mount: FreshMount | null; zone: CellZone | null; originMm: [number, number] } | null {
   const s = w.slides[slideId];
   if (!s) return null;
   if (s.kind === 'fixed' && s.assetId) {
     const asset = assetById(s.assetId);
-    return asset ? { asset, centerMm: centerSlideMm, specimenId: slideId, mount: null } : null;
+    return asset ? { asset, centerMm: centerSlideMm, specimenId: slideId, mount: null, zone: null, originMm: [0, 0] } : null;
   }
   const m = w.mounts[slideId];
   if (!m?.specimenId || !m.specimenAsset) return null;
-  const asset = assetById(m.specimenAsset);
+  // B02: cada zona de tejido es su propio activo (el de su condición), centrado donde se depositó.
+  const zone = m.cell ? nearestZone(m, centerSlideMm) : null;
+  const asset = assetById(zone ? zone.asset : m.specimenAsset);
   if (!asset) return null;
-  return { asset, centerMm: [centerSlideMm[0] - m.centerCm[0] * 10, centerSlideMm[1] - m.centerCm[1] * 10], specimenId: m.specimenId, mount: m };
+  const c = zone ? zone.centerCm : m.centerCm;
+  const originMm: [number, number] = [c[0] * 10, c[1] * 10];
+  return { asset, centerMm: [centerSlideMm[0] - originMm[0], centerSlideMm[1] - originMm[1]], specimenId: zone ? zone.specimenId : m.specimenId, mount: m, zone, originMm };
 }
 
 export interface MicroscopeView {
@@ -99,6 +121,10 @@ export interface MicroscopeView {
   onBubble: boolean;
   /** Plano focal (0/1) de las fuentes con dos planos (S12). */
   focusPlane: number;
+  /** Posición del origen del activo sobre el portaobjetos (mm): el centro del fragmento o de la zona. */
+  originMm: [number, number];
+  /** Zona de tejido bajo el campo (B02). */
+  zone: CellZone | null;
 }
 
 export function microscopeView(w: OpticalWorld): MicroscopeView {
@@ -136,12 +162,14 @@ export function microscopeView(w: OpticalWorld): MicroscopeView {
       if (cm.coveredFraction < 0.7 && Math.abs(rel[1]) > (w.params.mount.coverSizeCm * 10) / 2) visible = [];
     }
     if (w.slides[slideId!]?.faceDown) visible = visible.filter((_, i) => i === 0);
+    // B02: lo que la preparación deja distinguir (espesor, desgarro, exceso de colorante, frotis denso).
+    if (sa.zone && sa.mount?.cell && w.params.cellPrep) visible = zoneVisible(w.params.cellPrep, visible, sa.zone, sa.mount.cell);
   }
   return {
     objectiveX: t.objectiveX, locked: t.locked, gapMm: g.gapMm, focusErrorMm: g.focusErrorMm, sharpness01: sharp, stageZmm: g.stageZ,
     luminance01: light.luminance01, contrast01: light.contrast01 * (sa?.mount ? 1 - 0.7 * sa.mount.contamination01 : 1) * (1 - 0.8 * m.lensDamage01), lightIssues: light.issues,
     fovMm: fov, magnification: totalMagnification(p.ocularX, obj), slideId, assetId: sa?.asset.assetId ?? null, specimenId: sa?.specimenId ?? null, centerMm: sa?.centerMm ?? center,
-    visible, onBubble, focusPlane,
+    visible, onBubble, focusPlane, originMm: sa?.originMm ?? [0, 0], zone: sa?.zone ?? null,
   };
 }
 
@@ -472,6 +500,41 @@ function inspect(w: OpticalWorld, target: string): B01DispatchResult {
 
 const FIXED = (w: OpticalWorld, id: string) => w.slides[id]?.kind === 'fixed';
 
+/** Áreas de montaje: la de preparación vegetal y, en B02, la de preparación animal (`prep2`). */
+export const isPrep = (support: string | undefined) => support === 'prep' || support === 'prep2';
+
+/**
+ * Retira líquido de un montaje hacia residuos (papel) o derrame (mesa). En B02 sale agua y colorante en proporción,
+ * con su balance por colorante; en B01 solo hay agua. Devuelve lo retirado (mL).
+ */
+export function drainMount(w: OpticalWorld, m: FreshMount, ml: number, to: 'waste' | 'spill'): number {
+  const total = liquidMl(m);
+  const take = Math.min(Math.max(0, ml), total);
+  if (take <= 0) return 0;
+  if (m.cell) {
+    const k = take / total;
+    m.waterMl -= m.waterMl * k;
+    for (const [s, v0] of Object.entries(m.cell.stainMl) as Array<[keyof typeof m.cell.stainMl, number]>) {
+      const v = v0 * k;
+      m.cell.stainMl[s] = v0 - v;
+      m.reagentMl -= v;
+      const led = s !== 'water' ? w.cell?.stainLedger[s] : undefined;
+      if (!led || !w.cell) continue;
+      if (to === 'waste') led.wasteMl += v;
+      else {
+        led.spilledMl += v;
+        w.cell.benchStainMl[s] = (w.cell.benchStainMl[s] ?? 0) + v;
+      }
+    }
+  } else m.waterMl -= take;
+  if (to === 'waste') w.fluids.wasteMl += take;
+  else {
+    w.fluids.spilledMl += take;
+    w.benchSpillMl += take;
+  }
+  return take;
+}
+
 function setPose(w: OpticalWorld, id: string, pose: Pose, support?: string): B01DispatchResult {
   const o = w.objects[id];
   if (!o) return no('NO_OBJECT');
@@ -510,8 +573,8 @@ function setPose(w: OpticalWorld, id: string, pose: Pose, support?: string): B01
     // Estereoscopio: retirar la muestra con el ocular abierto y sin registrar (E59).
     if (prev === 'stereoBase' && w.view.instrument === 'stereo' && !w.view.capturedSinceOpen) errB(w, 'E59', 'STEREO_INTERRUPTED', 'WARN', { obj: id });
     if (support === 'stereoBase' && !w.stereoSamples[id]) return no('BAD_TARGET');
-    if (support === 'prep' && !w.slides[id]) return no('BAD_TARGET');
-    if (support === 'prep' && Object.values(w.objects).some((x) => x.id !== id && x.support === 'prep')) return no('SLOT_BUSY');
+    if (isPrep(support) && !w.slides[id]) return no('BAD_TARGET');
+    if (isPrep(support) && Object.values(w.objects).some((x) => x.id !== id && x.support === support)) return no('SLOT_BUSY');
   }
   o.pose = { ...pose };
   if (support && support !== prev) {
@@ -566,10 +629,7 @@ function enter(w: OpticalWorld, id: string, to: string) {
     // Líquido derramado en la platina, cerca del sistema eléctrico.
     const mt = w.mounts[id];
     if (mt?.floating) {
-      const spill = Math.max(0, mt.waterMl - w.params.mount.excessMl * 0.5);
-      mt.waterMl -= spill;
-      w.benchSpillMl += spill;
-      w.fluids.spilledMl += spill;
+      drainMount(w, mt, Math.max(0, liquidMl(mt) - w.params.mount.excessMl * 0.5), 'spill');
       w.safety.block = { code: 'SPILL', since: w.timeS };
       emitB(w, 'LIQUID_SPILL', 'ALERT', { obj: id });
     }
@@ -589,7 +649,7 @@ function enter(w: OpticalWorld, id: string, to: string) {
 
 // ─────────────────────────── Preparación ───────────────────────────
 
-function mountOn(w: OpticalWorld, slideId: string): FreshMount | null {
+export function mountOn(w: OpticalWorld, slideId: string): FreshMount | null {
   const s = w.slides[slideId];
   if (!s || s.kind !== 'blank') return null;
   if (!w.mounts[slideId]) w.mounts[slideId] = emptyMount(slideId);
@@ -650,7 +710,7 @@ function placeSpecimen(w: OpticalWorld, toolId: string, targetId: string, dxCm: 
   }
   const m = mountOn(w, targetId);
   if (!m) return no('BAD_TARGET');
-  if (w.objects[targetId].support !== 'prep') return no('NOT_ON_PREP');
+  if (!isPrep(w.objects[targetId].support)) return no('NOT_ON_PREP');
   if (m.specimenId) return no('ALREADY_MOUNTED');
   const h = f.holding;
   m.specimenId = `${h.assetId}@${targetId}`;
@@ -685,7 +745,7 @@ function cutSpecimen(w: OpticalWorld, slideId: string, toolId: string, keepFract
   const m = w.mounts[slideId];
   if (!o || !m?.specimenId) return no('NO_SPECIMEN');
   // Corte fuera del área de montaje: superficie insegura.
-  if (o.support !== 'prep') {
+  if (!isPrep(o.support)) {
     emitB(w, 'CUT_UNSAFE', 'ALERT', { obj: slideId });
     return no('CUT_UNSAFE');
   }
@@ -719,7 +779,7 @@ function squeezeDropper(w: OpticalWorld, dispenserId: string, targetId: string, 
   const vol = Math.min(d.ml, dropVolumeMl(w.params.mount, force01));
   d.ml -= vol;
   const m = mountOn(w, targetId);
-  if (!m || w.objects[targetId]?.support !== 'prep') {
+  if (!m || !isPrep(w.objects[targetId]?.support)) {
     w.benchSpillMl += vol;
     w.fluids.spilledMl += vol;
     emitB(w, 'DROP_SPILLED', 'WARN', { obj: dispenserId });
@@ -768,7 +828,7 @@ function lowerCover(w: OpticalWorld, coverId: string, slideId: string, speedCmS:
     return no('FIXED_SLIDE');
   }
   const m = mountOn(w, slideId);
-  if (!m || w.objects[slideId].support !== 'prep') return no('NOT_ON_PREP');
+  if (!m || !isPrep(w.objects[slideId].support)) return no('NOT_ON_PREP');
   if (m.coverId) return no('ALREADY_COVERED');
   const p = w.params.mount;
   c.state = 'placed';
@@ -779,7 +839,7 @@ function lowerCover(w: OpticalWorld, coverId: string, slideId: string, speedCmS:
   m.coverId = coverId;
   m.coverOffsetCm = [dxCm, dyCm];
   const angle = c.tiltDeg;
-  m.bubbleFraction = bubbleFractionFor(p, angle, speedCmS, m.waterMl);
+  m.bubbleFraction = bubbleFractionFor(p, angle, speedCmS, liquidMl(m));
   // Burbujas: posiciones del RNG serializable; su número y tamaño, de la fracción.
   const n = Math.round(m.bubbleFraction * 14);
   const half = (p.coverSizeCm * 10) / 2;
@@ -793,17 +853,14 @@ function lowerCover(w: OpticalWorld, coverId: string, slideId: string, speedCmS:
   if (angle < 12) errB(w, 'E09', 'COVER_DROPPED_FLAT', 'WARN', { obj: slideId });
   else if (speedCmS > p.coverMaxSpeedCmS && angle < 30) errB(w, 'E10', 'COVER_FAST', 'WARN', { obj: slideId });
   if (m.specimenId && m.coveredFraction < 0.85 && m.fragmentCm > p.maxFragmentCm) errB(w, 'E02', 'FRAGMENT_TOO_BIG', 'WARN', { obj: slideId });
-  if (m.waterMl < p.needMl && m.specimenId) errB(w, 'E06', 'NO_MOUNT_LIQUID', 'WARN', { obj: slideId });
-  if (m.waterMl > p.excessMl) {
+  if (liquidMl(m) < p.needMl && m.specimenId) errB(w, 'E06', 'NO_MOUNT_LIQUID', 'WARN', { obj: slideId });
+  if (liquidMl(m) > p.excessMl) {
     m.floating = true;
-    const spill = (m.waterMl - p.excessMl) * 0.5;
-    m.waterMl -= spill;
-    w.benchSpillMl += spill;
-    w.fluids.spilledMl += spill;
+    drainMount(w, m, (liquidMl(m) - p.excessMl) * 0.5, 'spill');
     errB(w, 'E07', 'TOO_MUCH_LIQUID', 'WARN', { obj: slideId });
   }
   // Vidrio con residuo (E01) también si el residuo queda bajo la cubierta.
-  if (w.slides[slideId].dirty01 > 0.2 && !w.evidence['err:E01']) {
+  if (w.slides[slideId].dirty01 > 0.2 && !hasErr(w, 'E01')) {
     m.contamination01 = clamp(m.contamination01 + w.slides[slideId].dirty01 * 0.8, 0, 1);
     errB(w, 'E01', 'DIRTY_SLIDE', 'WARN', { obj: slideId });
   }
@@ -816,7 +873,7 @@ function lowerCover(w: OpticalWorld, coverId: string, slideId: string, speedCmS:
 function liftCover(w: OpticalWorld, slideId: string, toolId: string): B01DispatchResult {
   const m = w.mounts[slideId];
   if (!m?.coverId || toolId !== 'fc') return no('NOT_COVERED');
-  if (w.objects[slideId].support !== 'prep') return no('NOT_ON_PREP');
+  if (!isPrep(w.objects[slideId].support)) return no('NOT_ON_PREP');
   if (w.forceps.holding) return no('TOOL_BUSY');
   const c = w.covers[m.coverId];
   if (m.broken) return no('BROKEN');
@@ -1274,7 +1331,7 @@ function capture(w: OpticalWorld, instrument: 'compound' | 'stereo'): B01Dispatc
       issues.push('BUBBLE');
       errB(w, 'E37', 'CAPTURE_ON_BUBBLE', 'WARN');
     }
-    if (v.locked && !v.visible.length && !v.onBubble) {
+    if (v.locked && !v.visible.length && !v.onBubble && !(v.slideId && w.mounts[v.slideId]?.cell && !asset)) {
       issues.push('EMPTY_FIELD');
       if (asset && !centerOnSpecimen(asset, v.centerMm, v.fovMm)) errB(w, 'E33', 'STAGE_OFF_SPECIMEN', 'WARN');
     }
@@ -1285,18 +1342,23 @@ function capture(w: OpticalWorld, instrument: 'compound' | 'stereo'): B01Dispatc
       if (!mt?.specimenId) issues.push('NO_SPECIMEN');
       else {
         if (mt.broken) issues.push('BROKEN');
-        if (mt.reagentId) issues.push('REAGENT');
+        if (!reagentOk(mt)) issues.push('REAGENT');
         if (mt.hydrated01 < 0.6) issues.push('DRY');
         if (mt.contamination01 > 0.3) issues.push('ARTIFACTS');
         if (mt.damage01 >= 0.5) issues.push('DAMAGED');
         if (mt.floating) issues.push('FLOATING');
+        // B02: espesor, desgarro, colorante, frotis, mezcla y recurso faltante de la zona observada.
+        if (mt.cell && w.params.cellPrep) {
+          const z = v.zone ?? nearestZone(mt, [v.centerMm[0] + v.originMm[0], v.centerMm[1] + v.originMm[1]]);
+          for (const q of cellMountIssues(w.params.cellPrep, z, mt.cell)) if (!issues.includes(q)) issues.push(q);
+        }
       }
     } else if (!w.assignment.fixedSlideIds.includes(v.slideId)) {
       issues.push('NOT_ASSIGNED');
       errB(w, 'E40', 'WRONG_FIXED_SLIDE', 'WARN', { obj: v.slideId });
     }
     if (v.contrast01 < 0.5 && !issues.some((i) => ['LIGHT_OFF', 'LOW_LIGHT', 'WASHED'].includes(i))) issues.push('LOW_CONTRAST');
-    const blocking = ['NO_OBJECTIVE', 'LIGHT_OFF', 'LOW_LIGHT', 'WASHED', 'OUT_OF_FOCUS', 'BUBBLE', 'EMPTY_FIELD', 'FACE_DOWN', 'NO_SPECIMEN', 'BROKEN', 'REAGENT', 'DRY', 'DAMAGED', 'FLOATING', 'NOT_ASSIGNED', 'LOW_CONTRAST'];
+    const blocking = ['NO_OBJECTIVE', 'LIGHT_OFF', 'LOW_LIGHT', 'WASHED', 'OUT_OF_FOCUS', 'BUBBLE', 'EMPTY_FIELD', 'FACE_DOWN', 'NO_SPECIMEN', 'BROKEN', 'REAGENT', 'DRY', 'DAMAGED', 'FLOATING', 'NOT_ASSIGNED', 'LOW_CONTRAST', ...BLOCKING_CELL_ISSUES];
     const valid = !issues.some((i) => blocking.includes(i)) && !!asset;
     const obj = v.objectiveX ?? 4;
     const ext = asset?.extentMm ?? [10, 10];
@@ -1424,7 +1486,8 @@ export function stepB01World(w: OpticalWorld): void {
     const ev = Math.min(m.waterMl, rate * dt);
     m.waterMl -= ev;
     w.fluids.evaporatedMl += ev;
-    if (!m.specimenId) continue;
+    // La hidratación de los montajes B02 (agua o colorante de la receta) la lleva el mundo celular.
+    if (!m.specimenId || m.cell) continue;
     const wet = m.wetsSpecimen && m.waterMl >= p.needMl * 0.5;
     if (!wet) {
       m.hydrated01 = clamp(m.hydrated01 - p.dehydratePerS * dt, 0, 1);

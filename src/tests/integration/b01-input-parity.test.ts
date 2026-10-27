@@ -20,7 +20,7 @@ function rig() {
   const sent: B01Command[] = [];
   const orig = rt.dispatch.bind(rt);
   rt.dispatch = (c) => {
-    sent.push(c);
+    sent.push(c as B01Command);
     return orig(c);
   };
   let selected: string | null = null;

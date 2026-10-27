@@ -298,6 +298,30 @@
             "Ilustraciones didácticas"
           ]
         }
+      },
+      "b02": {
+        "title": "Células bajo la lente",
+        "subtitle": "Plastidios, paredes y diversidad celular: cortes de frutos, raspado de papa con Lugol, pera con esclereidas, frotis bucal teñido y Elodea, comparados al microscopio 4X → 40X.",
+        "points": [
+          "Corte, raspado y frotis con consecuencias reales: espesor, desgarro, contaminación cruzada y densidad del extendido.",
+          "Lugol con tiempo de contacto, azul de metileno o eosina según la muestra; un colorante equivocado invalida la comparación.",
+          "Cromoplastos, amiloplastos y cloroplastos con capturas propias; lo observado, lo inferido y lo no demostrable, separados en la libreta."
+        ],
+        "duration": "90–120 min",
+        "tags": {
+          "type": [
+            "Biología celular",
+            "Microscopía"
+          ],
+          "reactions": [
+            "Almidón + Lugol"
+          ],
+          "features": [
+            "Microscopio 3D",
+            "Tinciones",
+            "Ilustraciones didácticas"
+          ]
+        }
       }
     },
     "tagsLabel": "Características del laboratorio",

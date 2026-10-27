@@ -467,7 +467,7 @@ export function OpticalScene({ lab, setting }: { lab: OpticalLab3D; setting: Qua
         <Environment />
         <Lights q={q} />
         <Physics gravity={[0, GRAVITY, 0]} timeStep={1 / 60} colliders={false}>
-          <Room q={q} variant="b01" />
+          <Room q={q} variant={(lab.host.roomVariant ?? 'b01') as 'b01'} />
         </Physics>
         <Objects />
         <Effects />

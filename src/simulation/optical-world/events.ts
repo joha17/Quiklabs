@@ -27,9 +27,19 @@ export const flagB = (w: OpticalWorld, key: string) => {
   if (!w.evidence[key]) w.evidence[key] = Math.max(0.01, Math.round(w.timeS * 100) / 100);
 };
 
+/** Código efectivo de un error en la práctica que usa este mundo (`''`: no es un error allí). */
+export const codeOf = (w: OpticalWorld, code: string) => w.params.codeMap?.[code] ?? code;
+
+/** ¿Se cometió ya el error (con el código de la práctica)? */
+export const hasErr = (w: OpticalWorld, code: string) => {
+  const c = codeOf(w, code);
+  return !!c && !!w.evidence[`latch:e:${c}`];
+};
+
 /** Error de técnica: se fija una vez (`err:<código>`) y avisa con su evento. */
 export function errB(w: OpticalWorld, code: string, event: string, severity: Severity = 'WARN', params?: SimEvent['params']) {
-  if (w.evidence[`latch:e:${code}`]) return;
-  bumpB(w, `err:${code}`);
-  latchB(w, `e:${code}`, event, severity, params);
+  const c = codeOf(w, code);
+  if (!c || w.evidence[`latch:e:${c}`]) return;
+  bumpB(w, `err:${c}`);
+  latchB(w, `e:${c}`, event, severity, params);
 }

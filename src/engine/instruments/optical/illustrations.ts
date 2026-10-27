@@ -5,7 +5,8 @@
  * evidencia (la evidencia es del dominio). Deterministas: el patrón celular sale de un hash, no de Math.random.
  * Para fotografías reales se reemplaza `drawAsset` por la textura publicada (misma interfaz de vista).
  */
-import { assetById, type ObservationAssetManifest } from '../../../simulation/specimens/assets';
+import { assetById, baseAssetId, type ObservationAssetManifest } from '../../../simulation/specimens/assets';
+import { drawCellAsset } from './illustrationsCell';
 
 export interface ViewSpec {
   assetId: string;
@@ -16,17 +17,17 @@ export interface ViewSpec {
   size: number;
 }
 
-const h = (i: number, j: number, k = 0) => {
+export const h = (i: number, j: number, k = 0) => {
   let x = (i * 374761393 + j * 668265263 + k * 2147483647) | 0;
   x = Math.imul(x ^ (x >>> 13), 1274126177);
   return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
 };
 
-function poly(a: ObservationAssetManifest, structure: string): number[][] {
+export function poly(a: ObservationAssetManifest, structure: string): number[][] {
   return a.annotations.find((x) => x.structureId === structure)?.polygonNormalized ?? [];
 }
 
-function inside(x: number, y: number, p: number[][]): boolean {
+export function inside(x: number, y: number, p: number[][]): boolean {
   let r = false;
   for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
     if (p[i][1] > y !== p[j][1] > y && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1] + 1e-12) + p[i][0]) r = !r;
@@ -35,7 +36,7 @@ function inside(x: number, y: number, p: number[][]): boolean {
 }
 
 /** Transformación mm (de la imagen) → px del lienzo. */
-function mapper(a: ObservationAssetManifest, v: ViewSpec) {
+export function mapper(a: ObservationAssetManifest, v: ViewSpec) {
   const k = v.size / v.fovMm;
   const toPx = (xmm: number, ymm: number): [number, number] => [v.size / 2 + (xmm - v.centerMm[0]) * k, v.size / 2 + (ymm - v.centerMm[1]) * k];
   const nToMm = (u: number, w: number): [number, number] => [(u - 0.5) * a.extentMm[0], (w - 0.5) * a.extentMm[1]];
@@ -47,7 +48,7 @@ function mapper(a: ObservationAssetManifest, v: ViewSpec) {
   return { k, toPx, nToMm, mmToN, range };
 }
 
-function pathPoly(ctx: CanvasRenderingContext2D, pts: number[][], m: ReturnType<typeof mapper>) {
+export function pathPoly(ctx: CanvasRenderingContext2D, pts: number[][], m: ReturnType<typeof mapper>) {
   ctx.beginPath();
   pts.forEach(([u, w], i) => {
     const [x, y] = m.toPx(...m.nToMm(u, w));
@@ -92,7 +93,7 @@ function drawElodea(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
         const dot = 0.0055 * m.k;
         if (dot > 0.6 && !mid) {
           ctx.fillStyle = '#2f7d1e';
-          const n = 10;
+          const n = a.assetId === 'elodeaDense' ? 18 : 10;
           for (let c = 0; c < n; c++) {
             const t = h(i, j, c);
             const side = c % 4;
@@ -341,8 +342,8 @@ function drawInsect(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
 export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
   const a = assetById(v.assetId);
   if (!a) return;
-  switch (a.assetId) {
-    case 'elodea': return drawElodea(ctx, a, v);
+  switch (baseAssetId(a.assetId)) {
+    case 'elodea': case 'elodeaDense': return drawElodea(ctx, a, v);
     case 'onion': return drawOnion(ctx, a, v, true);
     case 'onionPlain': return drawOnion(ctx, a, v, false);
     case 'cornStem': return drawCrossSection(ctx, a, v, 'corn');
@@ -350,5 +351,6 @@ export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
     case 'leaf': return drawLeafStereo(ctx, a, v);
     case 'insect': return drawInsect(ctx, a, v, false);
     case 'insectShiny': return drawInsect(ctx, a, v, true);
+    default: drawCellAsset(ctx, a, v, baseAssetId(a.assetId));
   }
 }

@@ -8,12 +8,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AttemptSnapshot, AttemptTape, GradedLab, TapeEntry } from '../../practices/grading';
 
-const rec = vi.hoisted(() => ({ world: null as unknown, entries: [] as Array<[number, unknown]> }));
+const rec = vi.hoisted(() => ({ world: null as unknown, entries: [] as Array<[number, unknown]>, depth: 0 }));
+// Solo los comandos de primer nivel: `dispatchCell` (B02) delega en `dispatchB01`, que no debe grabarse otra vez.
 const wrap = <F extends (...a: never[]) => unknown>(f: F) =>
   ((...args: Parameters<F>) => {
     const w = args[0] as unknown as { tick: number };
-    if (w === rec.world) rec.entries.push([w.tick, JSON.parse(JSON.stringify(args[1]))]);
-    return f(...args);
+    if (w === rec.world && rec.depth === 0) rec.entries.push([w.tick, JSON.parse(JSON.stringify(args[1]))]);
+    rec.depth++;
+    try {
+      return f(...args);
+    } finally {
+      rec.depth--;
+    }
   }) as F;
 
 vi.mock('../../simulation/world/world', async (orig) => {
@@ -55,6 +61,10 @@ vi.mock('../../simulation/cation-analysis-world/world', async (orig) => {
 vi.mock('../../simulation/optical-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/optical-world/world')>();
   return { ...m, dispatchB01: wrap(m.dispatchB01) };
+});
+vi.mock('../../simulation/cell-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/cell-world/world')>();
+  return { ...m, dispatchCell: wrap(m.dispatchCell) };
 });
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
@@ -329,6 +339,27 @@ describe('repetición determinista — Biología B01', () => {
         return out.w;
       }, sanitizeOnResumeB01);
       const { graded } = await verify('b01', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.9);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B02', () => {
+  for (const seed of [2202, 31]) {
+    it(`B02 semilla ${seed}: cortes, raspado con Lugol, frotis y Elodea con reanudación entre muestras`, async () => {
+      const hc = await import('../helpersB02');
+      const { sanitizeOnResumeB02 } = await import('../../practices/practice-b02/resume');
+      const { emptyB02Notebook } = await import('../../practices/practice-b02/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b02', opts, () => hc.worldB02(opts), (w, resume) => {
+        const out = hc.idealRouteB02(w, resume);
+        const n = emptyB02Notebook(`b02-${seed.toString(36)}-x`);
+        hc.fillNotebookB02(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB02);
+      const { graded } = await verify('b02', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.9);
     }, 300000);
   }

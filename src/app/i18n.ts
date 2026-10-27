@@ -11,12 +11,13 @@ import es08 from '../locales/es/practice8.json';
 import es09 from '../locales/es/practice9.json';
 import es10 from '../locales/es/practice10.json';
 import esB01 from '../locales/es/practiceB01.json';
+import esB02 from '../locales/es/practiceB02.json';
 import esLanding from '../locales/es/landing.json';
 import esPlatform from '../locales/es/platform.json';
 
 void i18n.use(initReactI18next).init({
   // Las prácticas 3 a 6 y 10, el menú de laboratorios y la página de inicio tienen su propio archivo (claves `p01.*`, `p3.*`–`p9.*` y `p10.*`, `p3fb.*`–`p9fb.*` y `p10fb.*`, `menu.*`, `landing.*`).
-  resources: { es: { translation: { ...es, ...es3, ...es4, ...es5, ...es6, ...es01, ...es07, ...es08, ...es09, ...es10, ...esB01, ...esLanding, ...esPlatform } } },
+  resources: { es: { translation: { ...es, ...es3, ...es4, ...es5, ...es6, ...es01, ...es07, ...es08, ...es09, ...es10, ...esB01, ...esB02, ...esLanding, ...esPlatform } } },
   lng: 'es',
   fallbackLng: 'es',
   interpolation: { escapeValue: false },

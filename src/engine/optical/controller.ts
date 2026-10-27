@@ -13,12 +13,13 @@
  * el dominio calcula foco, burbujas, choques…
  */
 import type { B01Command, B01DispatchResult } from '../../simulation/optical-world/commands';
+import type { CellCommand } from '../../simulation/cell-world/commands';
 import type { B01ObjKind, OpticalWorld, Pose } from '../../simulation/optical-world/types';
 import { microscopeView } from '../../simulation/optical-world/world';
 import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, STEREO_POS } from '../../simulation/optical-world/geometry';
 import type { OpticalHost } from './host';
 import type { OpticalLab3D } from './OpticalLab3D';
-import { spotsFor, stageTop } from './layout';
+import { spotsFor, stageTop, type Spot } from './layout';
 import { KIN, type PartGrip } from './parts';
 import type { GrabTracker } from './gestures';
 
@@ -79,9 +80,9 @@ export type KnobB01 =
   | 'ste:zoom' | 'ste:focus' | 'ste:head' | 'ste:incident' | 'ste:transmitted' | 'ste:ipd' | 'ste:diopterL' | 'ste:diopterR';
 
 const CARRY_Z: Partial<Record<B01ObjKind, number>> = {
-  slide: 6, fixedSlide: 6, forceps: 5, scalpel: 5, dropperBottle: 9, paper: 4, lensPaper: 4, towel: 4, leafSample: 6, insectSample: 6,
+  slide: 6, fixedSlide: 6, forceps: 5, scalpel: 5, dropperBottle: 9, paper: 4, lensPaper: 4, towel: 4, leafSample: 6, insectSample: 6, spatula: 5, swab: 5,
 };
-const TOOL_KINDS = new Set<B01ObjKind>(['forceps', 'scalpel', 'dropperBottle', 'paper', 'lensPaper', 'towel']);
+const TOOL_KINDS = new Set<B01ObjKind>(['forceps', 'scalpel', 'dropperBottle', 'paper', 'lensPaper', 'towel', 'spatula', 'swab']);
 
 export class OpticalController {
   view: ViewAdapterB01 | null = null;
@@ -102,17 +103,17 @@ export class OpticalController {
   private down = false;
   private hinted = new Set<string>();
 
-  constructor(private host: OpticalHost, private lab: OpticalLab3D) {}
+  constructor(protected host: OpticalHost, protected lab: OpticalLab3D) {}
 
-  private get w(): OpticalWorld {
+  protected get w(): OpticalWorld {
     return this.host.runtime.world;
   }
 
-  dispatch(c: B01Command): B01DispatchResult {
+  dispatch(c: B01Command | CellCommand): B01DispatchResult {
     return this.host.runtime.dispatch(c);
   }
 
-  private run(r: B01DispatchResult | undefined) {
+  protected run(r: B01DispatchResult | undefined) {
     if (r && !r.ok && r.code) this.host.notify('warn', `b01.cmd.${r.code}`);
     return r;
   }
@@ -559,12 +560,13 @@ export class OpticalController {
 
   /** Suelta en el apoyo cercano (área de montaje, platina, ranura, base, bandeja) o sobre la mesada. */
   place(id: string, kind: B01ObjKind, p: Pose) {
-    for (const s of spotsFor(this.w, kind)) {
+    for (const s of this.spots(kind)) {
       if (Math.hypot(p.x - s.x, p.y - s.y) > s.r) continue;
-      if (Object.values(this.w.objects).some((o) => o.id !== id && o.support === s.id)) continue;
+      const occupants = Object.values(this.w.objects).filter((o) => o.id !== id && o.support === s.id).length;
+      if (occupants && !this.sharedSpot(s.id)) continue;
       // En la platina y la base la lámina o la muestra conservan su desalineación (la ve el dominio).
       const keep = s.id === 'stage' || s.id === 'stereoBase';
-      const pose: Pose = keep ? { x: p.x, y: p.y, z: s.z, rotationRad: 0 } : { x: s.x, y: s.y, z: s.z, rotationRad: 0 };
+      const pose: Pose = keep ? { x: p.x, y: p.y, z: s.z, rotationRad: 0 } : this.spotPose(s, occupants);
       const r = this.dispatch({ type: 'setPose', id, pose, support: s.id });
       if (r.ok) {
         this.host.sound('glass');
@@ -575,6 +577,30 @@ export class OpticalController {
       break;
     }
     this.layOnBench(id, p.x, p.y);
+  }
+
+  /** Apoyos que admiten varios objetos a la vez (en B01, ninguno: un objeto por apoyo). */
+  protected sharedSpot(_id: string): boolean {
+    return false;
+  }
+
+  /** Pose del objeto número `n` que se suelta en un apoyo (en uno compartido, cada uno en su lugar). */
+  protected spotPose(s: Spot, _n: number): Pose {
+    return { x: s.x, y: s.y, z: s.z, rotationRad: 0 };
+  }
+
+  /** Apoyos válidos para una clase de objeto (otra práctica agrega los suyos). */
+  protected spots(kind: B01ObjKind) {
+    return spotsFor(this.w, kind);
+  }
+
+  /** Altura mínima de la mano sobre los apoyos (cm): baja hasta apoyar sobre la platina, el área de montaje… */
+  protected floorAt(x: number, y: number): number {
+    let floor = 0;
+    if (Math.hypot(x - STAGE_SEAT.x, y - STAGE_SEAT.y) < 8) floor = stageTop(this.w) + 0.2;
+    if (Math.hypot(x - PREP_SPOT.x, y - PREP_SPOT.y) < 9) floor = Math.max(floor, PREP_SPOT.z + 0.3);
+    if (Math.hypot(x - STEREO_POS.x, y - STEREO_POS.y) < 9) floor = Math.max(floor, STEREO_BASE.z + 0.3);
+    return floor;
   }
 
   layOnBench(id: string, x0: number, y0: number) {
@@ -588,7 +614,7 @@ export class OpticalController {
   }
 
   /** Pose (x, y) de la mano relativa al centro de un objeto, en cm. */
-  private rel(id: string): [number, number] {
+  protected rel(id: string): [number, number] {
     const h = this.held!;
     const o = this.w.objects[id];
     return [Math.round((h.x - o.pose.x) * 100) / 100, Math.round((h.y - o.pose.y) * 100) / 100];
@@ -698,11 +724,7 @@ export class OpticalController {
       h.y = p.y;
     }
     // Sobre la platina o el área de montaje, la mano baja hasta apoyar.
-    let floor = 0;
-    if (Math.hypot(h.x - STAGE_SEAT.x, h.y - STAGE_SEAT.y) < 8) floor = stageTop(this.w) + 0.2;
-    if (Math.hypot(h.x - PREP_SPOT.x, h.y - PREP_SPOT.y) < 9) floor = Math.max(floor, PREP_SPOT.z + 0.3);
-    if (Math.hypot(h.x - STEREO_POS.x, h.y - STEREO_POS.y) < 9) floor = Math.max(floor, STEREO_BASE.z + 0.3);
-    const tz = Math.max(h.z, floor);
+    const tz = Math.max(h.z, this.floorAt(h.x, h.y));
     const k = Math.min(1, dt * 16);
     const nx = o.pose.x + (h.x - o.pose.x) * k;
     const ny = o.pose.y + (h.y - o.pose.y) * k;

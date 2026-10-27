@@ -14,13 +14,15 @@ export type B01Command =
   | { type: 'pickSpecimen'; toolId: string; sourceId: string; pressure01?: number }
   | { type: 'placeSpecimen'; toolId: string; targetId: string; dxCm: number; dyCm: number }
   | { type: 'cutSpecimen'; slideId: string; toolId: string; keepFraction: number; pressure01: number }
-  | { type: 'squeezeDropper'; dispenserId: string; targetId: string; force01: number; dxCm: number; dyCm: number }
+  /** `tipContact`: la punta del gotero tocó el tejido (B02, CEL29). */
+  | { type: 'squeezeDropper'; dispenserId: string; targetId: string; force01: number; dxCm: number; dyCm: number; tipContact?: boolean }
   | { type: 'grabCover'; coverId: string; toolId: string }
   | { type: 'setCoverTilt'; coverId: string; angleDeg: number }
   | { type: 'lowerCover'; coverId: string; slideId: string; speedCmS: number; dxCm: number; dyCm: number }
   | { type: 'liftCover'; slideId: string; toolId: string }
   | { type: 'pressCover'; slideId: string; force01: number }
-  | { type: 'wipe'; targetId: string; toolId: string; dxCm?: number; dyCm?: number }
+  /** `strong`: el papel se apoya hasta absorber todo el borde (B02, CEL17). */
+  | { type: 'wipe'; targetId: string; toolId: string; dxCm?: number; dyCm?: number; strong?: boolean }
   | { type: 'flipSlide'; slideId: string }
   | { type: 'cleanShards' }
   // Microscopio

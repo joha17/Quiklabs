@@ -10,6 +10,17 @@ import { UNLOGGED_B01_COMMANDS, type B01Command, type B01DispatchResult } from '
 import { dispatchB01, b01Summary, stepB01World } from '../../simulation/optical-world/world';
 import { stableHash } from '../../simulation/core/math';
 import type { TapeRecorder } from '../platform/tape';
+import type { CellCommand } from '../../simulation/cell-world/commands';
+
+/** Simulación que mueve el runtime: la de B01 por omisión; B02 inyecta la del mundo celular (mismo equipo). */
+export interface OpticalSim {
+  dispatch(w: OpticalWorld, c: CellCommand): B01DispatchResult;
+  step(w: OpticalWorld): void;
+  summary(w: OpticalWorld): Record<string, unknown>;
+  unlogged?: Set<string>;
+}
+
+const B01_SIM: OpticalSim = { dispatch: (w, c) => dispatchB01(w, c as B01Command), step: stepB01World, summary: b01Summary };
 
 /** Evento de la práctica 9 (encadenado por hash con el anterior). */
 export interface PracticeB01Event {
@@ -33,7 +44,7 @@ const MAX_STEPS_PER_FRAME = 500;
 const GESTURE_STEPS = new Set<B01Command['type']>(['turnTurret', 'setIllumination', 'setDiaphragm', 'setCondenser', 'setStereoZoom', 'setStereoHead', 'setInterpupillary', 'setDiopter']);
 const MAX_FRAME_S = 0.25;
 
-export class OpticalRuntime {
+export class OpticalRuntime<W extends OpticalWorld = OpticalWorld> {
   /** Cinta de comandos para repetir el intento (verificación de la entrega); null en la demostración. */
   tape: TapeRecorder | null = null;
   actions: PracticeB01Event[];
@@ -43,7 +54,7 @@ export class OpticalRuntime {
   private lastSeq: number;
   private listeners = new Set<Listener>();
 
-  constructor(public world: OpticalWorld, public attemptId: string, actions: PracticeB01Event[] = []) {
+  constructor(public world: W, public attemptId: string, actions: PracticeB01Event[] = [], private sim: OpticalSim = B01_SIM) {
     this.actions = actions;
     this.lastSeq = world.evidence.__eventSeq ?? 0;
   }
@@ -53,30 +64,30 @@ export class OpticalRuntime {
     return () => this.listeners.delete(fn);
   }
 
-  dispatch(cmd: B01Command): B01DispatchResult {
+  dispatch(cmd: CellCommand): B01DispatchResult {
     const w = this.world;
     this.tape?.record(w.tick, cmd);
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
     const inGesture = !!w.gesture;
-    const r = dispatchB01(w, cmd);
+    const r = this.sim.dispatch(w, cmd);
     if (this.shouldLog(cmd, prevSupport, inGesture)) this.actions.push(this.toAction(cmd, r));
     this.flush();
     return r;
   }
 
-  private shouldLog(cmd: B01Command, prevSupport?: string, inGesture = false): boolean {
+  private shouldLog(cmd: CellCommand, prevSupport?: string, inGesture = false): boolean {
     if (cmd.type === 'setPose') return cmd.support !== undefined && cmd.support !== prevSupport && cmd.support !== 'hand';
     // Un arrastre sobre una pieza se registra una vez, al soltarla (no cada paso del mando).
     if (cmd.type === 'gesture') return cmd.phase === 'end';
-    if (inGesture && GESTURE_STEPS.has(cmd.type)) return false;
-    if (UNLOGGED_B01_COMMANDS.has(cmd.type)) return false;
+    if (inGesture && GESTURE_STEPS.has(cmd.type as B01Command['type'])) return false;
+    if (UNLOGGED_B01_COMMANDS.has(cmd.type as B01Command['type']) || this.sim.unlogged?.has(cmd.type)) return false;
     return true;
   }
 
-  private toAction(cmd: B01Command, r: B01DispatchResult): PracticeB01Event {
+  private toAction(cmd: CellCommand, r: B01DispatchResult): PracticeB01Event {
     const w = this.world;
     const { type, ...payload } = cmd as Record<string, unknown> & { type: string };
-    const ids = ['id', 'sourceId', 'targetId', 'slideId', 'coverId', 'toolId', 'dispenserId', 'observationId'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
+    const ids = ['id', 'sourceId', 'targetId', 'slideId', 'coverId', 'toolId', 'dispenserId', 'observationId', 'swabId', 'objectId', 'containerId'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
     const prev = this.actions[this.actions.length - 1]?.stateHash ?? '0';
     return {
       attemptId: this.attemptId,
@@ -89,12 +100,12 @@ export class OpticalRuntime {
       value: r.value,
       safetyCode: r.ok ? undefined : r.code,
       previousHash: prev,
-      stateHash: stableHash({ prev, t: w.tick, a: type, ...b01Summary(w) }),
+      stateHash: stableHash({ prev, t: w.tick, a: type, ...this.sim.summary(w) }),
     };
   }
 
   stateHash(): string {
-    return stableHash({ t: this.world.tick, ...b01Summary(this.world) });
+    return stableHash({ t: this.world.tick, ...this.sim.summary(this.world) });
   }
 
   advance(realDtS: number): number {
@@ -103,7 +114,7 @@ export class OpticalRuntime {
     this.acc += Math.min(realDtS, MAX_FRAME_S) * this.timeScale;
     let n = 0;
     while (this.acc >= dtS && n < MAX_STEPS_PER_FRAME) {
-      stepB01World(this.world);
+      this.sim.step(this.world);
       this.acc -= dtS;
       n++;
     }

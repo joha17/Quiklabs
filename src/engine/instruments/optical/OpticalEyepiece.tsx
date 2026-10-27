@@ -18,6 +18,8 @@ export interface EyepieceLabels {
   dark: string;
   notLocked: string;
   noSample: string;
+  /** B02: el recurso de esa muestra no está en la biblioteca asignada (incidencia sin culpa). */
+  missing?: string;
 }
 
 function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'compound' | 'stereo', size: number, off: HTMLCanvasElement, labels: EyepieceLabels) {
@@ -43,7 +45,7 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
       const m = v.slideId ? w.mounts[v.slideId] : null;
       if (m) {
         const k = size / v.fovMm;
-        const center = [v.centerMm[0] + m.centerCm[0] * 10, v.centerMm[1] + m.centerCm[1] * 10];
+        const center = [v.centerMm[0] + v.originMm[0], v.centerMm[1] + v.originMm[1]];
         for (const b of m.bubbles) {
           const bx = m.coverOffsetCm[0] * 10 + b.x;
           const by = m.coverOffsetCm[1] * 10 + b.y;
@@ -78,12 +80,14 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
           octx.fillStyle = 'rgba(180, 160, 110, 0.35)';
           octx.fillRect(0, 0, size, size);
         }
+        if (m.cell) cellLayers(octx, w, m, v, size);
       }
       if (w.slides[v.slideId ?? '']?.faceDown) {
         octx.fillStyle = 'rgba(240, 238, 230, 0.6)';
         octx.fillRect(0, 0, size, size);
       }
     } else if (!v.slideId) note = labels.noSample;
+    else if (v.locked && labels.missing && w.mounts[v.slideId]?.cell?.zones.some((z) => z.asset.startsWith('missing:'))) note = labels.missing;
     const blur = Math.min(14, (1 - v.sharpness01) * 14);
     ctx.filter = `blur(${blur.toFixed(1)}px) brightness(${(0.25 + 0.75 * lum).toFixed(2)}) contrast(${(0.4 + 0.6 * v.contrast01).toFixed(2)})`;
     ctx.drawImage(off, 0, 0);
@@ -151,6 +155,44 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
   }
 }
 
+/**
+ * Capas de la preparación de B02 sobre la ilustración: un corte grueso superpone capas (velo pardo y oscuro), el
+ * exceso de Lugol oscurece el campo y un frotis denso apila células. Nunca agregan estructuras: solo las tapan.
+ */
+function cellLayers(octx: CanvasRenderingContext2D, w: OpticalWorld, m: NonNullable<OpticalWorld['mounts'][string]>, v: ReturnType<typeof microscopeView>, size: number) {
+  const info = m.cell!;
+  const p = w.params.cellPrep;
+  const z = v.zone;
+  if (!p || !z) return;
+  if (z.thicknessMm > p.thickMaxMm) {
+    const k = Math.min(0.75, 0.35 + (z.thicknessMm - p.thickMaxMm) * 0.6);
+    octx.fillStyle = `rgba(95, 75, 50, ${k.toFixed(2)})`;
+    octx.fillRect(0, 0, size, size);
+  }
+  if (info.overstain01 > 0.3) {
+    octx.fillStyle = `rgba(40, 25, 45, ${Math.min(0.8, info.overstain01 * 0.8).toFixed(2)})`;
+    octx.fillRect(0, 0, size, size);
+  }
+  if (z.prep === 'smear' && info.smearDensity01 > p.smearDenseMax) {
+    octx.fillStyle = 'rgba(120, 140, 190, 0.35)';
+    for (let i = 0; i < 90; i++) {
+      octx.beginPath();
+      octx.ellipse(((i * 61) % 100) / 100 * size, ((i * 37) % 100) / 100 * size, 18 + (i % 5) * 4, 14 + (i % 3) * 4, i, 0, Math.PI * 2);
+      octx.fill();
+    }
+  }
+  if (z.tear01 > p.tearMax) {
+    octx.strokeStyle = 'rgba(244, 241, 230, 0.95)';
+    octx.lineWidth = 10;
+    for (let i = 0; i < 4; i++) {
+      octx.beginPath();
+      octx.moveTo(((i * 29) % 100) / 100 * size, 0);
+      octx.lineTo(((i * 71 + 30) % 100) / 100 * size, size);
+      octx.stroke();
+    }
+  }
+}
+
 /** Desplazamiento (px) de cada círculo cuando la distancia interpupilar del compuesto no coincide con la del usuario. */
 function binocularShiftPx(w: OpticalWorld, size: number) {
   const d = (w.microscope.ipdMm ?? w.params.stereo.userIpdMm) - w.params.stereo.userIpdMm;
@@ -163,7 +205,7 @@ function viewKey(w: OpticalWorld, instrument: 'compound' | 'stereo') {
   if (instrument === 'compound') {
     const v = microscopeView(w);
     const m = v.slideId ? w.mounts[v.slideId] : null;
-    return JSON.stringify([v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown, Math.round(binocularShiftPx(w, 340))]);
+    return JSON.stringify([v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown, Math.round(binocularShiftPx(w, 340)), v.zone?.specimenId, v.zone?.asset, Math.round((m?.cell?.overstain01 ?? 0) * 20)]);
   }
   const v = stereoView(w);
   const s = w.stereo;

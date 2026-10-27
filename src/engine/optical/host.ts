@@ -1,5 +1,15 @@
 import type { OpticalRuntime } from '../../app/b01/runtime';
 import type { ReactionSound } from '../reaction/host';
+import type { OpticalController } from './controller';
+import type { OpticalLab3D } from './OpticalLab3D';
+
+/** Vista de cámara de una estación (centro, distancia y elevación). */
+export interface OpticalStation {
+  id: string;
+  target: [number, number, number];
+  dist: number;
+  elevation: number;
+}
 
 /** Lo que el motor de la práctica B01 necesita de la aplicación (inyectado; el motor no conoce React). */
 export interface OpticalHost {
@@ -16,6 +26,10 @@ export interface OpticalHost {
   onHeldChange?(id: string | null): void;
   /** Se abrió o cerró un ocular (la app muestra la vista del ocular). */
   onEyepiece?(instrument: 'compound' | 'stereo' | null): void;
+  /** Otra práctica sobre el mismo equipo (B02): estaciones de cámara, sala y controlador propios. Por omisión, los de B01. */
+  stations?: OpticalStation[];
+  roomVariant?: string;
+  createController?(host: OpticalHost, lab: OpticalLab3D): OpticalController;
 }
 
 /** Los sonidos de la práctica B01 son los del sintetizador de la Práctica 4. */

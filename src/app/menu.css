@@ -41,5 +41,6 @@
 .menu-back { position: fixed; top: 0.7rem; left: 0.7rem; z-index: 50; }
 .lab-card-body .kicker { color: var(--accent); font-weight: 700; letter-spacing: 0.02em; font-size: 0.85rem; text-transform: uppercase; }
 .art-p8 { background: radial-gradient(circle at 70% 64%, #f4e7b0 0%, #e8c86b 12%, transparent 30%), radial-gradient(circle at 28% 34%, #ffffff 0%, #f1f1ec 8%, transparent 22%), linear-gradient(135deg, #3d2b5c 0%, #2f7a68 50%, #d98c2b 100%); }
+.art-b02 { background: radial-gradient(circle at 38% 46%, #f8d7c4 0 9%, transparent 10%), radial-gradient(circle at 62% 56%, #f6e7a8 0 8%, transparent 9%), radial-gradient(circle at 50% 50%, #fbe9d8 0%, #e8a06a 26%, #8a3a1e 52%, #2a120a 74%); }
 .art-b01 { background: radial-gradient(circle at 50% 55%, #e9f7d9 0%, #b8d99a 16%, transparent 34%), repeating-linear-gradient(90deg, rgba(47, 125, 30, 0.35) 0 2px, transparent 2px 14px), radial-gradient(circle at 50% 55%, #2f7d1e 0%, #1b4d12 44%, #0d1a10 70%); }
 .art-p9 { background: radial-gradient(circle at 30% 62%, #ffffff 0%, #f4f1e8 10%, transparent 24%), radial-gradient(circle at 70% 40%, #ff5a7a 0%, #c2185b 12%, transparent 30%), radial-gradient(circle at 52% 72%, #b388ff 0%, #6a3cbc 10%, transparent 26%), linear-gradient(135deg, #1d2a44 0%, #5a3b1e 55%, #8a4b1e 100%); }

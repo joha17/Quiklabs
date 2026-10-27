@@ -4,6 +4,7 @@
  * ángulo, la velocidad y el líquido (y, para su posición, del RNG serializable del mundo), nunca de `Math.random`.
  */
 import { clamp } from '../core/math';
+import type { CellMountInfo } from './thin-section';
 
 export interface MountParams {
   /** Volumen de una gota a fuerza 0 y a fuerza 1 (mL) `pending`. */
@@ -64,6 +65,8 @@ export interface FreshMount {
   broken: boolean;
   /** Cubreobjetos desplazado por exceso de líquido (E07). */
   floating: boolean;
+  /** Datos celulares (zonas, colorantes, contacto) de los montajes de B02; ausente en B01. */
+  cell?: CellMountInfo;
 }
 
 export const emptyMount = (slideId: string): FreshMount => ({
@@ -97,11 +100,18 @@ export function coveredFractionFor(p: MountParams, fragmentCm: number, centerCm:
   return clamp(span(dy, fragmentCm) * span(dx, width) * clamp(p.maxFragmentCm / Math.max(fragmentCm, p.maxFragmentCm), 0, 1) ** 0.5, 0, 1);
 }
 
+/** Líquido del montaje que hidrata el tejido: el agua y, en B02, también el colorante de la receta. */
+export const liquidMl = (m: FreshMount) => m.waterMl + (m.cell ? m.reagentMl : 0);
+
+/** ¿Admite el montaje el reactivo que tiene? (B01: ninguno; B02: los de la receta). */
+export const reagentOk = (m: FreshMount) => (m.cell ? !m.cell.incompatible : !m.reagentId);
+
 /** ¿Es útil el montaje para observar? */
 export function mountUsable(p: MountParams, m: FreshMount): boolean {
   return !!m.specimenId && !!m.coverId && !m.broken && m.bubbleFraction <= p.bubbleUsableMax && m.coveredFraction >= 0.7 && m.hydrated01 >= 0.6
-    && m.damage01 < 0.5 && !m.reagentId && !m.floating;
+    && m.damage01 < 0.5 && reagentOk(m) && !m.floating;
 }
 
-/** Espesor sobre el portaobjetos (mm): película de líquido + cubreobjetos. */
-export const mountAboveMm = (m: FreshMount, coverThicknessMm: number) => (m.coverId && !m.broken ? coverThicknessMm : 0) + Math.min(0.12, m.waterMl * 1.2);
+/** Espesor sobre el portaobjetos (mm): película de líquido + cubreobjetos (+ el tejido más grueso en B02). */
+export const mountAboveMm = (m: FreshMount, coverThicknessMm: number) =>
+  (m.coverId && !m.broken ? coverThicknessMm : 0) + Math.min(0.12, liquidMl(m) * 1.2) + (m.cell ? Math.max(0, ...m.cell.zones.map((z) => z.thicknessMm)) * 0.5 : 0);

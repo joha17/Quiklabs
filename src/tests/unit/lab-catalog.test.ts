@@ -12,5 +12,6 @@ describe('catálogo de laboratorios por área', () => {
     for (const [id, sub] of Object.entries(LAB_SUBJECT)) expect(sub, id).toBe(id.startsWith('b') ? 'biology' : 'chemistry');
     expect(Object.keys(LAB_SUBJECT).filter((id) => id.startsWith('p'))).toHaveLength(10);
     expect(LAB_SUBJECT.b01).toBe('biology');
+    expect(LAB_SUBJECT.b02).toBe('biology');
   });
 });

@@ -57,7 +57,8 @@ export function CameraRigB01() {
     };
     lab.camera = {
       goToStation: (id) => {
-        const s = B01_STATIONS.find((q) => q.id === id) ?? B01_STATIONS[0];
+        const stations = lab.host.stations ?? B01_STATIONS;
+        const s = stations.find((q) => q.id === id) ?? stations[0];
         const v = view(s.target, s.dist * aspectK(), s.elevation);
         go(v.target, v.pos);
       },
@@ -137,7 +138,7 @@ export function CameraRigB01() {
       },
     };
     if (!placed.current && controls.current) {
-      const s = B01_STATIONS[0];
+      const s = (lab.host.stations ?? B01_STATIONS)[0];
       // S19: el intento empieza con la cámara de costado al microscopio (hay que hallar los mandos en el equipo).
       const side = lab.runtime.world.scenarios.includes(SB.SIDE_CAMERA);
       const v = lab.savedView

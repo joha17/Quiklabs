@@ -190,6 +190,14 @@ condensador, diafragma y luz), caja de láminas fijas y estereoscopio con hoja e
 (no microfotografías), 68 errores con consecuencia causal y demostración automática (`#b01`). Detalles y parámetros
 pendientes de calibración: [docs/BIOLOGIA_B01.md](docs/BIOLOGIA_B01.md).
 
+## Biología B02 — Células bajo la lente
+
+Segunda práctica de Biología General, sobre el mismo equipo óptico de B01: cortes finos de frutos con bisturí sobre la
+tabla, raspado de papa con espátula y Lugol (con tiempo de contacto), pulpa de pera con esclereidas, frotis bucal con
+hisopo estéril sobre una fuente virtual y *Elodea*; herramientas con restos que contaminan si no se limpian, colorantes
+con recetas por muestra y atlas de plastidios con capturas propias. 68 errores (CEL01–CEL68) y demostración automática
+(`#b02`). Detalles: [docs/BIOLOGIA_B02.md](docs/BIOLOGIA_B02.md) · guía: [docs/GUIA_BIOLOGIA_B02.md](docs/GUIA_BIOLOGIA_B02.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza
