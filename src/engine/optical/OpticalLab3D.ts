@@ -42,6 +42,8 @@ export interface FrameCtxB01 {
   camPos: THREE.Vector3;
   /** Descenso del cubreobjetos en curso (animación del gesto). */
   lowering: { coverId: string; slideId: string; speed: number; progress: number } | null;
+  /** Pieza que se arrastra y su posición provisional (p. ej. la palanca de la pinza antes de soltarla). */
+  drag: { part: string; value: number } | null;
 }
 
 export interface RenderStats {
@@ -92,7 +94,7 @@ export class OpticalLab3D {
     const c = this.controller;
     this.frameCtx = {
       world: this.runtime.world, t, dt, held: c.held?.id ?? null, selected: this.host.getSelected(), hovered: c.hovered,
-      reducedMotion: this.host.reducedMotion(), mats: materials(this.quality), quality: this.quality, camPos: this.camPos, lowering: c.lowering,
+      reducedMotion: this.host.reducedMotion(), mats: materials(this.quality), quality: this.quality, camPos: this.camPos, lowering: c.lowering, drag: c.dragView(),
     };
     this.frameStamp = t;
     return this.frameCtx;

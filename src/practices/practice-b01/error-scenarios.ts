@@ -1,7 +1,9 @@
 /**
- * Escenarios docentes (§10) y catálogo de los 68 errores simulables (§9) de la práctica B01, con su contrato:
+ * Escenarios docentes (§10) y catálogo de los errores simulables (§9) de la práctica B01, con su contrato:
  * código, grupo, hecho que lo provoca, consecuencia medible, clave de evidencia y de retroalimentación. Las
  * consecuencias se calculan en el dominio (`optical-world/world.ts`) o, para E60–E62, en la libreta (rúbrica).
+ * E01–E68 son los de la primera versión; E69–E83 nacen de la manipulación directa de las piezas (revisión de
+ * 26-10-2026). Los casos propuestos que repetían un error existente no se duplican: ver `ERROR_ALIASES_B01`.
  */
 import { SB } from '../../simulation/optical-world/world';
 
@@ -22,15 +24,19 @@ export const B01_SCENARIOS: B01ScenarioSpec[] = [
   { id: SB.CONDENSER },
   { id: SB.STAGE_OFF },
   { id: SB.CLIP_CLOSED },
-  { id: SB.START_40X },
+  { id: SB.START_40X, excludes: [SB.TURRET_BETWEEN] },
   { id: SB.SIMILAR_SLIDES, excludes: [SB.UNKNOWN_SLIDES] },
   { id: SB.TWO_PLANES },
   { id: SB.REFLECTIVE },
-  { id: SB.STEREO_DEFOCUS },
+  { id: SB.STEREO_DEFOCUS, excludes: [SB.STEREO_HIGH] },
   { id: SB.STEREO_PAIR },
   { id: SB.MONO_2D },
   { id: SB.UNKNOWN_SLIDES, excludes: [SB.SIMILAR_SLIDES] },
   { id: SB.RESUME_PREP, excludes: [SB.NO_WATER] },
+  { id: SB.SIDE_CAMERA },
+  { id: SB.TURRET_BETWEEN, excludes: [SB.START_40X] },
+  { id: SB.LOOSE_SLIDE },
+  { id: SB.STEREO_HIGH, excludes: [SB.STEREO_DEFOCUS] },
 ];
 
 /** Escenarios compatibles: al pedir uno incompatible con otro ya elegido, gana el primero. */
@@ -124,4 +130,23 @@ export const SIMULATED_ERRORS_B01: SimulatedErrorB01[] = [
   { code: 'E66', group: 'closing', trigger: 'Cierre con 40X en el eje', effect: 'equipo no estacionado', evidenceKey: 'err:E66', feedbackKey: 'b01fb.E66' },
   { code: 'E67', group: 'closing', trigger: 'Luz encendida al terminar', effect: 'equipo encendido', evidenceKey: 'err:E67', feedbackKey: 'b01fb.E67' },
   { code: 'E68', group: 'closing', trigger: 'Sin verificación de seguridad', effect: 'operación no habilitada', evidenceKey: 'err:E68', feedbackKey: 'b01fb.E68' },
+  { code: 'E69', group: 'compound', trigger: 'Macrométrico acercando la platina mientras se mira por el ocular', effect: 'separación < distancia segura de retiro', evidenceKey: 'err:E69', feedbackKey: 'b01fb.E69' },
+  { code: 'E70', group: 'compound', trigger: 'Macrométrico a 40X hasta la zona de choque', effect: 'separación < umbral de advertencia', evidenceKey: 'err:E70', feedbackKey: 'b01fb.E70' },
+  { code: 'E71', group: 'compound', trigger: 'Revólver soltado entre enclavamientos', effect: 'ningún objetivo en el eje', evidenceKey: 'err:E71', feedbackKey: 'b01fb.E71' },
+  { code: 'E72', group: 'compound', trigger: 'Revólver girado tirando de un objetivo', effect: 'riesgo de desajustar el objetivo', evidenceKey: 'err:E72', feedbackKey: 'b01fb.E72' },
+  { code: 'E73', group: 'compound', trigger: 'Pinza soltada sobre una lámina fuera de su asiento', effect: 'lámina sujeta torcida', evidenceKey: 'err:E73', feedbackKey: 'b01fb.E73' },
+  { code: 'E74', group: 'compound', trigger: 'Carro X/Y forzado contra su tope', effect: 'la platina no avanza más', evidenceKey: 'err:E74', feedbackKey: 'b01fb.E74' },
+  { code: 'E77', group: 'compound', trigger: 'Buscar el foco ajustando la distancia interpupilar', effect: 'la nitidez de la muestra no cambia', evidenceKey: 'err:E77', feedbackKey: 'b01fb.E77' },
+  { code: 'E78', group: 'compound', trigger: 'Anillo de dioptrías usado como micrométrico', effect: 'la nitidez de la muestra no cambia', evidenceKey: 'err:E78', feedbackKey: 'b01fb.E78' },
+  { code: 'E79', group: 'compound', trigger: 'Objetivo mayor enclavado sin distancia de trabajo', effect: 'objetivo casi tocando la preparación', evidenceKey: 'err:E79', feedbackKey: 'b01fb.E79' },
+  { code: 'E83', group: 'stereo', trigger: 'Más zoom sin recentrar la muestra', effect: 'la muestra sale del campo', evidenceKey: 'err:E83', feedbackKey: 'b01fb.E83' },
 ];
+
+/**
+ * Casos propuestos en la revisión de 26-10-2026 que ya cubre un error del catálogo: se registran con el código
+ * existente para no penalizar dos veces el mismo hecho. E88 (operar una zona flotante) no puede ocurrir: las zonas
+ * de agarre son las propias piezas y fuera de ellas el gesto no hace nada.
+ */
+export const ERROR_ALIASES_B01: Record<string, string | null> = {
+  E75: 'E29/E30', E76: 'E31', E80: 'E38', E81: 'E26', E82: 'E49/E59', E84: 'E51', E85: 'E55', E86: null, E87: 'E61', E88: null,
+};

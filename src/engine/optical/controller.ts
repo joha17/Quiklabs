@@ -1,10 +1,16 @@
 /**
- * Controlador de gestos de B01 (§14.1): convierte ratón y teclado en COMANDOS del dominio. Tomar/llevar/soltar con
+ * Controlador de gestos de B01 (§6.1, §14): convierte ratón y teclado en COMANDOS del dominio. Tomar/llevar/soltar con
  * encaje en el área de montaje, la platina, las ranuras de la caja, la base del estereoscopio y las bandejas. Las
  * herramientas actúan sobre lo que tienen debajo de la punta (P / clic izquierdo): pinza (tomar la hoja, el
  * cubreobjetos o una muestra; soltarlos; bajar el cubreobjetos con la inclinación elegida con Q/E), gotero, bisturí,
- * papel absorbente y papel de lente. Los mandos del microscopio y del estereoscopio se seleccionan con un clic y giran
- * con Q/E (Mayús = paso grande) o con la rueda. Nada se decide aquí: el dominio calcula foco, burbujas, choques…
+ * papel absorbente y papel de lente.
+ * Los instrumentos se operan TOMANDO cada pieza en su lugar: clic sostenido sobre la perilla, el revólver, la palanca
+ * de la pinza o del iris, los mandos X/Y, los oculares… y arrastre; la pieza gira sobre su pivote siguiendo la mano y
+ * el giro se traduce a la magnitud del dominio con la tabla `KIN` (la misma que usa el modelo para dibujarla). El
+ * revólver encaja en el enclavamiento cercano al soltarlo; la pinza vuelve cerrada por su resorte salvo que se suelte
+ * abierta del todo. Cada arrastre va entre `gesture begin/end` y se envía una vez por fotograma, cuantizado.
+ * Alternativa accesible: clic para seleccionar el mando y Q/E (Mayús = paso grande) o la rueda. Nada se decide aquí:
+ * el dominio calcula foco, burbujas, choques…
  */
 import type { B01Command, B01DispatchResult } from '../../simulation/optical-world/commands';
 import type { B01ObjKind, OpticalWorld, Pose } from '../../simulation/optical-world/types';
@@ -13,10 +19,15 @@ import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO
 import type { OpticalHost } from './host';
 import type { OpticalLab3D } from './OpticalLab3D';
 import { spotsFor, stageTop } from './layout';
+import { KIN, type PartGrip } from './parts';
+import type { GrabTracker } from './gestures';
 
 export interface PickHitB01 {
   id: string;
   part?: string;
+  grip?: PartGrip;
+  /** Seguimiento geométrico del arrastre de la pieza tocada (solo en la escena real). */
+  track?: (sx: number, sy: number) => GrabTracker | null;
 }
 
 export interface ViewAdapterB01 {
@@ -25,7 +36,31 @@ export interface ViewAdapterB01 {
   viewW(): number;
   setOrbitEnabled(on: boolean): void;
   edgePan(dir: -1 | 1, dt: number): void;
+  /** Punto de la mesada (cm) de una pieza, para la mano de la demostración. */
+  partAnchor?(id: string, part: string): { x: number; y: number; z: number } | null;
 }
+
+/** Arrastre en curso sobre una pieza de un instrumento. */
+export interface PartDragB01 {
+  id: string;
+  part: string;
+  grip: PartGrip;
+  tracker: GrabTracker | null;
+  startX: number;
+  startY: number;
+  moved: boolean;
+  /** Posición provisional de las piezas con resorte (pinza: 0 cerrada … 1 abierta). */
+  value: number;
+  warned: Set<string>;
+}
+
+/** Píxeles de movimiento a partir de los cuales un clic sobre una pieza pasa a ser un arrastre. */
+const DRAG_SLOP_PX = 4;
+/** Ventana (°) en la que el resorte del revólver lo lleva al enclavamiento al soltarlo. */
+const TURRET_SNAP_DEG = 12;
+/** Giro por muesca de la rueda del ratón sobre una pieza (rad) y fin del gesto de rueda (s sin girar). */
+const WHEEL_RAD = 0.15;
+const WHEEL_IDLE_S = 0.4;
 
 export interface HeldB01 {
   id: string;
@@ -56,6 +91,13 @@ export class OpticalController {
   knob: KnobB01 | null = null;
   /** Cubreobjetos bajando (animación del gesto; el comando se envía al tocar). */
   lowering: { coverId: string; slideId: string; speed: number; progress: number } | null = null;
+  /** Pieza tomada con el ratón (o con la mano de la demostración). */
+  partDrag: PartDragB01 | null = null;
+  /** Pieza bajo el puntero (cursor y rótulo). */
+  hoverPart: PickHitB01 | null = null;
+  /** Avance acumulado de cada pieza desde el último envío, en unidades del dominio. */
+  private pending = new Map<string, number>();
+  private wheelGesture: { key: string; idle: number } | null = null;
   private pointer: { x: number; y: number } | null = null;
   private down = false;
   private hinted = new Set<string>();
@@ -96,6 +138,7 @@ export class OpticalController {
       return false;
     }
     this.host.select(hit.id);
+    if (hit.part && hit.grip && hit.grip.kind !== 'press') return this.beginPartDrag(hit, sx, sy);
     if (hit.part && this.instrumentPart(hit.id, hit.part)) return true;
     const o = this.w.objects[hit.id];
     if (o?.movable) {
@@ -107,10 +150,21 @@ export class OpticalController {
 
   onPointerMove(sx: number, sy: number) {
     this.pointer = { x: sx, y: sy };
-    if (!this.held && this.view) this.hovered = this.view.pick(sx, sy, null)?.id ?? null;
+    const d = this.partDrag;
+    if (d) {
+      if (!d.moved && Math.hypot(sx - d.startX, sy - d.startY) >= DRAG_SLOP_PX) this.startPartMotion(d);
+      if (d.moved && d.tracker) this.dragPart(d.tracker.move(sx, sy));
+      return;
+    }
+    if (!this.held && this.view) {
+      const hit = this.view.pick(sx, sy, null);
+      this.hovered = hit?.id ?? null;
+      this.hoverPart = hit?.part ? hit : null;
+    }
   }
 
   onPointerUp() {
+    if (this.partDrag) this.releasePart();
     if (this.held && this.down && !this.held.keyboard) this.release();
     this.down = false;
   }
@@ -120,11 +174,206 @@ export class OpticalController {
       this.nudgeHeight((dy > 0 ? -1 : 1) * 0.6);
       return true;
     }
+    // Rueda sobre una pieza giratoria: la gira (un gesto mientras siga girando).
+    const hp = this.hoverPart;
+    if (hp?.part && hp.grip && (hp.grip.kind === 'rotary' || hp.grip.kind === 'lever') && !(hp.id === 'mic' && hp.part === 'clip')) {
+      const key = `${hp.id === 'mic' ? 'mic' : 'ste'}:${hp.part}`;
+      if (this.wheelGesture?.key !== key) {
+        this.endWheelGesture();
+        this.dispatch({ type: 'gesture', part: key, phase: 'begin' });
+      }
+      this.wheelGesture = { key, idle: 0 };
+      this.applyPart(key, (dy > 0 ? -1 : 1) * WHEEL_RAD, hp.grip);
+      this.flushParts();
+      return true;
+    }
     if (this.knob) {
       this.turnKnob(dy > 0 ? -1 : 1, false);
       return true;
     }
     return false;
+  }
+
+  private endWheelGesture() {
+    const g = this.wheelGesture;
+    if (!g) return;
+    this.wheelGesture = null;
+    if (g.key === 'mic:turret') this.snapTurret('nosepiece');
+    this.dispatch({ type: 'gesture', part: g.key, phase: 'end' });
+  }
+
+  // ─────────────── Piezas tomadas con la mano ───────────────
+
+  private partKey(id: string, part: string) {
+    return `${id === 'mic' ? 'mic' : 'ste'}:${part}`;
+  }
+
+  /** Clic sostenido sobre una pieza: se toma (el giro empieza al moverse más de unos píxeles). */
+  beginPartDrag(hit: PickHitB01, sx: number, sy: number): boolean {
+    if (!hit.part || !hit.grip) return false;
+    const key = this.partKey(hit.id, hit.part);
+    this.partDrag = {
+      id: hit.id, part: hit.part, grip: hit.grip, tracker: hit.track?.(sx, sy) ?? null, startX: sx, startY: sy, moved: false,
+      value: key === 'mic:clip' ? (this.w.microscope.clipOpen ? 1 : 0) : 0, warned: new Set(),
+    };
+    this.view?.setOrbitEnabled(false);
+    this.dispatch({ type: 'inspect', target: this.inspectTarget(key) });
+    return true;
+  }
+
+  /** La mano de la demostración toma una pieza (mismo camino que el ratón, sin geometría de pantalla). */
+  grabPart(id: string, part: string, grip: PartGrip): void {
+    if (this.partDrag) this.releasePart();
+    this.beginPartDrag({ id, part, grip }, 0, 0);
+    this.startPartMotion(this.partDrag!);
+  }
+
+  private startPartMotion(d: PartDragB01) {
+    d.moved = true;
+    this.dispatch({ type: 'gesture', part: this.partKey(d.id, d.part), phase: 'begin' });
+  }
+
+  /** Avance de la pieza tomada: radianes (perillas, palancas) o cm (deslizamientos). */
+  dragPart(amount: number) {
+    const d = this.partDrag;
+    if (!d || !amount) return;
+    const key = this.partKey(d.id, d.part);
+    if (key === 'mic:clip') {
+      d.value = Math.max(0, Math.min(1, d.value + amount / KIN.clipOpenRad));
+      return;
+    }
+    this.applyPart(key, amount, d.grip);
+  }
+
+  /** Suelta la pieza: clic simple (ocular, selección), resorte del revólver y de la pinza, fin del gesto. */
+  releasePart() {
+    const d = this.partDrag;
+    if (!d) return;
+    this.partDrag = null;
+    this.view?.setOrbitEnabled(true);
+    const key = this.partKey(d.id, d.part);
+    if (!d.moved) {
+      if (d.grip.click) this.instrumentPart(d.id, d.part);
+      else {
+        // Clic sin arrastre: el mando queda seleccionado para el teclado (alternativa accesible).
+        this.knob = this.knobFor(key);
+        this.hintOnce('b01.hint.dragKnob');
+      }
+      return;
+    }
+    this.flushParts(d);
+    if (key === 'mic:turret') this.snapTurret(d.grip.variant === 'objective' ? 'objective' : 'nosepiece');
+    if (key === 'mic:clip') {
+      const open = d.value > 0.5;
+      if (open !== this.w.microscope.clipOpen) this.dispatch({ type: 'openClip', open });
+      this.host.sound('click');
+    }
+    this.dispatch({ type: 'gesture', part: key, phase: 'end' });
+  }
+
+  /** El resorte del revólver lo lleva al enclavamiento cercano (clic mecánico); lejos de todos, queda entre dos. */
+  private snapTurret(grip: 'nosepiece' | 'objective') {
+    const d = this.w.params.microscope.turretDetentDeg;
+    const a = this.w.microscope.turretDeg;
+    const off = Math.round(a / d) * d - a;
+    if (Math.abs(off) > 1e-9 && Math.abs(off) <= TURRET_SNAP_DEG) {
+      this.run(this.dispatch({ type: 'turnTurret', deltaDeg: Math.round(off * 100) / 100, grip }));
+      this.host.sound('click');
+    }
+  }
+
+  /** Posición provisional de la pieza arrastrada (la dibuja el modelo). */
+  dragView(): { part: string; value: number } | null {
+    const d = this.partDrag;
+    return d && d.moved && d.part === 'clip' ? { part: 'mic:clip', value: d.value } : null;
+  }
+
+  private knobFor(key: string): KnobB01 | null {
+    const k = key.replace('mic:ocular', 'mic:diopterL').replace('ste:oculars', 'ste:ipd') as KnobB01;
+    return (['mic:coarse', 'mic:fine', 'mic:stageX', 'mic:stageY', 'mic:light', 'mic:diaphragm', 'mic:condenser', 'mic:turret', 'ste:zoom', 'ste:focus', 'ste:head', 'ste:incident', 'ste:transmitted', 'ste:ipd', 'ste:diopterL', 'ste:diopterR'] as string[]).includes(k) ? k : null;
+  }
+
+  private inspectTarget(key: string) {
+    return key.replace(/mic:stage[XY]/, 'mic:stageKnobs').replace('ste:ipd', 'ste:interpupillary').replace(/ste:diopter[LR]/, 'ste:diopter').replace('mic:diopterL', 'mic:ocular');
+  }
+
+  /** Convierte el giro (rad) o desplazamiento (cm) de una pieza en avance del dominio (tabla `KIN`). */
+  private applyPart(key: string, amount: number, grip: PartGrip) {
+    const add = (k: string, v: number) => this.pending.set(k, (this.pending.get(k) ?? 0) + v);
+    switch (key) {
+      case 'mic:coarse': case 'mic:fine': case 'ste:focus': add(key, amount / KIN.radPerTurn); break;
+      case 'mic:stageX': case 'mic:stageY': add(key, amount / KIN.stageRadPerMm); break;
+      case 'mic:light': case 'ste:incident': case 'ste:transmitted': add(key, amount / KIN.dialRadPer01); break;
+      case 'mic:diaphragm': add(key, amount / KIN.irisRadPer01); break;
+      case 'mic:condenser': add(key, amount / KIN.condenserRadPer01); break;
+      case 'mic:turret': add(grip.variant === 'objective' ? 'mic:turret:objective' : key, amount / KIN.turretRadPerDeg); break;
+      case 'mic:diopterL': case 'ste:diopterL': case 'ste:diopterR': add(key, amount / KIN.diopterRadPerD); break;
+      case 'ste:zoom': add(key, amount / KIN.zoomRadPerX); break;
+      case 'ste:head': add(key, amount * 10); break;
+      // Oculares: cada tubo se desliza hacia afuera o adentro; la separación cambia el doble (mm).
+      case 'mic:ocular': case 'ste:oculars': add(key, (grip.variant === 'left' ? -1 : 1) * amount * 20); break;
+    }
+  }
+
+  /** Envía lo acumulado de cada pieza (una vez por fotograma), cuantizado para que la cinta sea reproducible. */
+  flushParts(d: PartDragB01 | null = this.partDrag) {
+    if (!this.pending.size) return;
+    const w = this.w;
+    const m = w.microscope;
+    const s = w.stereo;
+    const q = (v: number, step: number) => Math.round(v / step) * step;
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+    const send = (key: string, c: B01Command) => {
+      const r = this.dispatch(c);
+      if (!r.ok) {
+        // Pieza bloqueada (p. ej. el macro en la zona de separación baja): no se acumula giro fantasma.
+        this.pending.delete(key);
+        if (r.code && (!d || !d.warned.has(r.code))) {
+          d?.warned.add(r.code);
+          this.host.notify('warn', `b01.cmd.${r.code}`);
+        }
+      }
+    };
+    for (const [key, v] of [...this.pending]) {
+      let rest = 0;
+      switch (key) {
+        case 'mic:coarse': case 'mic:fine': case 'ste:focus': {
+          const dq = q(v, 1e-4);
+          rest = v - dq;
+          if (dq) send(key, key === 'ste:focus' ? { type: 'setStereoFocus', deltaTurns: dq } : { type: key === 'mic:coarse' ? 'turnCoarse' : 'turnFine', deltaTurns: dq });
+          break;
+        }
+        case 'mic:turret': case 'mic:turret:objective': {
+          const dq = q(v, 0.01);
+          rest = v - dq;
+          if (dq) send(key, { type: 'turnTurret', deltaDeg: dq, grip: key === 'mic:turret' ? 'nosepiece' : 'objective' });
+          break;
+        }
+        case 'mic:stageX': case 'mic:stageY': {
+          const x = q(m.stageXmm + (key === 'mic:stageX' ? v : 0), 1e-3);
+          const y = q(m.stageYmm + (key === 'mic:stageY' ? v : 0), 1e-3);
+          if (x !== m.stageXmm || y !== m.stageYmm) send(key, { type: 'setStageXY', xMm: x, yMm: y });
+          else rest = v;
+          break;
+        }
+        case 'mic:light': send(key, { type: 'setIllumination', device: 'microscope', value01: q(clamp01(m.light01 + v), 1e-3) }); break;
+        case 'ste:incident': send(key, { type: 'setIllumination', device: 'stereo-incident', value01: q(clamp01(s.incident01 + v), 1e-3) }); break;
+        case 'ste:transmitted': send(key, { type: 'setIllumination', device: 'stereo-transmitted', value01: q(clamp01(s.transmitted01 + v), 1e-3) }); break;
+        case 'mic:diaphragm': send(key, { type: 'setDiaphragm', value01: q(clamp01(m.diaphragm01 + v), 1e-3) }); break;
+        case 'mic:condenser': send(key, { type: 'setCondenser', value01: q(clamp01(m.condenser01 + v), 1e-3) }); break;
+        case 'ste:zoom': send(key, { type: 'setStereoZoom', zoomX: q(s.zoomX + v, 1e-3) }); break;
+        case 'ste:head': send(key, { type: 'setStereoHead', zMm: q(s.headZmm + v, 0.01) }); break;
+        case 'mic:ocular': send(key, { type: 'setInterpupillary', device: 'microscope', valueMm: q(m.ipdMm + v, 0.01) }); break;
+        case 'ste:oculars': send(key, { type: 'setInterpupillary', valueMm: q(s.ipdMm + v, 0.01) }); break;
+        case 'mic:diopterL': send(key, { type: 'setDiopter', device: 'microscope', side: 'left', value: q(m.leftDiopter + v, 0.01) }); break;
+        case 'ste:diopterL': send(key, { type: 'setDiopter', side: 'left', value: q(s.leftDiopter + v, 0.01) }); break;
+        case 'ste:diopterR': send(key, { type: 'setDiopter', side: 'right', value: q(s.rightDiopter + v, 0.01) }); break;
+      }
+      if (this.pending.has(key)) {
+        if (Math.abs(rest) > 1e-12) this.pending.set(key, rest);
+        else this.pending.delete(key);
+      }
+    }
   }
 
   // ─────────────── Partes de los instrumentos ───────────────
@@ -137,7 +386,7 @@ export class OpticalController {
       case 'mic:power': this.dispatch({ type: 'setPower', device: 'microscope', on: !w.microscope.power }); break;
       case 'mic:clip': this.dispatch({ type: 'openClip', open: !w.microscope.clipOpen }); break;
       case 'mic:ocular': this.toggleEyepiece('compound'); break;
-      case 'mic:turret': this.run(this.dispatch({ type: 'turnTurret', deltaDeg: this.nextTurretDelta(1) })); this.knob = 'mic:turret'; break;
+      case 'mic:turret': this.knob = 'mic:turret'; this.hintOnce('b01.hint.dragKnob'); break;
       case 'ste:power': this.dispatch({ type: 'setPower', device: 'stereo', on: !w.stereo.power }); break;
       case 'ste:oculars': this.toggleEyepiece('stereo'); break;
       case 'case:lid': this.dispatch({ type: 'openSlideCase', open: !w.slideCase.open }); break;
@@ -153,12 +402,12 @@ export class OpticalController {
     return true;
   }
 
-  /** Giro de revólver hasta el siguiente enclavamiento (los ángulos intermedios solo con el panel, E19). */
+  /** Giro de revólver hasta el siguiente enclavamiento (teclado y panel; el revólver da la vuelta completa). */
   nextTurretDelta(dir: 1 | -1): number {
     const d = this.w.params.microscope.turretDetentDeg;
     const a = this.w.microscope.turretDeg;
     const next = dir > 0 ? Math.floor(a / d + 1e-6) * d + d : Math.ceil(a / d - 1e-6) * d - d;
-    return Math.max(0, Math.min(2 * d, next)) - a;
+    return next - a;
   }
 
   toggleEyepiece(instrument: 'compound' | 'stereo') {
@@ -437,6 +686,9 @@ export class OpticalController {
   // ─────────────── Fotograma ───────────────
 
   frame(dt: number) {
+    this.flushParts();
+    const wg = this.wheelGesture;
+    if (wg && (wg.idle += dt) > WHEEL_IDLE_S) this.endWheelGesture();
     const h = this.held;
     if (!h || !this.view) return;
     const o = this.w.objects[h.id];

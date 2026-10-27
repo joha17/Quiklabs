@@ -12,7 +12,15 @@ const PPE = ['Bata', 'Calzado cerrado', 'Cabello recogido', 'Manos limpias'];
 const world = (page: Page) => page.evaluate(() => JSON.parse(JSON.stringify((window as AnyState).__b01.getState().runtime.world)));
 const select = (page: Page, id: string) => page.evaluate((id) => (window as AnyState).__b01.getState().select(id), id);
 const actions = (page: Page) => page.getByRole('region', { name: 'Acciones' });
-const act = (page: Page, name: string | RegExp) => actions(page).getByRole('button', { name, exact: typeof name === 'string' }).click();
+/** Botón del panel; los mandos de los instrumentos están plegados bajo «Mandos accesibles» (se despliegan una vez). */
+async function act(page: Page, name: string | RegExp) {
+  const b = actions(page).getByRole('button', { name, exact: typeof name === 'string' });
+  if (!(await b.count())) {
+    const toggle = actions(page).getByRole('button', { name: /Mandos accesibles/ });
+    if ((await toggle.count()) && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+  }
+  await b.click();
+}
 
 async function openB01(page: Page) {
   await page.goto('/');

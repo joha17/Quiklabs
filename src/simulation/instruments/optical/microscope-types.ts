@@ -46,6 +46,9 @@ export interface MicroscopeParams {
   turretLockTolDeg: number;
   /** Comprobación lateral vigente (s). */
   sideCheckValidS: number;
+  /** Recorrido interpupilar del cabezal binocular (mm) y de los anillos de dioptrías (±) `pending`. */
+  ipdRangeMm: [number, number];
+  diopterRange: number;
 }
 
 export interface MicroscopeState {
@@ -66,6 +69,10 @@ export interface MicroscopeState {
   impactCount: number;
   /** Lente sucia/dañada por limpieza abrasiva (0–1). */
   lensDamage01: number;
+  /** Cabezal binocular: distancia interpupilar (mm) y dioptrías de cada ocular. No cambian el foco de la muestra. */
+  ipdMm: number;
+  leftDiopter: number;
+  rightDiopter: number;
 }
 
 /** Componentes manipulables (identificación de partes, Cuadro 1). */

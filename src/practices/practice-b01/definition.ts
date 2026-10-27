@@ -4,7 +4,7 @@
  */
 import type { OpticalObject, OpticalWorld, Pose } from '../../simulation/optical-world/types';
 import { SB, type OpticalWorldSpec } from '../../simulation/optical-world/world';
-import { BIO_WASTE, CASE_POS, CLEAN_TRAY, COVER_BOX, GLASS_BIN, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STEREO_POS, caseSlotId, caseSlotPos } from '../../simulation/optical-world/geometry';
+import { BIO_WASTE, CASE_POS, CLEAN_TRAY, COVER_BOX, GLASS_BIN, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_POS, caseSlotId, caseSlotPos } from '../../simulation/optical-world/geometry';
 import { emptyMount } from '../../simulation/specimens/mount-world';
 import type { B01Params } from '../../simulation/optical-world/types';
 
@@ -100,6 +100,13 @@ export function buildB01Spec(seed: number, mode: string, params: B01Params, scen
     mounts.sl1 = m;
   }
   const stage = has(SB.STAGE_OFF) ? { stageXmm: 12, stageYmm: -8 } : {};
+  // S21: un portaobjetos limpio quedó en la platina, torcido y bajo la pinza cerrada: hay que abrirla y retirarlo.
+  const loose = has(SB.LOOSE_SLIDE) ? { slideOnStage: 'sl2', slideOffsetMm: [6, 3] as [number, number], clampedSlideId: 'sl2' } : {};
+  if (has(SB.LOOSE_SLIDE)) {
+    const o = objects.find((x) => x.id === 'sl2')!;
+    o.support = 'stage';
+    o.pose = P(STAGE_SEAT.x + 0.6, STAGE_SEAT.y + 0.3, 0);
+  }
   return {
     seed, mode, params, scenarios,
     objects,
@@ -115,13 +122,17 @@ export function buildB01Spec(seed: number, mode: string, params: B01Params, scen
     assignment: { courseId: 'standard', freshAsset: 'elodea', fixedSlideIds: ['fx1'], stereoSampleIds: ['leaf1', 'ins1'] },
     microscope: {
       ...stage,
+      ...loose,
       light01: has(SB.LOW_LIGHT) ? 0.05 : 0.4,
       condenser01: has(SB.CONDENSER) ? 0.2 : 0.9,
-      clipOpen: !has(SB.CLIP_CLOSED),
-      turretDeg: has(SB.START_40X) ? 240 : 0,
+      clipOpen: !has(SB.CLIP_CLOSED) && !has(SB.LOOSE_SLIDE),
+      // S20: el revólver quedó a medio camino entre 4X y 10X.
+      turretDeg: has(SB.START_40X) ? 240 : has(SB.TURRET_BETWEEN) ? 60 : 0,
     },
     stereo: {
       ...(has(SB.STEREO_DEFOCUS) ? { focusTurns: 6 } : {}),
+      // S22: zoom al máximo y la perilla de enfoque contra su tope superior.
+      ...(has(SB.STEREO_HIGH) ? { zoomX: params.stereo.zoomRange[1], focusTurns: params.stereo.focusRangeMm / params.stereo.focusPitchMmPerTurn } : {}),
       ...(has(SB.STEREO_PAIR) ? { channelMode: 'stereo-pair' as const, ipdMm: 70, leftDiopter: 2, rightDiopter: -1 } : {}),
     },
     mounts,

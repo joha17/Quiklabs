@@ -1,5 +1,5 @@
 /**
- * B01 — los 68 errores simulables (§9): cada uno con su fixture que ejecuta el gesto real y comprueba la
+ * B01 — los 78 errores simulables (§9): cada uno con su fixture que ejecuta el gesto real y comprueba la
  * CONSECUENCIA en el estado (no solo el aviso). E60–E62 se comprueban sobre la libreta.
  */
 import { describe, expect, it } from 'vitest';
@@ -565,17 +565,107 @@ const FIXTURES: Record<string, () => void> = {
     expect(r.ok).toBe(false);
     expect(err(w, 'E68')).toBe(1);
   },
+  // ── Manipulación directa de las piezas (E69–E83) ──
+  E69: () => {
+    const w = onStage();
+    capture(w);
+    toObjective(w, 10);
+    // Mirando por el ocular, el macro sigue subiendo la platina más allá del foco (a 4X el tope lo impide).
+    for (let i = 0; i < 200 && !err(w, 'E69') && !err(w, 'E21'); i++) dispatchB01(w, { type: 'turnCoarse', deltaTurns: 0.1 });
+    expect(err(w, 'E69')).toBe(1);
+    expect(microscopeView(w).gapMm).toBeLessThan(w.params.microscope.gapSafeRemoveMm);
+  },
+  E70: () => {
+    const w = onStage();
+    capture(w);
+    toObjective(w, 10);
+    toObjective(w, 40);
+    cmdB(w, { type: 'checkSide' });
+    for (let i = 0; i < 40 && !err(w, 'E70'); i++) dispatchB01(w, { type: 'turnCoarse', deltaTurns: 0.05 });
+    expect(err(w, 'E70')).toBe(1);
+    expect(microscopeView(w).gapMm).toBeLessThan(w.params.microscope.gapWarnMm);
+  },
+  E71: () => {
+    const w = onStage();
+    cmdB(w, { type: 'gesture', part: 'mic:turret', phase: 'begin' });
+    for (let i = 0; i < 10; i++) cmdB(w, { type: 'turnTurret', deltaDeg: 5 });
+    cmdB(w, { type: 'gesture', part: 'mic:turret', phase: 'end' });
+    expect(err(w, 'E71')).toBe(1);
+    expect(microscopeView(w).locked).toBe(false);
+  },
+  E72: () => {
+    const w = onStage();
+    cmdB(w, { type: 'turnTurret', deltaDeg: 120, grip: 'objective' });
+    expect(err(w, 'E72')).toBe(1);
+    expect(microscopeView(w).objectiveX).toBe(10);
+  },
+  E73: () => {
+    const w = mounted();
+    place(w, 'sl1', 'stage', { x: STAGE_SEAT.x + 0.7, y: STAGE_SEAT.y, z: stageTopZCm(6) });
+    cmdB(w, { type: 'openClip', open: false });
+    expect(err(w, 'E73')).toBe(1);
+    expect(w.microscope.clampedSlideId).toBe('sl1');
+    expect(Math.hypot(...w.microscope.slideOffsetMm)).toBeGreaterThan(w.params.seatTolMm);
+  },
+  E74: () => {
+    const w = base();
+    cmdB(w, { type: 'setStageXY', xMm: 40, yMm: 0 });
+    expect(err(w, 'E74')).toBe(1);
+    expect(w.microscope.stageXmm).toBe(w.params.microscope.stageXYRangeMm[1]);
+  },
+  E77: () => {
+    const w = onStage();
+    cmdB(w, { type: 'turnCoarse', deltaTurns: -2 });
+    const s0 = microscopeView(w).sharpness01;
+    cmdB(w, { type: 'gesture', part: 'mic:ocular', phase: 'begin' });
+    for (let i = 0; i < 8; i++) cmdB(w, { type: 'setInterpupillary', device: 'microscope', valueMm: w.microscope.ipdMm + 1 });
+    cmdB(w, { type: 'gesture', part: 'mic:ocular', phase: 'end' });
+    expect(err(w, 'E77')).toBe(1);
+    expect(microscopeView(w).sharpness01).toBe(s0);
+  },
+  E78: () => {
+    const w = onStage();
+    cmdB(w, { type: 'turnCoarse', deltaTurns: -2 });
+    const s0 = microscopeView(w).sharpness01;
+    for (let i = 0; i < 12; i++) cmdB(w, { type: 'setDiopter', device: 'microscope', side: 'left', value: w.microscope.leftDiopter + 0.25 });
+    expect(err(w, 'E78')).toBe(1);
+    expect(microscopeView(w).sharpness01).toBe(s0);
+  },
+  E79: () => {
+    const w = onStage();
+    capture(w);
+    toObjective(w, 10);
+    focusMicroscope(w);
+    // Platina subida a 10X hasta casi la distancia de trabajo del 40X; al enclavar el 40X queda casi tocando.
+    const p = w.params.microscope;
+    const gap40 = microscopeView(w).gapMm - (p.workingDistanceMm[10] - p.workingDistanceMm[40]) - (p.parfocalOffsetMm[40] - p.parfocalOffsetMm[10]);
+    cmdB(w, { type: 'turnFine', deltaTurns: (gap40 - 0.15) / p.finePitchMmPerTurn });
+    toObjective(w, 40);
+    expect(err(w, 'E79')).toBe(1);
+    expect(err(w, 'E21')).toBe(0);
+    expect(microscopeView(w).gapMm).toBeLessThan(p.gapWarnMm);
+  },
+  E83: () => {
+    const w = base();
+    cmdB(w, { type: 'setPower', device: 'stereo', on: true });
+    cmdB(w, { type: 'pickSpecimen', toolId: 'fc', sourceId: 'leaf1', pressure01: 0.3 });
+    cmdB(w, { type: 'placeSpecimen', toolId: 'fc', targetId: 'stereoBase', dxCm: 1.2, dyCm: 0 });
+    cmdB(w, { type: 'setStereoZoom', zoomX: 0.8 });
+    cmdB(w, { type: 'setStereoZoom', zoomX: 2.5 });
+    expect(err(w, 'E83')).toBe(1);
+    expect(Math.hypot(...w.stereo.sampleOffsetMm)).toBeGreaterThan(stereoView(w).fovMm / 2);
+  },
 };
 
-describe('B01 — 68 errores con consecuencia causal (§9)', () => {
-  it('el catálogo tiene 68 errores únicos y una fixture por cada uno', () => {
+describe('B01 — 78 errores con consecuencia causal (§9)', () => {
+  it('el catálogo tiene 78 errores únicos y una fixture por cada uno', () => {
     const codes = SIMULATED_ERRORS_B01.map((e) => e.code);
-    expect(codes).toHaveLength(68);
-    expect(new Set(codes).size).toBe(68);
+    expect(codes).toHaveLength(78);
+    expect(new Set(codes).size).toBe(78);
     expect(Object.keys(FIXTURES).sort()).toEqual([...codes].sort());
   });
   for (const e of SIMULATED_ERRORS_B01) it(`${e.code} — ${e.trigger} → ${e.effect}`, () => FIXTURES[e.code]());
-  it('el camino correcto no comete ninguno de los 68', () => {
+  it('el camino correcto no comete ninguno de los 78', () => {
     const { w } = idealAttemptB01();
     expect(Object.keys(w.evidence).filter((k) => k.startsWith('err:'))).toEqual([]);
   });

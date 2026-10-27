@@ -9,10 +9,21 @@ import { CLEAN_TRAY, PREP_SPOT, SAMPLE_TRAY, STEREO_BASE } from '../../simulatio
 
 const OFFSETS: Record<string, [number, number]> = { center: [0, 0], edge: [1.1, 0], off: [1.8, 0] };
 
+const A11Y_KEY = 'b01.a11yControls';
+const readA11y = () => {
+  try {
+    return localStorage.getItem(A11Y_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 /**
- * Panel de acciones de B01 (§14.1): alternativa accesible a cada gesto. Despacha EXACTAMENTE los mismos comandos del
+ * Panel de acciones de B01 (§14.4): alternativa accesible a cada gesto. Despacha EXACTAMENTE los mismos comandos del
  * dominio que el controlador: apoyos, pinza, gotero, bisturí, papeles, cubreobjetos con inclinación y velocidad, todos
  * los mandos de los dos instrumentos, la caja y el cierre. No hay «enfocar» ni «preparar» automáticos.
+ * Los mandos de los instrumentos se operan con el ratón sobre las piezas; aquí quedan plegados bajo «Mandos
+ * accesibles» (teclado, lector de pantalla, dificultades motoras), con la preferencia recordada.
  */
 export function ActionPanelB01() {
   const { t } = useTranslation();
@@ -30,7 +41,21 @@ export function ActionPanelB01() {
   const [force, setForce] = useState(0.5);
   const [keep, setKeep] = useState(0.45);
   const [pressure, setPressure] = useState(0.4);
+  const [a11y, setA11y] = useState(readA11y);
   if (!rt) return null;
+  const toggleA11y = () => {
+    setA11y(!a11y);
+    try {
+      localStorage.setItem(A11Y_KEY, a11y ? '0' : '1');
+    } catch {
+      // Sin almacenamiento: la preferencia dura lo que la sesión.
+    }
+  };
+  /** Mandos de un instrumento: plegados salvo que el estudiante pida la alternativa accesible. */
+  const controls = (fn: () => void) => {
+    add('a11y', <button className="btn ghost" aria-expanded={a11y} onClick={toggleA11y}>{a11y ? '▾' : '▸'} {t('b01.act.a11yControls')}</button>);
+    if (a11y) fn();
+  };
   const w = rt.world;
   const ctl = stage?.controller;
   const id = held ?? sel;
@@ -158,40 +183,46 @@ export function ActionPanelB01() {
         break;
       case 'microscope': {
         const m = w.microscope;
-        btn('power', `⏻ ${m.power ? t('b01.act.powerOff') : t('b01.act.powerOn')}`, () => D({ type: 'setPower', device: 'microscope', on: !m.power }));
-        btn('clip', m.clipOpen ? t('b01.act.clipClose') : t('b01.act.clipOpen'), () => D({ type: 'openClip', open: !m.clipOpen }));
-        slider('light', 'b01.act.light', m.light01, (v) => D({ type: 'setIllumination', device: 'microscope', value01: v }));
-        slider('diaph', 'b01.act.diaphragm', m.diaphragm01, (v) => D({ type: 'setDiaphragm', value01: v }));
-        slider('cond', 'b01.act.condenser', m.condenser01, (v) => D({ type: 'setCondenser', value01: v }));
-        hold('xm', 'X −', () => D({ type: 'setStageXY', xMm: m.stageXmm - 0.2, yMm: m.stageYmm }));
-        hold('xp', 'X +', () => D({ type: 'setStageXY', xMm: m.stageXmm + 0.2, yMm: m.stageYmm }));
-        hold('ym', 'Y −', () => D({ type: 'setStageXY', xMm: m.stageXmm, yMm: m.stageYmm - 0.2 }));
-        hold('yp', 'Y +', () => D({ type: 'setStageXY', xMm: m.stageXmm, yMm: m.stageYmm + 0.2 }));
-        hold('cu', `${t('b01.act.coarse')} ▲`, () => D({ type: 'turnCoarse', deltaTurns: 0.1 }), 160);
-        hold('cd', `${t('b01.act.coarse')} ▼`, () => D({ type: 'turnCoarse', deltaTurns: -0.1 }), 160);
-        hold('fu', `${t('b01.act.fine')} ▲`, () => D({ type: 'turnFine', deltaTurns: 0.05 }), 160);
-        hold('fd', `${t('b01.act.fine')} ▼`, () => D({ type: 'turnFine', deltaTurns: -0.05 }), 160);
-        btn('tp', `${t('b01.act.turret')} ▶`, () => D({ type: 'turnTurret', deltaDeg: ctl?.nextTurretDelta(1) ?? 120 }));
-        btn('tm', `◀ ${t('b01.act.turret')}`, () => D({ type: 'turnTurret', deltaDeg: ctl?.nextTurretDelta(-1) ?? -120 }));
-        btn('tpart', t('b01.act.turretPartial'), () => D({ type: 'turnTurret', deltaDeg: 60 }), 'btn ghost');
-        btn('side', `👁 ${t('b01.act.checkSide')}`, () => ctl?.checkSide());
-        btn('eye', `🔬 ${w.view.instrument === 'compound' ? t('b01.act.closeEyepiece') : t('b01.act.lookEyepiece')}`, () => D({ type: 'observe', instrument: 'compound', open: w.view.instrument !== 'compound' }), 'btn primary');
+        controls(() => {
+          btn('power', `⏻ ${m.power ? t('b01.act.powerOff') : t('b01.act.powerOn')}`, () => D({ type: 'setPower', device: 'microscope', on: !m.power }));
+          btn('clip', m.clipOpen ? t('b01.act.clipClose') : t('b01.act.clipOpen'), () => D({ type: 'openClip', open: !m.clipOpen }));
+          slider('light', 'b01.act.light', m.light01, (v) => D({ type: 'setIllumination', device: 'microscope', value01: v }));
+          slider('diaph', 'b01.act.diaphragm', m.diaphragm01, (v) => D({ type: 'setDiaphragm', value01: v }));
+          slider('cond', 'b01.act.condenser', m.condenser01, (v) => D({ type: 'setCondenser', value01: v }));
+          hold('xm', 'X −', () => D({ type: 'setStageXY', xMm: m.stageXmm - 0.2, yMm: m.stageYmm }));
+          hold('xp', 'X +', () => D({ type: 'setStageXY', xMm: m.stageXmm + 0.2, yMm: m.stageYmm }));
+          hold('ym', 'Y −', () => D({ type: 'setStageXY', xMm: m.stageXmm, yMm: m.stageYmm - 0.2 }));
+          hold('yp', 'Y +', () => D({ type: 'setStageXY', xMm: m.stageXmm, yMm: m.stageYmm + 0.2 }));
+          hold('cu', `${t('b01.act.coarse')} ▲`, () => D({ type: 'turnCoarse', deltaTurns: 0.1 }), 160);
+          hold('cd', `${t('b01.act.coarse')} ▼`, () => D({ type: 'turnCoarse', deltaTurns: -0.1 }), 160);
+          hold('fu', `${t('b01.act.fine')} ▲`, () => D({ type: 'turnFine', deltaTurns: 0.05 }), 160);
+          hold('fd', `${t('b01.act.fine')} ▼`, () => D({ type: 'turnFine', deltaTurns: -0.05 }), 160);
+          btn('tp', `${t('b01.act.turret')} ▶`, () => D({ type: 'turnTurret', deltaDeg: ctl?.nextTurretDelta(1) ?? 120 }));
+          btn('tm', `◀ ${t('b01.act.turret')}`, () => D({ type: 'turnTurret', deltaDeg: ctl?.nextTurretDelta(-1) ?? -120 }));
+          btn('tpart', t('b01.act.turretPartial'), () => D({ type: 'turnTurret', deltaDeg: 60 }), 'btn ghost');
+          btn('side', `👁 ${t('b01.act.checkSide')}`, () => ctl?.checkSide());
+          btn('eye', `🔬 ${w.view.instrument === 'compound' ? t('b01.act.closeEyepiece') : t('b01.act.lookEyepiece')}`, () => D({ type: 'observe', instrument: 'compound', open: w.view.instrument !== 'compound' }), 'btn primary');
+          slider('mipd', 'b01.act.ipd', m.ipdMm, (v) => D({ type: 'setInterpupillary', device: 'microscope', valueMm: v }), 48, 75, 0.5, `${m.ipdMm.toFixed(1).replace('.', ',')} mm`);
+          slider('mdl', 'b01.act.diopterL', m.leftDiopter, (v) => D({ type: 'setDiopter', device: 'microscope', side: 'left', value: v }), -5, 5, 0.25, m.leftDiopter.toFixed(2).replace('.', ','));
+        });
         break;
       }
       case 'stereo': {
         const s = w.stereo;
-        btn('power', `⏻ ${s.power ? t('b01.act.powerOff') : t('b01.act.powerOn')}`, () => D({ type: 'setPower', device: 'stereo', on: !s.power }));
-        slider('inc', 'b01.act.incident', s.incident01, (v) => D({ type: 'setIllumination', device: 'stereo-incident', value01: v }));
-        slider('tra', 'b01.act.transmitted', s.transmitted01, (v) => D({ type: 'setIllumination', device: 'stereo-transmitted', value01: v }));
-        slider('zoom', 'b01.act.zoom', s.zoomX, (v) => D({ type: 'setStereoZoom', zoomX: v }), 0.7, 4.5, 0.1, `${s.zoomX.toFixed(1).replace('.', ',')}X`);
-        hold('fu', `${t('b01.act.focus')} ▲`, () => D({ type: 'setStereoFocus', deltaTurns: 0.25 }), 160);
-        hold('fd', `${t('b01.act.focus')} ▼`, () => D({ type: 'setStereoFocus', deltaTurns: -0.25 }), 160);
-        hold('hu', `${t('b01.act.head')} ▲`, () => D({ type: 'setStereoHead', zMm: s.headZmm + 1 }), 160);
-        hold('hd', `${t('b01.act.head')} ▼`, () => D({ type: 'setStereoHead', zMm: s.headZmm - 1 }), 160);
-        slider('ipd', 'b01.act.ipd', s.ipdMm, (v) => D({ type: 'setInterpupillary', valueMm: v }), 50, 76, 0.5, `${s.ipdMm.toFixed(1).replace('.', ',')} mm`);
-        slider('dl', 'b01.act.diopterL', s.leftDiopter, (v) => D({ type: 'setDiopter', side: 'left', value: v }), -5, 5, 0.25, s.leftDiopter.toFixed(2).replace('.', ','));
-        slider('dr', 'b01.act.diopterR', s.rightDiopter, (v) => D({ type: 'setDiopter', side: 'right', value: v }), -5, 5, 0.25, s.rightDiopter.toFixed(2).replace('.', ','));
-        btn('eye', `🔍 ${w.view.instrument === 'stereo' ? t('b01.act.closeEyepiece') : t('b01.act.lookEyepiece')}`, () => D({ type: 'observe', instrument: 'stereo', open: w.view.instrument !== 'stereo' }), 'btn primary');
+        controls(() => {
+          btn('power', `⏻ ${s.power ? t('b01.act.powerOff') : t('b01.act.powerOn')}`, () => D({ type: 'setPower', device: 'stereo', on: !s.power }));
+          slider('inc', 'b01.act.incident', s.incident01, (v) => D({ type: 'setIllumination', device: 'stereo-incident', value01: v }));
+          slider('tra', 'b01.act.transmitted', s.transmitted01, (v) => D({ type: 'setIllumination', device: 'stereo-transmitted', value01: v }));
+          slider('zoom', 'b01.act.zoom', s.zoomX, (v) => D({ type: 'setStereoZoom', zoomX: v }), 0.7, 4.5, 0.1, `${s.zoomX.toFixed(1).replace('.', ',')}X`);
+          hold('fu', `${t('b01.act.focus')} ▲`, () => D({ type: 'setStereoFocus', deltaTurns: 0.25 }), 160);
+          hold('fd', `${t('b01.act.focus')} ▼`, () => D({ type: 'setStereoFocus', deltaTurns: -0.25 }), 160);
+          hold('hu', `${t('b01.act.head')} ▲`, () => D({ type: 'setStereoHead', zMm: s.headZmm + 1 }), 160);
+          hold('hd', `${t('b01.act.head')} ▼`, () => D({ type: 'setStereoHead', zMm: s.headZmm - 1 }), 160);
+          slider('ipd', 'b01.act.ipd', s.ipdMm, (v) => D({ type: 'setInterpupillary', valueMm: v }), 50, 76, 0.5, `${s.ipdMm.toFixed(1).replace('.', ',')} mm`);
+          slider('dl', 'b01.act.diopterL', s.leftDiopter, (v) => D({ type: 'setDiopter', side: 'left', value: v }), -5, 5, 0.25, s.leftDiopter.toFixed(2).replace('.', ','));
+          slider('dr', 'b01.act.diopterR', s.rightDiopter, (v) => D({ type: 'setDiopter', side: 'right', value: v }), -5, 5, 0.25, s.rightDiopter.toFixed(2).replace('.', ','));
+          btn('eye', `🔍 ${w.view.instrument === 'stereo' ? t('b01.act.closeEyepiece') : t('b01.act.lookEyepiece')}`, () => D({ type: 'observe', instrument: 'stereo', open: w.view.instrument !== 'stereo' }), 'btn primary');
+        });
         break;
       }
       case 'slideCase':

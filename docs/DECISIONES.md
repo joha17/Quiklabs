@@ -244,6 +244,27 @@ Registro de ambigüedades resueltas eligiendo la opción más simple y segura (�
 | B01-13 | Curso de la semilla | Se agregó «Biología General I» (`c_bg1_01`) con la docente de Química G01 y dos estudiantes, para probar la tarjeta, el panel y la entrega. |
 | B01-14 | Demostración | Error deliberado E10 (cubierta rápida y casi plana) y su recuperación (levantar y bajar inclinada y lenta), como pide §16. |
 
+### B01 — revisión de instrumentos y manipulación directa (26-10-2026)
+
+Especificación «B01 — revisión de instrumentos ópticos realistas y manipulación directa». Se implementó la fase 1
+(equipos, gestos, errores, escenarios, pruebas y demostración); la biblioteca de fotografías queda para una fase 2.
+
+| ID | Decisión | Detalle |
+|---|---|---|
+| B01-OPT-01 | Equipos articulados | `engine/optical/models/`: microscopio binocular (proporciones de un LX 400: brazo en «C» con nariz, cabezal negro a 30°, revólver inclinado, platina mecánica con mandos coaxiales X/Y, condensador de Abbe con palanca del iris, macro/micro coaxiales a ambos lados) y estéreo de zoom (proporciones de un Luxeo 6Z: base con platina iluminable, columna, carro con cremallera, zoom a ambos lados, cabezal a 45°). Sin logotipos ni marcas. Cada conjunto rígido se fusiona en una malla por material: 152 llamadas en la estación C (presupuesto 200). |
+| B01-OPT-02 | Interacción primaria | Clic sostenido y arrastre sobre la pieza (`parts.ts`, `gestures.ts`): el punto tomado del borde sigue a la rueda (tangente proyectada, vale de frente y de canto; si pasa al lado oculto se vuelve a tomar el de delante); palancas con recorrido; deslizamientos para los oculares y el carro del estéreo. Rótulo y cursor al pasar. El panel queda plegado bajo «Mandos accesibles» y emite los mismos comandos. |
+| B01-OPT-03 | Un solo dominio | La tabla `KIN` relaciona el ángulo visible de cada pieza con su magnitud del dominio; la usan el modelo (para dibujar) y el controlador (para enviar). El arrastre se envía una vez por fotograma, cuantizado (cinta reproducible), entre `gesture begin/end`; los errores que dependen del gesto entero (E22, E34, E71, E77, E78) se juzgan desde su inicio. |
+| B01-OPT-04 | Cotas pendientes | Ninguna cota se tomó de una ficha: `rigGeometry` y `binocularHead` quedan `pending` en `params.ts`; el paso de los mandos X/Y (12 mm/vuelta) es visual. Las alturas que importan (platina, punta de cada objetivo, lente del estéreo) salen del dominio. |
+| B01-OPT-05 | Fotografías (fase 2) | No implementado: carga docente/administración, almacenamiento de objetos, manifiesto con planos focales y renderizado fotográfico del ocular. El ocular sigue con ilustraciones declaradas como tales. S23 queda para esa fase. |
+| B01-OPT-06 | 2D no es estéreo | Sin cambios: una foto sola se rotula «vista 2D»; S24 coincide con S16 y no se duplica. |
+| B01-OPT-07 | Compatibilidad | Comandos nuevos opcionales (`gesture`, `grip` del revólver, `device` del binocular; sin `device` es el estéreo). Los mundos guardados antes se completan al reanudar (cabezal binocular, gesto en curso) sin mover los mandos. Pruebas `b01-replay-after-upgrade` y `b01-input-parity`. |
+| B01-OPT-08 | Pruebas con gestos reales | `b01-mouse.spec.ts` opera los dos equipos con `page.mouse` sobre las piezas (sin panel); `window.__b01` solo lee el estado y la posición en pantalla. |
+| B01-OPT-09 | Revólver | Se conservan 3 posiciones a 120° (el dominio y las cintas las usan); ahora gira la vuelta completa (de 4X hacia atrás llega el 40X) y su resorte lo lleva al enclavamiento si se suelta a ≤ 12°. Tomarlo por un objetivo también lo gira, pero es mala técnica (E72). |
+| B01-OPT-10 | Pinza | El dominio sigue siendo abierta/cerrada: la palanca soltada más allá de la mitad queda abierta; antes, el resorte la cierra. Un clic simple también la alterna (alternativa rápida). |
+| B01-OPT-11 | Errores nuevos sin duplicar | E69–E74, E77–E79 y E83 son hechos nuevos de la manipulación; E75, E76, E80, E81, E82, E84, E85 y E87 ya los cubrían E29/E30, E31, E38, E26, E49/E59, E51, E55 y E61 (`ERROR_ALIASES_B01`). E86 depende de una afirmación de relieve en la libreta que no existe; E88 no puede ocurrir (no hay zonas flotantes). Catálogo: 78 errores. |
+| B01-OPT-12 | Binocular del compuesto | Distancia interpupilar y dioptría izquierda en el estado; no cambian aumento ni nitidez. Con la separación lejos de la del usuario, el ocular muestra dos círculos desplazados (solo presentación). |
+| B01-OPT-13 | Escenarios S19–S22 | S19 empieza con la cámara de costado; S20 revólver a 60°; S21 portaobjetos torcido bajo la pinza cerrada; S22 estéreo con zoom máximo y la perilla en su tope. La ruta ideal pasa los 22 sin errores. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

@@ -2,7 +2,8 @@
  * Vista por el ocular (§15.4): visor gráfico separado de la cámara de sala, DERIVADO del estado físico. Recorte por la
  * platina (o la posición de la muestra) y el campo del objetivo/zoom, imagen invertida en el compuesto, desenfoque
  * según el error de foco, brillo y contraste según luz, diafragma y condensador, capas del montaje (burbujas, residuo,
- * vidrio roto) y campo oscuro si falta luz o el revólver no enclava. Solo presentación: nunca decide la evidencia.
+ * vidrio roto), campo oscuro si falta luz o el revólver no enclava y dos círculos desplazados si la distancia
+ * interpupilar del cabezal no es la del usuario. Solo presentación: nunca decide la evidencia.
  */
 import { useEffect, useRef } from 'react';
 import type { OpticalWorld } from '../../../simulation/optical-world/types';
@@ -99,6 +100,17 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
       ctx.fillStyle = `rgba(0,0,0,${0.85 - v.luminance01 * 4})`;
       ctx.fillRect(0, 0, size, size);
     }
+    // Oculares separados distinto que los ojos: se ven dos círculos desplazados (no cambia el foco de la muestra).
+    const dx = binocularShiftPx(w, size);
+    if (dx) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.beginPath();
+      ctx.arc(size / 2 - dx, size / 2, size * 0.4, 0, Math.PI * 2);
+      ctx.arc(size / 2 + dx, size / 2, size * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   } else {
     const v = stereoView(w);
     const s = w.stereo;
@@ -139,12 +151,19 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
   }
 }
 
+/** Desplazamiento (px) de cada círculo cuando la distancia interpupilar del compuesto no coincide con la del usuario. */
+function binocularShiftPx(w: OpticalWorld, size: number) {
+  const d = (w.microscope.ipdMm ?? w.params.stereo.userIpdMm) - w.params.stereo.userIpdMm;
+  if (Math.abs(d) <= w.params.stereo.ipdTolMm) return 0;
+  return Math.min(size * 0.12, Math.abs(d) * 2.5);
+}
+
 /** Clave de la vista: solo se redibuja cuando cambia algo visible. */
 function viewKey(w: OpticalWorld, instrument: 'compound' | 'stereo') {
   if (instrument === 'compound') {
     const v = microscopeView(w);
     const m = v.slideId ? w.mounts[v.slideId] : null;
-    return JSON.stringify([v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown]);
+    return JSON.stringify([v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown, Math.round(binocularShiftPx(w, 340))]);
   }
   const v = stereoView(w);
   const s = w.stereo;

@@ -1,20 +1,21 @@
 /**
- * Vistas 3D procedurales de B01 (§4, §15.4): microscopio compuesto con partes independientes (platina que sube con
- * el foco y carro X/Y que lleva la lámina, pinza articulada, revólver indexado con tres objetivos, mandos macro y micro
- * coaxiales, condensador, palanca del diafragma, lámpara y regulador), estereoscopio (cabezal que sube y baja, zoom,
- * enfoque, oculares con distancia interpupilar y anillos de dioptría, luz incidente y transmitida), caja de láminas con
- * tapa y ranuras, portaobjetos con su montaje (fragmento, líquido, cubreobjetos, burbujas, grietas, residuo),
- * cubreobjetos, gotero, pinza, bisturí, papeles, muestras y bandejas. SOLO leen el estado del dominio.
+ * Vistas 3D procedurales de B01 (§4, §15.4): los dos instrumentos articulados (`models/`: microscopio compuesto
+ * binocular y estereoscopio de zoom, con cada mando sobre su pivote físico), caja de láminas con tapa y ranuras,
+ * portaobjetos con su montaje (fragmento, líquido, cubreobjetos, burbujas, grietas, residuo), cubreobjetos, gotero,
+ * pinza, bisturí, papeles, muestras y bandejas. SOLO leen el estado del dominio.
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { OpticalObject, OpticalWorld } from '../../simulation/optical-world/types';
-import { GEO_B01, MIC_POS, STAGE_SEAT, STEREO_BASE, STEREO_POS, stageTopZCm } from '../../simulation/optical-world/geometry';
+import { GEO_B01, stageTopZCm } from '../../simulation/optical-world/geometry';
 import { microscopeView } from '../../simulation/optical-world/world';
 import type { QualityLevel } from '../quality';
 import { materials } from '../renderers/materials';
 import { labelTexture } from '../renderers/textures';
 import type { FrameCtxB01 } from './OpticalLab3D';
+import { buildCompoundMicroscope } from './models/CompoundMicroscopeRig';
+import { buildStereoMicroscope } from './models/StereoMicroscopeRig';
+import { hitMesh } from './parts';
 
 export interface ObjHandleB01 {
   group: THREE.Group;
@@ -22,13 +23,7 @@ export interface ObjHandleB01 {
   dispose(): void;
 }
 
-const hitMat = () => materials('LOW').hit;
-
-function hit(geo: THREE.BufferGeometry, objId: string, part?: string): THREE.Mesh {
-  const m = new THREE.Mesh(geo, hitMat());
-  m.userData = { objId, part };
-  return m;
-}
+const hit = hitMesh;
 
 function at<T extends THREE.Object3D>(o: T, x: number, y: number, z: number): T {
   o.position.set(x, y, z);
@@ -60,12 +55,6 @@ function labelPlane(lines: string[], w: number, h: number, own: Own, band = '#12
 const LEAF_GREEN = 0x4f9a3a;
 const box = (w: number, h: number, d: number, m: THREE.Material) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
 const cyl = (r: number, h: number, m: THREE.Material, seg = 16) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m);
-
-/** Altura (cm) de la lente frontal de cada objetivo según el dominio (plano focal + distancia de trabajo). */
-function objectiveTipCm(w: OpticalWorld, x: 4 | 10 | 40) {
-  const p = w.params.microscope;
-  return stageTopZCm(0) + (p.focalPlaneZMm + p.parfocalOffsetMm[x] + p.workingDistanceMm[x]) / 10;
-}
 
 export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: QualityLevel, labelText = ''): ObjHandleB01 {
   const mats = materials(q);
@@ -347,211 +336,13 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
       group.add(b, lbl, at(hit(new THREE.BoxGeometry(B.w, B.h, B.d), id), 0, B.h / 2, 0));
       break;
     }
-    case 'microscope': {
-      const M = GEO_B01.microscope;
-      const dz = MIC_POS.y - STAGE_SEAT.y;
-      const base = shadowed(new THREE.Mesh(new RoundedBoxGeometry(M.baseW, 3, M.baseD, 3, 0.8), mats.enamel));
-      base.position.y = 1.5;
-      const arm = shadowed(new THREE.Mesh(new RoundedBoxGeometry(4, 30, 5, 2, 1), mats.enamel));
-      arm.position.set(0, 17, -8);
-      const head = shadowed(new THREE.Mesh(new RoundedBoxGeometry(6, 6, 9, 2, 1), mats.enamel));
-      head.position.set(0, 31, -3);
-      const tube = shadowed(cyl(0.9, 6, mats.blackPlastic));
-      tube.position.set(0, 36, 0);
-      tube.rotation.x = -0.6;
-      const ocular = shadowed(cyl(1.1, 2.5, mats.darkMetal));
-      ocular.position.set(0, 38.6, 1.8);
-      ocular.rotation.x = -0.6;
-      // Platina (sube con el foco), carro X/Y y pinza.
-      const stage = new THREE.Group();
-      const plate = shadowed(new THREE.Mesh(new RoundedBoxGeometry(M.stageW, 1, M.stageD, 2, 0.3), mats.blackPlastic));
-      plate.position.y = -0.5;
-      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.9, 20), own(new THREE.MeshBasicMaterial({ color: 0x0a0a0a })));
-      hole.rotation.x = -Math.PI / 2;
-      hole.position.set(0, 0.005, 0);
-      const carriage = new THREE.Group();
-      const holder = shadowed(box(8, 0.4, 0.5, mats.steel));
-      holder.position.set(0, 0.2, -1.6);
-      carriage.add(holder);
-      const clipPivot = new THREE.Group();
-      clipPivot.position.set(-4.5, 0.25, 1.6);
-      const clipArm = shadowed(box(4.5, 0.2, 0.5, mats.chrome));
-      clipArm.position.set(2.25, 0, 0);
-      clipPivot.add(clipArm);
-      stage.add(plate, hole, carriage, clipPivot);
-      stage.add(at(hit(new THREE.BoxGeometry(5, 1.2, 1.2), id, 'clip'), -2.2, 0.3, 1.6));
-      stage.position.z = dz;
-      // Condensador y diafragma bajo la platina.
-      const condenser = shadowed(cyl(1.3, 2, mats.darkMetal));
-      const lever = shadowed(box(2.2, 0.2, 0.3, mats.chrome));
-      // Revólver con tres objetivos (la punta de cada uno a la altura que da el dominio).
-      const turretY = 21;
-      const turret = new THREE.Group();
-      turret.position.set(0, turretY, dz);
-      const disk = shadowed(cyl(2.6, 0.8, mats.chrome, 24));
-      turret.add(disk);
-      const objColors = [0xc0392b, 0xf1c40f, 0x2980b9];
-      ([4, 10, 40] as const).forEach((x, i) => {
-        const len = turretY - objectiveTipCm(w0, x);
-        const a = (i * 2 * Math.PI) / 3;
-        const ob = shadowed(cyl(0.6 - i * 0.06, len, mats.chrome));
-        ob.position.set(Math.sin(a) * 1.6, -len / 2, Math.cos(a) * 1.6);
-        const band = cyl(0.62 - i * 0.06, 0.25, own(new THREE.MeshStandardMaterial({ color: objColors[i] })));
-        band.position.set(Math.sin(a) * 1.6, -len * 0.35, Math.cos(a) * 1.6);
-        turret.add(ob, band);
-      });
-      turret.add(at(hit(new THREE.CylinderGeometry(3, 3, 3, 10), id, 'turret'), 0, -1, 0));
-      // Mandos coaxiales (macro grande, micro chico) a la derecha; carro X/Y bajo la platina.
-      const coarse = shadowed(cyl(2.2, 1.2, mats.blackPlastic, 20));
-      coarse.rotation.z = Math.PI / 2;
-      coarse.position.set(M.baseW / 2 - 6.5, 11, -6);
-      const fine = shadowed(cyl(1.2, 1.2, mats.darkMetal, 20));
-      fine.rotation.z = Math.PI / 2;
-      fine.position.set(M.baseW / 2 - 5.2, 11, -6);
-      const knobMark = (k: THREE.Mesh) => {
-        const mk = box(0.15, 0.4, 0.15, mats.plasticYellow);
-        mk.position.set(0, 0.7, (k.geometry as THREE.CylinderGeometry).parameters.radiusTop);
-        k.add(mk);
-      };
-      knobMark(coarse);
-      knobMark(fine);
-      const sx = shadowed(cyl(0.7, 1, mats.blackPlastic));
-      sx.rotation.x = Math.PI / 2;
-      const sy = shadowed(cyl(0.6, 1, mats.darkMetal));
-      sy.rotation.x = Math.PI / 2;
-      // Lámpara, regulador e interruptor.
-      const lampMat = own(new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0.2 }));
-      const lamp = new THREE.Mesh(new THREE.CircleGeometry(1.1, 20), lampMat);
-      lamp.rotation.x = -Math.PI / 2;
-      lamp.position.set(0, 3.02, dz);
-      const lightKnob = shadowed(cyl(0.9, 0.8, mats.blackPlastic));
-      lightKnob.rotation.z = Math.PI / 2;
-      lightKnob.position.set(-M.baseW / 2 - 0.3, 1.8, 6);
-      const ledMat = own(new THREE.MeshBasicMaterial({ color: 0x3bff59 }));
-      const power = shadowed(box(1.4, 0.8, 0.8, mats.rubberRed));
-      power.position.set(M.baseW / 2 - 2, 2.2, M.baseD / 2 - 0.2);
-      const led = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 6), ledMat);
-      led.position.set(M.baseW / 2 - 4, 2.4, M.baseD / 2);
-      group.add(base, arm, head, tube, ocular, stage, condenser, lever, turret, coarse, fine, sx, sy, lamp, lightKnob, power, led);
-      group.add(at(hit(new THREE.BoxGeometry(3, 3, 3), id, 'ocular'), 0, 38.6, 1.8));
-      group.add(at(hit(new THREE.BoxGeometry(2, 5, 5), id, 'coarse'), M.baseW / 2 - 6.5, 11, -6));
-      group.add(at(hit(new THREE.BoxGeometry(2.5, 3, 3), id, 'fine'), M.baseW / 2 - 4.8, 11, -6));
-      const hx = at(hit(new THREE.BoxGeometry(2, 2, 2), id, 'stageX'), M.stageW / 2 + 0.8, 0, dz + 3);
-      const hy = at(hit(new THREE.BoxGeometry(2, 2, 2), id, 'stageY'), M.stageW / 2 + 0.8, 0, dz + 4.6);
-      const hCond = at(hit(new THREE.BoxGeometry(3, 2, 3), id, 'condenser'), 0, 0, dz);
-      const hLever = at(hit(new THREE.BoxGeometry(3, 1, 1.5), id, 'diaphragm'), 2, 0, dz + 1.2);
-      group.add(hx, hy, hCond, hLever);
-      group.add(at(hit(new THREE.BoxGeometry(2, 2, 2), id, 'light'), -M.baseW / 2 - 0.3, 1.8, 6));
-      group.add(at(hit(new THREE.BoxGeometry(2, 1.6, 1.6), id, 'power'), M.baseW / 2 - 2, 2.2, M.baseD / 2 - 0.2));
-      group.add(at(hit(new THREE.BoxGeometry(M.baseW, 3, M.baseD), id), 0, 1.5, 0), at(hit(new THREE.BoxGeometry(5, 30, 6), id), 0, 17, -8));
-      ring = selRing(14);
-      group.add(ring);
-      update = (ctx) => {
-        const w = ctx.world;
-        const m = w.microscope;
-        const v = microscopeView(w);
-        const top = stageTopZCm(v.stageZmm);
-        stage.position.y = top;
-        carriage.position.set(m.stageXmm / 10, 0, -m.stageYmm / 10);
-        clipPivot.rotation.y = m.clipOpen ? 0.9 : 0;
-        condenser.position.set(0, top - 2.6 - (1 - m.condenser01) * 2.5, dz);
-        lever.position.set(1.5, top - 2.2 - (1 - m.condenser01) * 2.5, dz + 1.2);
-        lever.rotation.y = -0.9 + m.diaphragm01 * 1.6;
-        hCond.position.y = top - 2.6;
-        hLever.position.y = top - 2.2;
-        sx.position.set(M.stageW / 2 + 0.8, top - 1.6, dz + 3);
-        sy.position.set(M.stageW / 2 + 0.8, top - 1.6, dz + 4.6);
-        hx.position.y = top - 1.6;
-        hy.position.y = top - 1.6;
-        turret.rotation.y = (-m.turretDeg * Math.PI) / 180;
-        coarse.rotation.x = m.coarseTurns * 2 * Math.PI;
-        fine.rotation.x = m.fineTurns * 2 * Math.PI;
-        lampMat.opacity = m.power ? 0.25 + 0.75 * m.light01 : 0.08;
-        lightKnob.rotation.x = m.light01 * 4;
-        ledMat.color.setHex(m.power ? 0x3bff59 : 0x2a2f33);
-      };
-      break;
-    }
+    case 'microscope':
     case 'stereo': {
-      const S = GEO_B01.stereo;
-      const dz = STEREO_POS.y - STEREO_BASE.y;
-      const base = shadowed(new THREE.Mesh(new RoundedBoxGeometry(S.baseW, S.baseTopZ, S.baseD, 3, 0.8), mats.enamel));
-      base.position.y = S.baseTopZ / 2;
-      const plateMat = own(new THREE.MeshBasicMaterial({ color: 0xf6f6f0 }));
-      const plate = new THREE.Mesh(new THREE.CircleGeometry(4.5, 28), plateMat);
-      plate.rotation.x = -Math.PI / 2;
-      plate.position.set(0, S.baseTopZ + 0.01, dz);
-      const pillar = shadowed(cyl(1.4, 30, mats.chrome));
-      pillar.position.set(0, S.baseTopZ + 15, -7);
-      const head = new THREE.Group();
-      const body = shadowed(new THREE.Mesh(new RoundedBoxGeometry(8, 7, 9, 2, 1.5), mats.enamel));
-      body.position.set(0, 0, -2);
-      const zoom = shadowed(cyl(2, 1, mats.blackPlastic, 20));
-      zoom.position.set(0, 4, -2);
-      const eyeL = shadowed(cyl(0.9, 4, mats.darkMetal));
-      const eyeR = shadowed(cyl(0.9, 4, mats.darkMetal));
-      eyeL.rotation.x = -0.7;
-      eyeR.rotation.x = -0.7;
-      const ringL = cyl(1.05, 0.5, mats.plasticYellow);
-      const ringR = cyl(1.05, 0.5, mats.plasticYellow);
-      ringL.rotation.x = -0.7;
-      ringR.rotation.x = -0.7;
-      const lens = shadowed(cyl(1.6, 2, mats.blackPlastic));
-      lens.position.set(0, -4.2, 0);
-      head.add(body, zoom, eyeL, eyeR, ringL, ringR, lens);
-      head.add(at(hit(new THREE.BoxGeometry(4, 2, 3), id, 'zoom'), 0, 4, -2));
-      head.add(at(hit(new THREE.BoxGeometry(6, 3, 3), id, 'oculars'), 0, 4.5, 3));
-      head.add(at(hit(new THREE.BoxGeometry(8, 7, 9), id, 'head'), 0, 0, -2));
-      const hDl = at(hit(new THREE.BoxGeometry(1.6, 1.6, 1.6), id, 'diopterL'), -2, 3.2, 3.4);
-      const hDr = at(hit(new THREE.BoxGeometry(1.6, 1.6, 1.6), id, 'diopterR'), 2, 3.2, 3.4);
-      head.add(hDl, hDr);
-      head.add(at(hit(new THREE.BoxGeometry(8, 1, 2), id, 'ipd'), 0, 6.2, 3));
-      const focus = shadowed(cyl(1.8, 1.4, mats.blackPlastic, 20));
-      focus.rotation.z = Math.PI / 2;
-      focus.position.set(2.2, 16, -7);
-      const lampArm = shadowed(box(0.6, 0.6, 7, mats.chrome));
-      lampArm.position.set(-4.5, 12, -2);
-      lampArm.rotation.x = 0.5;
-      const lampMat = own(new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0.2 }));
-      const lamp = new THREE.Mesh(new THREE.SphereGeometry(1.1, 12, 8), lampMat);
-      lamp.position.set(-4.5, 10.5, 1.4);
-      const power = shadowed(box(1.4, 0.8, 0.8, mats.rubberRed));
-      power.position.set(S.baseW / 2 - 2, S.baseTopZ - 0.4, S.baseD / 2);
-      const ledMat = own(new THREE.MeshBasicMaterial({ color: 0x2a2f33 }));
-      const led = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 6), ledMat);
-      led.position.set(S.baseW / 2 - 4, S.baseTopZ - 0.2, S.baseD / 2);
-      const tKnob = shadowed(cyl(0.7, 0.6, mats.plasticBlue));
-      tKnob.rotation.z = Math.PI / 2;
-      tKnob.position.set(-S.baseW / 2 - 0.2, 1.5, 6);
-      const iKnob = shadowed(cyl(0.7, 0.6, mats.plasticYellow));
-      iKnob.rotation.z = Math.PI / 2;
-      iKnob.position.set(-S.baseW / 2 - 0.2, 1.5, 3);
-      group.add(base, plate, pillar, head, focus, lampArm, lamp, power, led, tKnob, iKnob);
-      group.add(at(hit(new THREE.BoxGeometry(3, 4, 4), id, 'focus'), 2.6, 16, -7));
-      group.add(at(hit(new THREE.BoxGeometry(2, 1.6, 1.6), id, 'power'), S.baseW / 2 - 2, S.baseTopZ - 0.4, S.baseD / 2));
-      group.add(at(hit(new THREE.BoxGeometry(2, 1.6, 1.6), id, 'transmitted'), -S.baseW / 2 - 0.2, 1.5, 6));
-      group.add(at(hit(new THREE.BoxGeometry(2, 1.6, 1.6), id, 'incident'), -S.baseW / 2 - 0.2, 1.5, 3));
-      group.add(at(hit(new THREE.BoxGeometry(S.baseW, S.baseTopZ, S.baseD), id), 0, S.baseTopZ / 2, 0));
-      ring = selRing(13);
+      const rig = (o.kind === 'microscope' ? buildCompoundMicroscope : buildStereoMicroscope)(id, w0, mats, own, seg);
+      group.add(rig.group);
+      ring = selRing(o.kind === 'microscope' ? 14 : 13);
       group.add(ring);
-      update = (ctx) => {
-        const s = ctx.world.stereo;
-        head.position.set(0, S.baseTopZ + 10 + (s.headZmm - 112) / 10, dz);
-        const half = s.ipdMm / 20;
-        eyeL.position.set(-half, 4.5, 3);
-        eyeR.position.set(half, 4.5, 3);
-        ringL.position.set(-half, 3.4, 3.3);
-        ringR.position.set(half, 3.4, 3.3);
-        hDl.position.x = -half;
-        hDr.position.x = half;
-        zoom.rotation.y = s.zoomX * 1.2;
-        ringL.rotation.y = s.leftDiopter;
-        ringR.rotation.y = s.rightDiopter;
-        focus.rotation.x = s.focusTurns * 2 * Math.PI;
-        lampMat.opacity = s.power ? 0.2 + 0.8 * s.incident01 : 0.08;
-        plateMat.color.setRGB(0.85 + 0.15 * (s.power ? s.transmitted01 : 0), 0.85 + 0.15 * (s.power ? s.transmitted01 : 0), 0.82 + 0.1 * (s.power ? s.transmitted01 : 0));
-        ledMat.color.setHex(s.power ? 0x3bff59 : 0x2a2f33);
-      };
+      update = (ctx) => rig.update(ctx);
       break;
     }
     case 'slideCase': {
@@ -570,7 +361,7 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
       lid.add(lbl);
       lidPivot.add(lid);
       group.add(body, inside, lidPivot);
-      group.add(at(hit(new THREE.BoxGeometry(C.w, 1.2, 2), id, 'lid'), 0, C.h + 0.4, C.d / 2));
+      group.add(at(hit(new THREE.BoxGeometry(C.w, 1.2, 2), id, 'lid', { kind: 'press', axis: 'x', click: true }), 0, C.h + 0.4, C.d / 2));
       group.add(at(hit(new THREE.BoxGeometry(C.w, C.h, C.d), id), 0, C.h / 2, 0));
       ring = selRing(11);
       group.add(ring);

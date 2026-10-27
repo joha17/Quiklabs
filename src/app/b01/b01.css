@@ -43,3 +43,10 @@
 @media (max-width: 760px) { .eyepiece-panel { bottom: auto; top: 0.6rem; } }
 /* En B01 el ocular ocupa abajo a la izquierda: el panel docente va a la derecha, bajo el de seguridad. */
 .canvas-wrap.b01 .debug { left: auto; right: 0.6rem; top: 16.5rem; bottom: auto; max-height: 38%; width: min(540px, 46%); overflow: auto; }
+/* B01: rótulo de la pieza bajo el puntero (nombre y gesto), sin tapar el equipo. */
+.part-tip {
+  position: absolute; left: 0; top: 0; z-index: 12; pointer-events: none; max-width: 260px;
+  background: var(--panel); color: var(--ink); border-radius: 8px; box-shadow: var(--shadow); padding: 0.2rem 0.5rem;
+  font-size: 0.8rem; line-height: 1.3; border-left: 3px solid var(--accent);
+}
+.part-tip[hidden] { display: none; }

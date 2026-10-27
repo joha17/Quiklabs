@@ -101,6 +101,18 @@ export interface LabObservation {
   channel: 'mono' | 'stereo-pair';
 }
 
+/**
+ * Gesto continuo en curso sobre una pieza (entre `gesture begin` y `end`). Guarda lo necesario para juzgar el gesto
+ * completo: vueltas de macro a 40X, vista de partida de la platina y ajustes binoculares hechos con la imagen borrosa.
+ */
+export interface GestureB01 {
+  part: string;
+  coarse40Turns: number;
+  stageStart: { centerMm: [number, number]; fovMm: number; visible: StructureId[]; assetId: string | null; locked: boolean } | null;
+  binocularMm: number;
+  diopterSum: number;
+}
+
 export interface B01Params {
   dtS: number;
   microscope: MicroscopeParams;
@@ -149,6 +161,8 @@ export interface OpticalWorld {
   /** `headMovedAt`/`focusedAt`: número de orden del último gesto (no tiempo). */
   stereo: StereoState & { sampleOffsetMm: [number, number]; headMovedAt: number | null; focusedAt: number | null; locatedLowZoom: boolean };
   slideCase: SlideCaseState & { openedAt: number | null };
+  /** Gesto continuo en curso (ausente en los mundos guardados antes de los gestos directos). */
+  gesture?: GestureB01 | null;
   /** Ocular abierto y desde cuándo la configuración está estable (s). */
   view: { instrument: 'compound' | 'stereo' | null; openedAt: number; stableSince: number; capturedSinceOpen: boolean };
   observations: Record<string, LabObservation>;

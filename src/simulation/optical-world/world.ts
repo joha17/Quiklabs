@@ -40,6 +40,10 @@ export const SB = {
   MONO_2D: 'B01-S16_mono_2d',
   UNKNOWN_SLIDES: 'B01-S17_unknown_slides',
   RESUME_PREP: 'B01-S18_resume_prep',
+  SIDE_CAMERA: 'B01-S19_side_camera',
+  TURRET_BETWEEN: 'B01-S20_turret_between',
+  LOOSE_SLIDE: 'B01-S21_loose_slide',
+  STEREO_HIGH: 'B01-S22_stereo_high_zoom',
 } as const;
 
 export const sc = (w: OpticalWorld, s: string) => w.scenarios.includes(s);
@@ -250,13 +254,15 @@ export function createOpticalWorld(spec: OpticalWorldSpec): OpticalWorld {
     stereoSamples: structuredClone(spec.stereoSamples),
     microscope: {
       power: false, light01: 0.4, diaphragm01: 0.5, condenser01: 0.9, turretDeg: 0, stageXmm: 0, stageYmm: 0, coarseTurns: 0, fineTurns: 0, clipOpen: true,
-      clampedSlideId: null, sideCheckedAt: null, impactCount: 0, lensDamage01: 0, slideOnStage: null, slideOffsetMm: [0, 0], ...spec.microscope,
+      clampedSlideId: null, sideCheckedAt: null, impactCount: 0, lensDamage01: 0, slideOnStage: null, slideOffsetMm: [0, 0],
+      ipdMm: p.stereo.userIpdMm, leftDiopter: 0, rightDiopter: 0, ...spec.microscope,
     },
     stereo: {
       power: false, incident01: 0.5, transmitted01: 0, zoomX: 1, headZmm: 112, focusTurns: -6, ipdMm: p.stereo.userIpdMm, leftDiopter: 0, rightDiopter: 0, sampleId: null,
       channelMode: 'mono', sampleOffsetMm: [0, 0], headMovedAt: null, focusedAt: null, locatedLowZoom: false, ...spec.stereo,
     },
     slideCase: { open: false, slots: { ...spec.slideCase.slots }, home: { ...spec.slideCase.home }, openedAt: null },
+    gesture: null,
     view: { instrument: null, openedAt: 0, stableSince: 0, capturedSinceOpen: false },
     observations: {},
     observationOrder: [],
@@ -354,7 +360,7 @@ export function dispatchB01(w: OpticalWorld, cmd: B01Command): B01DispatchResult
     case 'turnFine':
       return turnFocus(w, 'fine', cmd.deltaTurns);
     case 'turnTurret':
-      return turnTurret(w, cmd.deltaDeg);
+      return turnTurret(w, cmd.deltaDeg, cmd.grip ?? 'nosepiece');
     case 'setPower':
       return setPower(w, cmd.device, cmd.on);
     case 'setIllumination': {
@@ -394,16 +400,11 @@ export function dispatchB01(w: OpticalWorld, cmd: B01Command): B01DispatchResult
       return ok();
     }
     case 'setInterpupillary':
-      w.stereo.ipdMm = clamp(cmd.valueMm, 50, 76);
-      used(w, 'ste:interpupillary');
-      changed(w);
-      return ok();
+      return setInterpupillary(w, cmd.device ?? 'stereo', cmd.valueMm);
     case 'setDiopter':
-      if (cmd.side === 'left') w.stereo.leftDiopter = clamp(cmd.value, -5, 5);
-      else w.stereo.rightDiopter = clamp(cmd.value, -5, 5);
-      used(w, 'ste:diopter');
-      changed(w);
-      return ok();
+      return setDiopter(w, cmd.device ?? 'stereo', cmd.side, cmd.value);
+    case 'gesture':
+      return gesture(w, cmd.part, cmd.phase);
     case 'openSlideCase':
       w.slideCase.open = cmd.open;
       w.slideCase.openedAt = cmd.open ? w.timeS : null;
@@ -928,6 +929,8 @@ function openClip(w: OpticalWorld, open: boolean): B01DispatchResult {
   if (!open && m.slideOnStage) {
     m.clampedSlideId = m.slideOnStage;
     flagB(w, 'slideClamped');
+    // La pinza se soltó sobre una lámina fuera de su asiento: queda sujeta torcida (E73).
+    if (Math.hypot(...m.slideOffsetMm) > w.params.seatTolMm) errB(w, 'E73', 'CLIP_ON_UNSEATED', 'WARN', { obj: m.slideOnStage });
   }
   if (open) m.clampedSlideId = null;
   changed(w);
@@ -940,6 +943,12 @@ function setStageXY(w: OpticalWorld, xMm: number, yMm: number): B01DispatchResul
   const before = microscopeView(w);
   const nx = clamp(xMm, r[0], r[1]);
   const ny = clamp(yMm, r[0], r[1]);
+  // El carro contra su tope (E74): la muestra no avanza más.
+  if (Math.abs(nx - xMm) > 1e-6 || Math.abs(ny - yMm) > 1e-6) errB(w, 'E74', 'STAGE_LIMIT', 'WARN');
+  // Durante un gesto, «antes» es la vista con la que empezó el arrastre de los mandos.
+  const g = w.gesture;
+  if (g && !g.stageStart) g.stageStart = { centerMm: before.centerMm, fovMm: before.fovMm, visible: [...before.visible], assetId: before.assetId, locked: before.locked };
+  const start = g?.stageStart ?? before;
   const dx = nx - m.stageXmm;
   const dy = ny - m.stageYmm;
   if (Math.abs(dx) < 1e-9 && Math.abs(dy) < 1e-9) return ok();
@@ -954,15 +963,15 @@ function setStageXY(w: OpticalWorld, xMm: number, yMm: number): B01DispatchResul
     emitB(w, 'SLIDE_UNCLAMPED', 'WARN');
   }
   const after = microscopeView(w);
-  if (before.assetId && after.assetId && before.locked) {
+  if (start.assetId && after.assetId && start.locked) {
     const a = assetById(after.assetId)!;
     // Fuera de la muestra (E33) o alejándose de la estructura (E34).
     if (!centerOnSpecimen(a, after.centerMm, after.fovMm)) {
-      if (before.visible.length) errB(w, 'E33', 'STAGE_OFF_SPECIMEN', 'WARN');
+      if (start.visible.length) errB(w, 'E33', 'STAGE_OFF_SPECIMEN', 'WARN');
     } else {
-      const d0 = nearestStructureMm(a, before.centerMm);
+      const d0 = nearestStructureMm(a, start.centerMm);
       const d1 = nearestStructureMm(a, after.centerMm);
-      if (d0 < before.fovMm && d1 > d0 + 0.4 * before.fovMm && before.visible.some((x) => !after.visible.includes(x))) errB(w, 'E34', 'STAGE_WRONG_WAY', 'WARN');
+      if (d0 < start.fovMm && d1 > d0 + 0.4 * start.fovMm && start.visible.some((x) => !after.visible.includes(x))) errB(w, 'E34', 'STAGE_WRONG_WAY', 'WARN');
     }
   }
   return ok();
@@ -982,7 +991,12 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
       emitB(w, 'OPTICAL_GAP_LOW', 'ALERT');
       return no('GAP_LOW');
     }
-    if (obj === 40 && deltaTurns > 0 && Math.abs(deltaTurns) > p.coarseAt40MaxTurns && m.slideOnStage) errB(w, 'E22', 'COARSE_AT_40X', 'ALERT');
+    // Macro a 40X (E22): cuenta el gesto entero (un arrastre son muchos pasos pequeños).
+    if (obj === 40 && deltaTurns > 0 && m.slideOnStage) {
+      const g = w.gesture;
+      const turns = g ? (g.coarse40Turns += deltaTurns) : deltaTurns;
+      if (turns > p.coarseAt40MaxTurns) errB(w, 'E22', 'COARSE_AT_40X', 'ALERT');
+    }
     const [lo, hi] = coarseTurnLimits(m, p);
     const target = m.coarseTurns + deltaTurns;
     if (target > hi + 1e-9 || target < lo - 1e-9) errB(w, 'E24', 'COARSE_LIMIT', 'WARN');
@@ -1005,6 +1019,11 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
   changed(w);
   if (m.slideOnStage) {
     const after = microscopeView(w);
+    if (knob === 'coarse' && deltaTurns > 0) {
+      // Acercar con el macro mirando por el ocular hasta casi tocar (E69); a 40X, hasta la zona de choque (E70).
+      if (obj !== 40 && w.view.instrument === 'compound' && after.gapMm < p.gapSafeRemoveMm) errB(w, 'E69', 'COARSE_TOWARD_SLIDE', 'ALERT');
+      if (obj === 40 && after.gapMm < p.gapWarnMm) errB(w, 'E70', 'COARSE_40X_DANGER', 'ALERT');
+    }
     if (after.gapMm <= 0) collide(w, after.gapMm);
     else if (after.gapMm < p.gapWarnMm) {
       const checked = m.sideCheckedAt !== null && w.timeS - m.sideCheckedAt <= p.sideCheckValidS;
@@ -1037,13 +1056,16 @@ function collide(w: OpticalWorld, gapMm: number) {
   emitB(w, 'OBJECTIVE_COLLISION', 'CRITICAL');
 }
 
-function turnTurret(w: OpticalWorld, deltaDeg: number): B01DispatchResult {
+function turnTurret(w: OpticalWorld, deltaDeg: number, grip: 'nosepiece' | 'objective'): B01DispatchResult {
   const m = w.microscope;
   const p = w.params.microscope;
   riskyWithCaseOpen(w);
+  // El revólver se gira por su anillo moleteado; usar un objetivo como palanca lo desajusta (E72).
+  if (grip === 'objective' && deltaDeg) errB(w, 'E72', 'TURRET_BY_OBJECTIVE', 'WARN');
   const before = microscopeView(w);
   const prevObj = before.objectiveX;
-  const next = clamp(m.turretDeg + deltaDeg, 0, (OBJECTIVES.length - 1) * p.turretDetentDeg);
+  // Gira la vuelta completa; el ángulo se guarda en [0, 360).
+  const next = Math.round((((m.turretDeg + deltaDeg) % 360) + 360) % 360 * 1e6) / 1e6;
   m.turretDeg = next;
   used(w, 'mic:turret');
   changed(w);
@@ -1059,6 +1081,8 @@ function turnTurret(w: OpticalWorld, deltaDeg: number): B01DispatchResult {
       if (t.objectiveX === 40 && !w.evidence.located4x) errB(w, 'E18', 'HIGH_FIRST', 'WARN');
       if (prevObj && t.objectiveX! > prevObj && before.visible.length && !after.visible.length) errB(w, 'E32', 'NOT_CENTERED_BEFORE_ZOOM', 'WARN');
       if (after.gapMm <= 0) collide(w, after.gapMm);
+      // Objetivo mayor enclavado casi tocando la preparación sin comprobar la distancia de trabajo (E79).
+      else if (after.gapMm < p.gapWarnMm && (!prevObj || t.objectiveX! > prevObj)) errB(w, 'E79', 'OBJECTIVE_NO_CLEARANCE', 'ALERT');
     }
   }
   return ok();
@@ -1090,6 +1114,11 @@ function setStereoZoom(w: OpticalWorld, zoomX: number): B01DispatchResult {
   const p = w.params.stereo;
   const z = clamp(zoomX, p.zoomRange[0], p.zoomRange[1]);
   if (z >= p.highZoom && s.zoomX < p.highZoom && s.sampleId && !s.locatedLowZoom) errB(w, 'E53', 'STEREO_ZOOM_FIRST', 'WARN');
+  // Más zoom sin recentrar: la muestra, que se veía, queda fuera del campo más pequeño (E83).
+  if (s.sampleId && z > s.zoomX) {
+    const off = Math.hypot(...s.sampleOffsetMm);
+    if (off <= stereoFovMm(p, s.zoomX) / 2 && off > stereoFovMm(p, z) / 2) errB(w, 'E83', 'STEREO_ZOOM_UNCENTERED', 'WARN');
+  }
   s.zoomX = z;
   used(w, 'ste:zoom');
   changed(w);
@@ -1106,6 +1135,62 @@ function setStereoFocus(w: OpticalWorld, deltaTurns: number): B01DispatchResult 
   s.focusedAt = seqB(w);
   used(w, 'ste:focus');
   changed(w);
+  return ok();
+}
+
+// ─────────────────────────── Cabezales binoculares y gestos ───────────────────────────
+
+/** Nitidez de la vista abierta del equipo (null si no se mira por él). */
+function viewSharpness(w: OpticalWorld, device: 'microscope' | 'stereo'): number | null {
+  if (device === 'microscope') return w.view.instrument === 'compound' && w.microscope.slideOnStage ? microscopeView(w).sharpness01 : null;
+  return w.view.instrument === 'stereo' && w.stereo.sampleId ? stereoView(w).sharpness01 : null;
+}
+
+/** Ajustes binoculares con la muestra borrosa: no la enfocan (E77 interpupilar, E78 dioptrías). */
+function binocularWhileBlurred(w: OpticalWorld, device: 'microscope' | 'stereo', key: 'binocularMm' | 'diopterSum', amount: number) {
+  const sh = viewSharpness(w, device);
+  if (sh === null || sh >= 0.3 || !amount) return;
+  const g = w.gesture;
+  if (g) g[key] += amount;
+  else bumpB(w, `__${key}`, amount);
+  const total = g ? g[key] : w.evidence[`__${key}`];
+  if (total > (key === 'binocularMm' ? 6 : 2)) errB(w, key === 'binocularMm' ? 'E77' : 'E78', key === 'binocularMm' ? 'IPD_FOR_FOCUS' : 'DIOPTER_FOR_FOCUS', 'WARN', { obj: device });
+}
+
+function setInterpupillary(w: OpticalWorld, device: 'microscope' | 'stereo', valueMm: number): B01DispatchResult {
+  const head = device === 'microscope' ? w.microscope : w.stereo;
+  const [lo, hi] = device === 'microscope' ? w.params.microscope.ipdRangeMm : [50, 76];
+  const v = clamp(valueMm, lo, hi);
+  binocularWhileBlurred(w, device, 'binocularMm', Math.abs(v - head.ipdMm));
+  head.ipdMm = v;
+  used(w, device === 'microscope' ? 'mic:ocular' : 'ste:interpupillary');
+  changed(w);
+  return ok();
+}
+
+function setDiopter(w: OpticalWorld, device: 'microscope' | 'stereo', side: 'left' | 'right', value: number): B01DispatchResult {
+  const head = device === 'microscope' ? w.microscope : w.stereo;
+  const r = device === 'microscope' ? w.params.microscope.diopterRange : 5;
+  const v = clamp(value, -r, r);
+  const k = side === 'left' ? 'leftDiopter' : 'rightDiopter';
+  binocularWhileBlurred(w, device, 'diopterSum', Math.abs(v - head[k]));
+  head[k] = v;
+  used(w, device === 'microscope' ? 'mic:ocular' : 'ste:diopter');
+  changed(w);
+  return ok();
+}
+
+/** Inicio y fin de un gesto continuo sobre una pieza; al soltar se juzga el gesto completo. */
+function gesture(w: OpticalWorld, part: string, phase: 'begin' | 'end'): B01DispatchResult {
+  if (phase === 'begin') {
+    w.gesture = { part, coarse40Turns: 0, stageStart: null, binocularMm: 0, diopterSum: 0 };
+    return ok();
+  }
+  const g = w.gesture;
+  w.gesture = null;
+  if (!g) return ok();
+  // Revólver soltado entre dos enclavamientos (E71): ningún objetivo queda en el eje.
+  if (g.part === 'mic:turret' && !turretObjective(w.microscope.turretDeg, w.params.microscope).locked) errB(w, 'E71', 'TURRET_RELEASED_BETWEEN', 'WARN');
   return ok();
 }
 

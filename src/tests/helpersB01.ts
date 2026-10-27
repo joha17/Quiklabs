@@ -161,7 +161,11 @@ export function idealRouteB01(w0: OpticalWorld, resume: (w: OpticalWorld) => Opt
   inspectAll(w);
   wetMount(w);
   w = resume(w);
-  // C — microscopio con el montaje fresco.
+  // C — microscopio con el montaje fresco (S21: antes se retira el portaobjetos que quedó mal sujeto).
+  if (w.microscope.slideOnStage === 'sl2') {
+    cmdB(w, { type: 'openClip', open: true });
+    place(w, 'sl2', 'bench', { x: 120, y: 8, z: 0.05 });
+  }
   cmdB(w, { type: 'setPower', device: 'microscope', on: true });
   if (w.microscope.light01 < 0.2) cmdB(w, { type: 'setIllumination', device: 'microscope', value01: 0.4 });
   if (w.microscope.condenser01 < 0.6) cmdB(w, { type: 'setCondenser', value01: 0.9 });

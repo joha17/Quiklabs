@@ -18,11 +18,16 @@ export const resolutionLimitM = (lambdaM: number, na: number) => (0.61 * lambdaM
 /** U06: nitidez visual exp(−½ (e/σ)²). */
 export const sharpness01 = (focusErrorMm: number, sigmaMm: number) => clamp(Math.exp(-0.5 * (focusErrorMm / sigmaMm) ** 2), 0, 1);
 
-/** Objetivo en el eje según el ángulo del revólver; `null` si quedó entre enclavamientos (E19). */
+/**
+ * Objetivo en el eje según el ángulo del revólver; `null` si quedó entre enclavamientos (E19). El revólver gira la
+ * vuelta completa: con tres posiciones a 120°, pasado el 40X vuelve el 4X.
+ */
 export function turretObjective(turretDeg: number, p: MicroscopeParams): { objectiveX: ObjectiveX | null; locked: boolean; index: number } {
   const a = ((turretDeg % 360) + 360) % 360;
-  const idx = Math.round(a / p.turretDetentDeg);
-  const off = Math.abs(a - idx * p.turretDetentDeg);
+  const n = Math.round(360 / p.turretDetentDeg);
+  const k = Math.round(a / p.turretDetentDeg);
+  const off = Math.abs(a - k * p.turretDetentDeg);
+  const idx = k % n;
   const locked = off <= p.turretLockTolDeg && idx < OBJECTIVES.length;
   return { objectiveX: locked ? OBJECTIVES[idx] : null, locked, index: Math.min(idx, OBJECTIVES.length - 1) };
 }

@@ -28,7 +28,8 @@ export type B01Command =
   | { type: 'setStageXY'; xMm: number; yMm: number }
   | { type: 'turnCoarse'; deltaTurns: number }
   | { type: 'turnFine'; deltaTurns: number }
-  | { type: 'turnTurret'; deltaDeg: number }
+  /** `grip`: dónde se tomó el revólver (anillo moleteado o, mal, un objetivo como palanca, E72). */
+  | { type: 'turnTurret'; deltaDeg: number; grip?: 'nosepiece' | 'objective' }
   | { type: 'setPower'; device: 'microscope' | 'stereo'; on: boolean }
   | { type: 'setIllumination'; device: 'microscope' | 'stereo-incident' | 'stereo-transmitted'; value01: number }
   | { type: 'setDiaphragm'; value01: number }
@@ -38,14 +39,18 @@ export type B01Command =
   | { type: 'setStereoZoom'; zoomX: number }
   | { type: 'setStereoFocus'; deltaTurns: number }
   | { type: 'setStereoHead'; zMm: number }
-  | { type: 'setInterpupillary'; valueMm: number }
-  | { type: 'setDiopter'; side: 'left' | 'right'; value: number }
+  // Binocular de ambos equipos (sin `device`: el estereoscopio, como en las cintas anteriores).
+  | { type: 'setInterpupillary'; valueMm: number; device?: 'microscope' | 'stereo' }
+  | { type: 'setDiopter'; side: 'left' | 'right'; value: number; device?: 'microscope' | 'stereo' }
   // Caja, observación y cierre
   | { type: 'openSlideCase'; open: boolean }
   | { type: 'observe'; instrument: 'compound' | 'stereo'; open: boolean; sampleId?: string }
   | { type: 'captureObservation'; instrument: 'compound' | 'stereo' }
   | { type: 'attachObservation'; observationId: string; attemptHash: string }
   | { type: 'closeBench' }
+  // Inicio y fin de un gesto continuo sobre una pieza (arrastre de una perilla, del revólver, de la platina…): las
+  // consecuencias que dependen del gesto entero (E22, E34, E71, E77, E78) se miden desde su inicio.
+  | { type: 'gesture'; part: string; phase: 'begin' | 'end' }
   // Control
   | { type: 'acknowledge' }
   | { type: 'pause'; on: boolean }
@@ -54,4 +59,4 @@ export type B01Command =
 export type B01DispatchResult = { ok: boolean; code?: string; id?: string; value?: number };
 
 /** Movimientos de alta frecuencia: fuera de la bitácora humana (sí en la cinta). */
-export const UNLOGGED_B01_COMMANDS = new Set<B01Command['type']>(['setPose', 'setStageXY', 'turnCoarse', 'turnFine', 'setStereoFocus', 'setCoverTilt']);
+export const UNLOGGED_B01_COMMANDS = new Set<B01Command['type']>(['setPose', 'setStageXY', 'turnCoarse', 'turnFine', 'setStereoFocus', 'setCoverTilt', 'gesture']);

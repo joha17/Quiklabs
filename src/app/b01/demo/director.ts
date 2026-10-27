@@ -243,6 +243,13 @@ export class DemoDirectorB01 {
     this.pointAt = null;
   }
 
+  /** La mano señala una pieza del instrumento (su pivote en la escena; sin escena, el equipo). */
+  pointPart(id: string, part: string) {
+    const a = this.c.view?.partAnchor?.(id, part);
+    const o = this.w.objects[id]?.pose;
+    this.pointAt = a ?? (o ? { x: o.x, y: o.y, z: o.z + 12 } : null);
+  }
+
   dispatch(cmd: B01Command) {
     return this.hooks.dispatch(cmd);
   }

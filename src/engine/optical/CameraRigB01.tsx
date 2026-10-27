@@ -11,6 +11,7 @@ import { ORBIT_LIMITS, confineCamera } from '../scene/room';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useOpticalLab } from './context';
 import { B01_STATIONS } from '../../practices/practice-b01/definition';
+import { SB } from '../../simulation/optical-world/world';
 import { fromScene, toScene } from '../units';
 import { stageTop } from './layout';
 import { BENCH_B01, MIC_POS, STAGE_SEAT, STEREO_POS } from '../../simulation/optical-world/geometry';
@@ -137,9 +138,11 @@ export function CameraRigB01() {
     };
     if (!placed.current && controls.current) {
       const s = B01_STATIONS[0];
+      // S19: el intento empieza con la cámara de costado al microscopio (hay que hallar los mandos en el equipo).
+      const side = lab.runtime.world.scenarios.includes(SB.SIDE_CAMERA);
       const v = lab.savedView
         ? { target: new THREE.Vector3(...lab.savedView.target), pos: new THREE.Vector3(...lab.savedView.pos) }
-        : view(s.target, s.dist * aspectK(), s.elevation);
+        : side ? view([MIC_POS.x, MIC_POS.y, 16], 60 * aspectK(), 0.2, Math.PI / 2) : view(s.target, s.dist * aspectK(), s.elevation);
       cam.position.copy(v.pos);
       controls.current.target.copy(v.target);
       controls.current.update();

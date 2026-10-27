@@ -16,6 +16,12 @@ import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture } from '../renderers/textures';
 import { Toon3D, outlineObject } from '../effects/Toon3D';
+import { LinearGrab, RotaryGrab, partFrame } from './gestures';
+import { gripKey, type HitData } from './parts';
+import type { PickHitB01 } from './controller';
+
+/** Tolerancia de agarre (cm): si el rayo toca el cuerpo justo delante de una pieza, se toma la pieza. */
+const PART_TOLERANCE_CM = 1.5;
 
 // ─────────────────────────── Avance del dominio, interacción y audio ───────────────────────────
 
@@ -225,6 +231,28 @@ function Bridge() {
       return true;
     };
     const c = lab.controller;
+    const project = (p: THREE.Vector3) => {
+      const v = p.clone().project(camera);
+      return new THREE.Vector2(((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height);
+    };
+    const toHit = (h: THREE.Intersection): PickHitB01 => {
+      const data = h.object.userData as HitData;
+      const grip = data.grip;
+      const mesh = h.object;
+      const point = h.point.clone();
+      return {
+        id: data.objId, part: data.part, grip,
+        track: grip && grip.kind !== 'press' ? (sx0, sy0) => {
+          const { pivot, axis } = partFrame(mesh, grip.axis);
+          if (grip.kind === 'linear') return new LinearGrab(point, axis, project, sx0, sy0);
+          const geo = (mesh as THREE.Mesh).geometry;
+          if (!geo.boundingSphere) geo.computeBoundingSphere();
+          const dir = new THREE.Vector3();
+          camera.getWorldDirection(dir);
+          return new RotaryGrab(grip.kind, pivot, axis, point, dir, (geo.boundingSphere?.radius ?? 1) * 0.6, project, sx0, sy0);
+        } : undefined,
+      };
+    };
     c.view = {
       toBench(sx, sy, z) {
         setRay(sx, sy);
@@ -236,11 +264,26 @@ function Bridge() {
       },
       pick(sx, sy, exclude) {
         setRay(sx, sy);
-        const hits = ray.intersectObjects([...lab.hitMeshes], false);
-        for (const h of hits) {
+        const hits = ray.intersectObjects([...lab.hitMeshes], false).filter((h) => {
           const id = h.object.userData.objId as string;
-          if (!id || id === exclude || !visibleChain(h.object.parent)) continue;
-          return { id, part: h.object.userData.part as string | undefined };
+          return !!id && id !== exclude && visibleChain(h.object.parent);
+        });
+        const first = hits[0];
+        if (!first) return null;
+        // El cuerpo del equipo no tapa la pieza que está justo detrás de su borde (agarre discreto, no flotante).
+        if (!first.object.userData.part) {
+          const near = hits.find((h) => h.object.userData.part && h.object.userData.objId === first.object.userData.objId && h.distance - first.distance <= PART_TOLERANCE_CM);
+          if (near) return toHit(near);
+        }
+        return toHit(first);
+      },
+      partAnchor(id, part) {
+        for (const m of lab.hitMeshes) {
+          const d = m.userData as HitData;
+          if (d.objId !== id || d.part !== part) continue;
+          m.updateWorldMatrix(true, false);
+          const p = new THREE.Vector3().setFromMatrixPosition(m.matrixWorld);
+          return fromScene(p.x, p.y, p.z);
         }
         return null;
       },
@@ -250,6 +293,33 @@ function Bridge() {
     };
     const el = gl.domElement;
     const host = el.parentElement ?? el;
+    const tip = document.createElement('div');
+    tip.className = 'part-tip';
+    tip.setAttribute('aria-hidden', 'true');
+    tip.hidden = true;
+    host.appendChild(tip);
+    let tipKey = '';
+    const showHover = (x: number, y: number) => {
+      const d = c.partDrag;
+      const hp = d ? { id: d.id, part: d.part, grip: d.grip } : c.held ? null : c.hoverPart;
+      el.style.cursor = d ? 'grabbing' : hp?.grip ? (hp.grip.kind === 'press' ? 'pointer' : 'grab') : '';
+      if (!hp?.part) {
+        tip.hidden = true;
+        return;
+      }
+      const key = gripKey(hp.id, hp.part);
+      if (key !== tipKey) {
+        tipKey = key;
+        const txt = lab.host.t(key);
+        tip.textContent = txt === key ? lab.host.t(`b01.part.${hp.id}_${hp.part}`) : txt;
+      }
+      tip.hidden = false;
+      tip.style.transform = `translate(${Math.round(x + 14)}px, ${Math.round(y + 16)}px)`;
+    };
+    const onLeave = () => {
+      tip.hidden = true;
+      el.style.cursor = '';
+    };
     const rel = (e: PointerEvent | WheelEvent | MouseEvent) => {
       const r = el.getBoundingClientRect();
       return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -274,16 +344,19 @@ function Bridge() {
       if (lab.locked) return;
       const p = rel(e);
       if (e.button === 2) return;
-      if (e.button === 0 && !(e.buttons & 1) && c.held && !c.held.keyboard) {
+      if (e.button === 0 && !(e.buttons & 1) && (c.held && !c.held.keyboard || c.partDrag)) {
         c.onPointerUp();
         return;
       }
       c.onPointerMove(p.x, p.y);
+      if (e.target === el || c.partDrag) showHover(p.x, p.y);
     };
     const onUp = (e: PointerEvent) => {
       if (lab.locked) return;
       if (e.button === 2) return;
       c.onPointerUp();
+      const p = rel(e);
+      showHover(p.x, p.y);
     };
     const onWheel = (e: WheelEvent) => {
       if (!lab.locked && c.onWheel(e.deltaY)) {
@@ -315,6 +388,7 @@ function Bridge() {
     window.addEventListener('pointerup', onUp);
     host.addEventListener('wheel', onWheel, { capture: true, passive: false });
     host.addEventListener('dblclick', onDbl);
+    el.addEventListener('pointerleave', onLeave);
     host.addEventListener('contextmenu', onMenu);
     el.addEventListener('webglcontextlost', onLost);
     el.addEventListener('webglcontextrestored', onRestored);
@@ -324,6 +398,8 @@ function Bridge() {
       window.removeEventListener('pointerup', onUp);
       host.removeEventListener('wheel', onWheel, { capture: true });
       host.removeEventListener('dblclick', onDbl);
+      el.removeEventListener('pointerleave', onLeave);
+      tip.remove();
       host.removeEventListener('contextmenu', onMenu);
       el.removeEventListener('webglcontextlost', onLost);
       el.removeEventListener('webglcontextrestored', onRestored);

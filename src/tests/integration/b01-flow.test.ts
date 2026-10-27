@@ -17,6 +17,7 @@ const CASES: Array<[number, B01Scenario[]]> = [
   [1101, []], [2026, []], [7, [SB.DIRTY_SLIDE]], [8, [SB.BIG_LEAF]], [9, [SB.LIMITED_DROPPER]], [10, [SB.NO_WATER]], [11, [SB.COVER_GRIP]], [12, [SB.LOW_LIGHT, SB.CONDENSER]],
   [13, [SB.STAGE_OFF, SB.CLIP_CLOSED]], [14, [SB.START_40X]], [15, [SB.SIMILAR_SLIDES]], [16, [SB.TWO_PLANES]], [17, [SB.REFLECTIVE]], [18, [SB.STEREO_DEFOCUS]],
   [19, [SB.STEREO_PAIR]], [20, [SB.MONO_2D]], [21, [SB.UNKNOWN_SLIDES]], [22, [SB.RESUME_PREP]],
+  [23, [SB.SIDE_CAMERA]], [24, [SB.TURRET_BETWEEN]], [25, [SB.LOOSE_SLIDE]], [26, [SB.STEREO_HIGH]],
 ];
 
 describe('B01 — ruta ideal por comandos', () => {

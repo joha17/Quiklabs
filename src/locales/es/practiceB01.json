@@ -48,7 +48,7 @@
     "profile": {
       "STANDARD": "Estándar",
       "PREP": "Montaje: residuo, hoja grande, gotero limitado, cubreobjetos incómodo",
-      "MICROSCOPE": "Microscopio: luz baja, condensador, platina descentrada, pinza cerrada, 40X al inicio",
+      "MICROSCOPE": "Microscopio: luz baja, condensador, platina descentrada, pinza cerrada, 40X al inicio, lámina mal sujeta, vista lateral",
       "SLIDES": "Láminas: parecidas y con dos planos focales",
       "STEREO": "Estereoscopio: insecto brillante, desenfocado, par binocular"
     },
@@ -70,7 +70,11 @@
       "B01-S15_stereo_pair": "S15 · Visión binocular con par L/R",
       "B01-S16_mono_2d": "S16 · Vista 2D asistida declarada",
       "B01-S17_unknown_slides": "S17 · Láminas con etiqueta en clave",
-      "B01-S18_resume_prep": "S18 · Reanudación a mitad del montaje"
+      "B01-S18_resume_prep": "S18 · Reanudación a mitad del montaje",
+      "B01-S19_side_camera": "S19 · Empieza con vista lateral (hallar los mandos)",
+      "B01-S20_turret_between": "S20 · Revólver entre enclavamientos",
+      "B01-S21_loose_slide": "S21 · Lámina mal sujeta en la platina",
+      "B01-S22_stereo_high_zoom": "S22 · Estéreo con zoom alto y enfoque en el tope"
     },
     "station": {
       "A": "A · Seguridad",
@@ -469,7 +473,8 @@
       "cleanShards": "Llevar los fragmentos al contenedor",
       "backOff": "Alejar la platina",
       "inspect": "Inspeccionar",
-      "closeBench": "Cerrar el puesto"
+      "closeBench": "Cerrar el puesto",
+      "a11yControls": "Mandos accesibles (alternativa al ratón)"
     },
     "cmd": {
       "FAILED": "No se pudo hacer eso.",
@@ -514,13 +519,14 @@
       "NO_SPOT": "No hay un apoyo libre allí."
     },
     "hint": {
-      "knob": "Mando seleccionado: gíralo con Q/E o la rueda (Mayús = paso grande).",
+      "knob": "Mando seleccionado: arrástralo para girarlo, o usa Q/E o la rueda (Mayús = paso grande).",
       "useForceps": "El cubreobjetos y las muestras se toman con la pinza.",
       "forceps": "Pinza: sobre la placa P toma una hoja; sobre el portaobjetos P la deja; sobre la caja toma un cubreobjetos.",
       "dropper": "Gotero: sobre el portaobjetos P suelta una gota (Mayús = apretón fuerte).",
       "fixedSlide": "La lámina fija va directa a la platina: no lleva gota ni otro cubreobjetos.",
       "nothingToDo": "Aquí la herramienta no tiene nada que hacer.",
-      "dropOnSlide": "Lleva el gotero sobre el portaobjetos del área de montaje."
+      "dropOnSlide": "Lleva el gotero sobre el portaobjetos del área de montaje.",
+      "dragKnob": "Toma la pieza y arrástrala para girarla (o selecciónala y usa Q/E o la rueda)."
     },
     "live": {
       "addWater": "La hoja está sin líquido: agrega una gota antes de cubrir.",
@@ -563,7 +569,17 @@
       "LIQUID_SPILL": "Líquido derramado en la platina.",
       "CUT_UNSAFE": "Corte fuera del área de montaje: bloqueado.",
       "ABRASIVE_LENS_CLEANING": "Material abrasivo sobre el lente: bloqueado.",
-      "LENS_CLEANING_INVALID": "Usa papel de lente para el objetivo."
+      "LENS_CLEANING_INVALID": "Usa papel de lente para el objetivo.",
+      "COARSE_TOWARD_SLIDE": "Platina acercada con el macro mirando por el ocular.",
+      "COARSE_40X_DANGER": "Macrométrico a 40X: el objetivo está en la zona de choque.",
+      "TURRET_RELEASED_BETWEEN": "Revólver soltado entre dos posiciones.",
+      "TURRET_BY_OBJECTIVE": "Revólver girado tirando de un objetivo.",
+      "CLIP_ON_UNSEATED": "La pinza sujetó la lámina torcida.",
+      "STAGE_LIMIT": "El carro de la platina está en su tope.",
+      "IPD_FOR_FOCUS": "La distancia interpupilar no enfoca la muestra.",
+      "DIOPTER_FOR_FOCUS": "El anillo de dioptrías no enfoca la muestra.",
+      "OBJECTIVE_NO_CLEARANCE": "Objetivo enclavado casi tocando la preparación.",
+      "STEREO_ZOOM_UNCENTERED": "La muestra salió del campo al subir el zoom."
     },
     "desc": {
       "sharp": "enfoque nítido",
@@ -790,6 +806,30 @@
           "text": "Equipos apagados, todo devuelto y la libreta completa."
         }
       }
+    },
+    "grip": {
+      "mic_coarse": "Macrométrico · arrastra para girar (mira de lado al acercar)",
+      "mic_fine": "Micrométrico · arrastra para afinar el foco",
+      "mic_turret": "Revólver · arrastra el anillo hasta el clic del objetivo",
+      "mic_stageX": "Mando X de la platina · arrastra para girar",
+      "mic_stageY": "Mando Y de la platina · arrastra para girar",
+      "mic_clip": "Pinza de la platina · arrastra la palanca para abrirla",
+      "mic_diaphragm": "Palanca del diafragma · arrástrala para abrir o cerrar",
+      "mic_condenser": "Altura del condensador · arrastra para girar",
+      "mic_light": "Rueda de intensidad · arrastra para girar",
+      "mic_power": "Interruptor · clic",
+      "mic_ocular": "Ocular · clic para mirar; arrastra el tubo para la distancia interpupilar",
+      "mic_diopterL": "Anillo de dioptrías · arrastra para girar",
+      "ste_zoom": "Perilla de zoom · arrastra para girar",
+      "ste_focus": "Perilla de enfoque · arrastra para girar",
+      "ste_head": "Carro de la columna · arrastra arriba o abajo para la altura del cabezal",
+      "ste_oculars": "Oculares · clic para mirar; arrastra el tubo para la distancia interpupilar",
+      "ste_diopterL": "Anillo de dioptrías izquierdo · arrastra para girar",
+      "ste_diopterR": "Anillo de dioptrías derecho · arrastra para girar",
+      "ste_incident": "Dial de luz incidente · arrastra para girar",
+      "ste_transmitted": "Dial de luz transmitida · arrastra para girar",
+      "ste_power": "Interruptor · clic",
+      "case_lid": "Tapa de la caja · clic para abrir o cerrar"
     }
   },
   "b01fb": {
@@ -888,6 +928,16 @@
     "structures": "Señala las estructuras que se ven en tus capturas.",
     "parts": "Describe la función de las partes que manipulaste ({{n}}).",
     "answers": "Responde las preguntas con tus observaciones ({{n}} de 7).",
-    "reflection": "Explica un error propio, su consecuencia y su corrección, y compara ambos instrumentos."
+    "reflection": "Explica un error propio, su consecuencia y su corrección, y compara ambos instrumentos.",
+    "E69": "Acercaste la platina con el macrométrico mientras mirabas por el ocular: acerca solo mirando de lado y enfoca alejando.",
+    "E70": "A 40X el macrométrico llevó el objetivo a la zona de choque: a ese aumento se enfoca solo con el micrométrico.",
+    "E71": "Soltaste el revólver entre dos posiciones: gíralo hasta sentir el clic del enclavamiento.",
+    "E72": "Giraste el revólver tirando de un objetivo: tómalo por su anillo moleteado para no desajustar el objetivo.",
+    "E73": "Cerraste la pinza sobre una lámina fuera de su asiento: ábrela, asienta la lámina contra el tope y suelta.",
+    "E74": "El carro de la platina llegó a su tope: gira el mando en sentido contrario.",
+    "E77": "Moviste la distancia interpupilar para enfocar: ajusta la separación de los oculares a tus ojos y enfoca con macro y micro.",
+    "E78": "El anillo de dioptrías no enfoca la muestra: enfoca con el micrométrico y usa el anillo solo para igualar los dos ojos.",
+    "E79": "El objetivo mayor quedó casi tocando la preparación: antes de girar el revólver comprueba de lado la distancia de trabajo.",
+    "E83": "Subiste el zoom sin centrar la muestra y salió del campo: céntrala con zoom bajo antes de aumentar."
   }
 }

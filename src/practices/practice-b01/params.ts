@@ -17,6 +17,8 @@ export const CALIBRATION_B01: Record<string, { source: string; status: 'verified
   coverLowering: { source: 'Modelo de burbujas §6.6-7', status: 'pending' },
   observationHoldS: { source: 'Propuesta §7.1', status: 'pending' },
   stereo: { source: 'Estereoscopio genérico 0,7–4,5X, sin ficha', status: 'pending' },
+  binocularHead: { source: 'Recorrido interpupilar y de dioptrías típico de cabezales Siedentopf, sin ficha', status: 'pending' },
+  rigGeometry: { source: 'Proporciones a partir de vistas publicitarias de un binocular de laboratorio y un estéreo de zoom; sin cotas medidas', status: 'pending' },
 };
 
 export const DEFAULT_B01_PARAMS: B01Params = {
@@ -45,6 +47,8 @@ export const DEFAULT_B01_PARAMS: B01Params = {
     turretDetentDeg: 120,
     turretLockTolDeg: 2,
     sideCheckValidS: 30,
+    ipdRangeMm: [48, 75],
+    diopterRange: 5,
   },
   stereo: {
     ocularX: 10,

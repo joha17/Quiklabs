@@ -1,7 +1,8 @@
 /**
  * Puente entre la simulación de B01 (paso fijo, determinista) y la aplicación.
  * - `dispatch(command)` aplica el comando y registra solo las acciones con significado: los movimientos continuos
- *   (arrastre, giros de mandos, platina, inclinación del cubreobjetos) no van a la bitácora, pero sí a la cinta del intento.
+ *   (arrastre, giros de mandos, platina, inclinación del cubreobjetos) no van a la bitácora, pero sí a la cinta del intento;
+ *   un gesto sobre una pieza del equipo se anota una sola vez, al soltarla.
  * - `advance(dt)` acumula tiempo real × escala y ejecuta pasos fijos (el resultado no depende de los fps).
  */
 import type { OpticalWorld, SimEvent } from '../../simulation/optical-world/types';
@@ -28,6 +29,8 @@ export interface PracticeB01Event {
 type Listener = (events: SimEvent[]) => void;
 
 const MAX_STEPS_PER_FRAME = 500;
+/** Pasos que emite un gesto continuo sobre los mandos (fuera de la bitácora mientras dura el gesto). */
+const GESTURE_STEPS = new Set<B01Command['type']>(['turnTurret', 'setIllumination', 'setDiaphragm', 'setCondenser', 'setStereoZoom', 'setStereoHead', 'setInterpupillary', 'setDiopter']);
 const MAX_FRAME_S = 0.25;
 
 export class OpticalRuntime {
@@ -54,14 +57,18 @@ export class OpticalRuntime {
     const w = this.world;
     this.tape?.record(w.tick, cmd);
     const prevSupport = cmd.type === 'setPose' ? w.objects[cmd.id]?.support : undefined;
+    const inGesture = !!w.gesture;
     const r = dispatchB01(w, cmd);
-    if (this.shouldLog(cmd, prevSupport)) this.actions.push(this.toAction(cmd, r));
+    if (this.shouldLog(cmd, prevSupport, inGesture)) this.actions.push(this.toAction(cmd, r));
     this.flush();
     return r;
   }
 
-  private shouldLog(cmd: B01Command, prevSupport?: string): boolean {
+  private shouldLog(cmd: B01Command, prevSupport?: string, inGesture = false): boolean {
     if (cmd.type === 'setPose') return cmd.support !== undefined && cmd.support !== prevSupport && cmd.support !== 'hand';
+    // Un arrastre sobre una pieza se registra una vez, al soltarla (no cada paso del mando).
+    if (cmd.type === 'gesture') return cmd.phase === 'end';
+    if (inGesture && GESTURE_STEPS.has(cmd.type)) return false;
     if (UNLOGGED_B01_COMMANDS.has(cmd.type)) return false;
     return true;
   }
