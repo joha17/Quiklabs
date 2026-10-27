@@ -43,7 +43,7 @@ archivo mencionado aquí.
 | Pruebas | Vitest 5 · Playwright 1.63 · axe-core | Unitarias, integración, repetición, e2e con GPU y accesibilidad |
 | Calidad | ESLint 10 + typescript-eslint | Incluye la **regla de arquitectura** (ver §3) |
 | Backend | Cloudflare Workers + Hono + D1 (SQLite) | Cuentas, cursos, matrícula, fechas, entregas y nota validada en el servidor |
-| Despliegue | `wrangler` | `quiklabs.baconpunch.xyz` (único dominio; `workers.dev` desactivado) |
+| Despliegue | `wrangler` | `quiklabs.app`, `www.quiklabs.app` y `quiklabs.baconpunch.xyz` (dominios declarados en `wrangler.jsonc`; `workers.dev` desactivado) |
 
 Restricciones de equipo objetivo: **GPU integrada** (p. ej. Intel Iris), navegador con WebGL 2, 1440 × 900.
 Nada que no aporte información científica (bloom, SSAO, etc.) entra si encarece cada fotograma.
@@ -305,7 +305,7 @@ El docente fija en la plataforma el modo exigido, la apertura y el cierre por cu
 5. `worker/seed/make-seed.mjs` → `npm run seed` (datos ficticios con la práctica abierta en algún curso).
 6. `src/app/LabMenu.tsx` (tarjeta e intento guardado), `src/main.tsx` (asa `window.__pNN` para pruebas), paneles de
    estudiante y docente, textos `menu.labs.pNN`.
-7. Despliegue: `git push` a `main` o `npx wrangler deploy` (solo `quiklabs.baconpunch.xyz`).
+7. Despliegue: `git push` a `main` o `npx wrangler deploy` (dominios de `routes` en `wrangler.jsonc`; uno añadido solo desde el panel se borra al desplegar).
 
 ---
 

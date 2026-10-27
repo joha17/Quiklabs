@@ -3,10 +3,16 @@
   "name": "quiklabs",
   "compatibility_date": "2026-10-01",
   "main": "worker/index.ts",
-  // Solo se publica en el dominio propio (sin quiklabs.<cuenta>.workers.dev ni URLs de vista previa).
+  // Solo se publica en los dominios propios (sin quiklabs.<cuenta>.workers.dev ni URLs de vista previa).
+  // `wrangler deploy` toma esta lista como la configuración válida: un dominio añadido solo desde el panel se borra
+  // (junto con su registro DNS) en el siguiente despliegue.
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "quiklabs.baconpunch.xyz", "custom_domain": true }],
+  "routes": [
+    { "pattern": "quiklabs.app", "custom_domain": true },
+    { "pattern": "www.quiklabs.app", "custom_domain": true },
+    { "pattern": "quiklabs.baconpunch.xyz", "custom_domain": true }
+  ],
   // Compila antes de desplegar: `wrangler deploy` (también el de Workers Builds) genera dist/ con Vite.
   "build": {
     "command": "npm run build"
