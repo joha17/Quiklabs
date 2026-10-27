@@ -30,7 +30,6 @@ const PRICES: readonly (readonly [number, number, number])[] = [
   [84, 228, 476],
   [100, 270, 560],
 ];
-const CONTACT = 'contacto@quiklabs.baconpunch.xyz';
 
 type Seg = { t: string; pill?: 'teal' | 'white' | 'coral' | 'ink' | 'yellow'; muted?: boolean };
 interface Item {
@@ -162,6 +161,7 @@ function Pricing() {
   const plans = objList<{ name: string; note: string }>('landing.pricing.plans');
   const people = (count: number) => t('landing.pricing.people', { count });
   const row = PRICES[n - 1];
+  const contact = t('landing.footer.contact.email');
   return (
     <>
       <div className="lp-price-group" role="radiogroup" aria-label={t('landing.pricing.groupLabel')}>
@@ -186,7 +186,7 @@ function Pricing() {
               </p>
               <p className="lp-price-sub">{t('landing.pricing.total', { people: people(n) })}</p>
               {n > 1 && <p className="lp-price-pp">{t('landing.pricing.perPerson', { n: fmt(total / n, Number.isInteger(total / n) ? 0 : 2) })}</p>}
-              <a className={`lp-btn ${i === plans.length - 1 ? 'lp-btn-teal' : ''}`} href={`mailto:${CONTACT}?subject=${encodeURIComponent(subject)}`}>{t('landing.pricing.cta')}</a>
+              <a className={`lp-btn ${i === plans.length - 1 ? 'lp-btn-teal' : ''}`} href={`mailto:${contact}?subject=${encodeURIComponent(subject)}`}>{t('landing.pricing.cta')}</a>
             </li>
           );
         })}
