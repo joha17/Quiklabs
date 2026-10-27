@@ -214,6 +214,36 @@
 .lp-steps li { background: var(--paper-2); border-radius: 24px; padding: 1.5rem; display: grid; gap: 0.55rem; align-content: start; }
 .lp-step-n { width: 2.8rem; height: 2.8rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--lp-font); font-weight: 900; font-size: 1.2rem; color: var(--on-bright); background: var(--yellow); border: 2px solid var(--ink); }
 
+/* ── Precios ── */
+.lp-price-group { margin-top: 2.2rem; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; background: var(--paper-2); border: 2px solid var(--ink); border-radius: 999px; padding: 0.3rem 0.35rem 0.3rem 1rem; }
+.lp-price-group > span { font-family: var(--lp-font); font-weight: 800; color: var(--ink-2); margin-right: 0.4rem; }
+.lp-price-group button { width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 0; background: transparent; color: var(--ink); font-family: var(--lp-font); font-weight: 900; font-size: 1.05rem; cursor: pointer; }
+.lp-price-group button:hover { background: var(--panel-2); }
+.lp-price-group button.on { background: var(--ink); color: var(--paper); }
+.lp-prices { list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch; }
+.lp-prices li { position: relative; background: var(--paper-2); border: 2px solid var(--ink); border-radius: 24px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.lp-prices li.lp-price-top { box-shadow: 6px 6px 0 var(--teal-dark); }
+.lp-price-badge { position: absolute; top: -0.85rem; right: 1.2rem; background: var(--yellow); color: var(--on-bright); border: 2px solid var(--ink); border-radius: 999px; padding: 0.1rem 0.7rem; font-family: var(--lp-font); font-weight: 900; font-size: 0.8rem; }
+.lp-prices h3 { margin: 0; font-family: var(--lp-font); font-size: 1.3rem; letter-spacing: -0.01em; }
+.lp-price-note { margin: 0; color: var(--ink-2); line-height: 1.5; }
+.lp-price-amount { margin: 0.8rem 0 0; display: flex; align-items: baseline; gap: 0.3rem; font-family: var(--lp-font); }
+.lp-price-cur { font-weight: 900; font-size: 1.2rem; color: var(--ink-2); }
+.lp-price-amount strong { font-weight: 900; font-size: clamp(2.6rem, 4.6vw, 3.6rem); letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.lp-price-sub { margin: 0; font-weight: 700; color: var(--ink-2); font-size: 0.92rem; }
+.lp-price-pp { margin: 0; font-weight: 800; color: var(--kicker); font-size: 0.92rem; }
+.lp-prices .lp-btn { margin-top: auto; align-self: stretch; }
+.lp-prices li > p:last-of-type { margin-bottom: 0.9rem; }
+.lp-price-tax { margin: 1.2rem 0 0; font-family: var(--lp-font); font-weight: 800; color: var(--ink-2); }
+.lp-price-table { margin-top: 1rem; background: var(--paper-2); border-radius: 20px; padding: 0.9rem 1.2rem; }
+.lp-price-table summary { cursor: pointer; font-family: var(--lp-font); font-weight: 800; }
+.lp-price-scroll { overflow-x: auto; margin-top: 0.8rem; }
+.lp-price-table table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 28rem; }
+.lp-price-table caption { text-align: left; font-size: 0.85rem; color: var(--ink-2); padding-bottom: 0.6rem; }
+.lp-price-table th, .lp-price-table td { padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--line); text-align: right; }
+.lp-price-table th:first-child { text-align: left; }
+.lp-price-table td { font-weight: 800; }
+.lp-price-table tr.on { background: var(--accent-soft); }
+
 /* ── Docentes (bloque oscuro) ── */
 .lp-teach-box { background: var(--teach-bg); color: var(--teach-fg); border: 1px solid var(--teach-line); border-radius: 32px; padding: clamp(1.6rem, 5vw, 3.5rem); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 2.5rem; }
 .lp-teach-box .pill-white { background: #1d2a2e; color: var(--teach-fg); }
@@ -261,7 +291,7 @@
 /* ── Pantallas medianas y móviles: el texto lleva un fondo de papel para leerse sobre la escena ── */
 @media (max-width: 960px) {
   .lp-features, .lp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .lp-steps, .lp-teach-box { grid-template-columns: 1fr; }
+  .lp-steps, .lp-teach-box, .lp-prices { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .lp-chip-hide-sm { display: none; }
@@ -271,6 +301,8 @@
   .lp-nav-links { gap: 0.25rem; }
   .lp-chip { height: 2.2rem; padding: 0 0.7rem; font-size: 0.86rem; }
   .lp-chip.lp-theme { width: 2.2rem; }
+  .lp-price-group { display: flex; border-radius: 24px; padding: 0.6rem; justify-content: space-between; }
+  .lp-price-group > span { flex-basis: 100%; padding-left: 0.4rem; }
 }
 @media (max-width: 360px) {
   .lp-nav .lp-brand span { display: none; }

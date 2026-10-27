@@ -22,6 +22,15 @@ const SLIDES = ['na', 'rack', 'swirl', 'flame', 'nail', 'yellow'];
 /** Muestra variada de la portada: combustión y llama, síntesis orgánica y gases. */
 const FEATURED: LabId[] = ['p3', 'p8', 'p10'];
 const TOTAL_LABS = 10;
+/** Tarifas a particulares en USD (total del grupo, sin IVA): fila = personas (1–5), columna = 1, 3 y 7 prácticas. */
+const PRICES: readonly (readonly [number, number, number])[] = [
+  [24, 66, 140],
+  [46, 126, 266],
+  [66, 180, 378],
+  [84, 228, 476],
+  [100, 270, 560],
+];
+const CONTACT = 'contacto@quiklabs.baconpunch.xyz';
 
 type Seg = { t: string; pill?: 'teal' | 'white' | 'coral' | 'ink' | 'yellow'; muted?: boolean };
 interface Item {
@@ -146,6 +155,69 @@ function TitrationCard({ ml, manual, onStep, onAuto }: { ml: number; manual: boo
   );
 }
 
+/** Precios a particulares: selector de tamaño de grupo, una tarjeta por paquete y la tabla completa desplegable. */
+function Pricing() {
+  const { t } = useTranslation();
+  const [n, setN] = useState(1);
+  const plans = objList<{ name: string; note: string }>('landing.pricing.plans');
+  const people = (count: number) => t('landing.pricing.people', { count });
+  const row = PRICES[n - 1];
+  return (
+    <>
+      <div className="lp-price-group" role="radiogroup" aria-label={t('landing.pricing.groupLabel')}>
+        <span aria-hidden="true">{t('landing.pricing.groupLabel')}</span>
+        {PRICES.map((_, i) => (
+          <button key={i} type="button" role="radio" aria-checked={n === i + 1} className={n === i + 1 ? 'on' : ''} onClick={() => setN(i + 1)}
+            aria-label={people(i + 1)}>{i + 1}</button>
+        ))}
+      </div>
+      <ul className="lp-prices">
+        {plans.map((p, i) => {
+          const total = row[i];
+          const subject = t('landing.pricing.subject', { plan: p.name, people: people(n) });
+          return (
+            <li key={p.name} className={i === plans.length - 1 ? 'lp-price-top' : ''}>
+              {i === plans.length - 1 && <span className="lp-price-badge">{t('landing.pricing.popular')}</span>}
+              <h3>{p.name}</h3>
+              <p className="lp-price-note">{p.note}</p>
+              <p className="lp-price-amount" aria-live="polite">
+                <span className="lp-price-cur">US$</span>
+                <strong>{total}</strong>
+              </p>
+              <p className="lp-price-sub">{t('landing.pricing.total', { people: people(n) })}</p>
+              {n > 1 && <p className="lp-price-pp">{t('landing.pricing.perPerson', { n: fmt(total / n, Number.isInteger(total / n) ? 0 : 2) })}</p>}
+              <a className={`lp-btn ${i === plans.length - 1 ? 'lp-btn-teal' : ''}`} href={`mailto:${CONTACT}?subject=${encodeURIComponent(subject)}`}>{t('landing.pricing.cta')}</a>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="lp-price-tax">{t('landing.pricing.tax')}</p>
+      <details className="lp-price-table">
+        <summary>{t('landing.pricing.table')}</summary>
+        <div className="lp-price-scroll">
+          <table>
+            <caption>{t('landing.pricing.tableCaption')}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{t('landing.pricing.tableHead')}</th>
+                {plans.map((p) => <th key={p.name} scope="col">{p.name}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {PRICES.map((r, i) => (
+                <tr key={i} className={i === n - 1 ? 'on' : ''}>
+                  <th scope="row">{people(i + 1)}</th>
+                  {r.map((v, j) => <td key={j}>US$ {v}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </>
+  );
+}
+
 export function Landing() {
   const { t } = useTranslation();
   const { dark, toggle } = useTheme();
@@ -264,6 +336,7 @@ export function Landing() {
         </a>
         <nav aria-label={t('landing.nav.label')} className="lp-nav-links">
           <a className="lp-chip" href="#labs" onClick={scrollTo('labs')}>{t('landing.nav.labs')}</a>
+          <a className="lp-chip lp-chip-hide-sm" href="#pricing" onClick={scrollTo('pricing')}>{t('landing.nav.pricing')}</a>
           <a className="lp-chip lp-chip-hide-sm" href="#teachers" onClick={scrollTo('teachers')}>{t('landing.nav.teachers')}</a>
           <a className="lp-chip lp-chip-ink" href={signedIn ? '#panel' : '#login'} onClick={goLogin}>{loginText}</a>
           <button type="button" className="lp-chip lp-theme" onClick={toggle} aria-pressed={dark}
@@ -370,6 +443,13 @@ export function Landing() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section className="lp-section" id="pricing" aria-labelledby="lp-price-title">
+          <div className="lp-kicker">{t('landing.pricing.kicker')}</div>
+          <Pills k="landing.pricing.title" id="lp-price-title" />
+          <p className="lp-lead">{t('landing.pricing.lead')}</p>
+          <Pricing />
         </section>
 
         <section className="lp-section lp-teachers" id="teachers" data-cam="teachers" aria-labelledby="lp-teach-title">

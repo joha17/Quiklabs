@@ -11,7 +11,8 @@
       "toDark": "Cambiar a modo oscuro",
       "toLight": "Cambiar a modo claro",
       "login": "Iniciar sesión",
-      "panel": "Mi panel"
+      "panel": "Mi panel",
+      "pricing": "Precios"
     },
     "hero": {
       "wordmark": [
@@ -227,6 +228,10 @@
           "href": "#how"
         },
         {
+          "label": "Precios",
+          "href": "#pricing"
+        },
+        {
           "label": "Para docentes",
           "href": "#teachers"
         },
@@ -437,6 +442,46 @@
           }
         ]
       }
+    },
+    "pricing": {
+      "kicker": "Precios",
+      "title": [
+        {
+          "t": "Tarifas para",
+          "pill": "coral"
+        },
+        {
+          "t": "particulares",
+          "pill": "white"
+        }
+      ],
+      "lead": "Elige cuántas prácticas quieres y para cuántas personas. Cuanto más grande el grupo, menos paga cada persona.",
+      "groupLabel": "Cantidad de personas",
+      "people_one": "{{count}} persona",
+      "people_other": "{{count}} personas",
+      "plans": [
+        {
+          "name": "1 práctica",
+          "note": "Una práctica completa para probar Quiklabs."
+        },
+        {
+          "name": "3 prácticas",
+          "note": "Un bloque de prácticas para reforzar un tema."
+        },
+        {
+          "name": "7 prácticas",
+          "note": "El curso completo, de principio a fin."
+        }
+      ],
+      "popular": "Curso completo",
+      "total": "Total para {{people}}",
+      "perPerson": "US$ {{n}} por persona",
+      "tax": "Precio + IVA del 13 %",
+      "cta": "Solicitar este plan",
+      "subject": "Quiklabs: {{plan}} para {{people}}",
+      "table": "Ver la tabla completa de tarifas",
+      "tableCaption": "Tarifas para venta a particulares (USD, total del grupo, + IVA del 13 %)",
+      "tableHead": "Personas"
     }
   }
 }
