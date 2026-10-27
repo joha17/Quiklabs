@@ -129,6 +129,15 @@ test('microscopio solo con el ratón: interruptor, rueda de luz, revólver con e
     await drag(page, p, 8, 0);
     expect(Math.abs((await mic(page))[key] - v0), part).toBeGreaterThan(0.2);
   }
+  // Un mando seleccionado con un clic no secuestra la rueda: fuera de las piezas la rueda mueve la cámara.
+  await page.mouse.click(p.x, p.y);
+  const sx0 = (await mic(page)).stageXmm;
+  const canvas = (await page.getByTestId('lab-canvas').locator('canvas').boundingBox())!;
+  await page.mouse.click(canvas.x + 30, canvas.y + 30);
+  for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 100);
+  await page.waitForTimeout(150);
+  expect((await mic(page)).stageXmm).toBe(sx0);
+  expect(await page.evaluate(() => (window as AnyState).__b01.getState().stage.controller.knob)).toBeNull();
 
   // Pinza: se empuja el brazo de la palanca (abierta, apunta hacia el alumno); soltada casi cerrada, el resorte la cierra.
   p = await aim(page, 'mic', 'clip', -0.3, 0.75, 30, [1.4, -1.8, 0.2]);

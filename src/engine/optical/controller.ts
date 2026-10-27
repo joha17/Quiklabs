@@ -133,6 +133,8 @@ export class OpticalController {
       return true;
     }
     const hit = this.view.pick(sx, sy, null);
+    // Un clic en otro sitio suelta el mando seleccionado para el teclado.
+    if (this.knob && (!hit?.part || this.knobFor(this.partKey(hit.id, hit.part)) !== this.knob)) this.knob = null;
     if (!hit) {
       this.host.select(null);
       return false;
@@ -187,10 +189,7 @@ export class OpticalController {
       this.flushParts();
       return true;
     }
-    if (this.knob) {
-      this.turnKnob(dy > 0 ? -1 : 1, false);
-      return true;
-    }
+    // Fuera de las piezas la rueda acerca o aleja la cámara (el mando seleccionado sigue con Q/E).
     return false;
   }
 
