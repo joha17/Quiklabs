@@ -3,7 +3,7 @@
  * pueden correr las mismas consultas sobre `node:sqlite` (ver `src/tests/helpers/sqlite-d1.ts`).
  * Las filas se convierten a los tipos de `types.ts`; las operaciones de varias sentencias van en `batch` (atómico).
  */
-import type { AuditEntry, Course, CourseLab, Enrollment, EnrollmentStatus, LabId, License, Submission, SubmissionReplay, User } from './types';
+import type { AuditEntry, Course, CourseLab, Enrollment, EnrollmentStatus, LabId, LabPhoto, License, Submission, SubmissionReplay, User } from './types';
 
 export interface SqlStmt {
   bind(...values: unknown[]): SqlStmt;
@@ -50,6 +50,14 @@ function toSubmission(r: Row): Submission {
     grading: r.grading === 'SERVER' ? 'SERVER' : 'CLIENT',
     issues: JSON.parse(String(r.issues ?? '[]')) as string[],
     replay: r.replay ? (JSON.parse(String(r.replay)) as SubmissionReplay) : null,
+  };
+}
+
+function toPhoto(r: Row): LabPhoto {
+  return {
+    id: String(r.id), scope: String(r.scope), labId: r.lab_id as LabPhoto['labId'], assetId: String(r.asset_id), objective: Number(r.objective) as LabPhoto['objective'],
+    r2Key: String(r.r2_key), contentType: String(r.content_type), bytes: Number(r.bytes), width: Number(r.width), height: Number(r.height),
+    uploadedBy: String(r.uploaded_by), uploadedAt: String(r.uploaded_at),
   };
 }
 
@@ -332,6 +340,37 @@ export class Repo {
   async liveCourseCount(nowIso: string): Promise<number> {
     const r = await this.db.prepare('SELECT COUNT(*) AS n FROM courses WHERE archived = 0 AND starts_at <= ? AND ends_at >= ?').bind(nowIso, nowIso).first();
     return Number(r?.n ?? 0);
+  }
+
+  // ── Fotografías del ocular ──
+  /** Fotos de una práctica en los alcances pedidos (un curso y/o '*'). */
+  async photos(labId: string, scopes: string[]): Promise<LabPhoto[]> {
+    if (!scopes.length) return [];
+    const { results } = await this.db
+      .prepare(`SELECT * FROM lab_photos WHERE lab_id = ? AND scope IN (${scopes.map(() => '?').join(', ')}) ORDER BY asset_id, objective`)
+      .bind(labId, ...scopes)
+      .all();
+    return results.map(toPhoto);
+  }
+
+  async photoById(id: string): Promise<LabPhoto | null> {
+    const r = await this.db.prepare('SELECT * FROM lab_photos WHERE id = ?').bind(id).first();
+    return r ? toPhoto(r) : null;
+  }
+
+  async photoAt(scope: string, labId: string, assetId: string, objective: number): Promise<LabPhoto | null> {
+    const r = await this.db.prepare('SELECT * FROM lab_photos WHERE scope = ? AND lab_id = ? AND asset_id = ? AND objective = ?').bind(scope, labId, assetId, objective).first();
+    return r ? toPhoto(r) : null;
+  }
+
+  insertPhotoStmt(p: LabPhoto): SqlStmt {
+    return this.db
+      .prepare('INSERT INTO lab_photos (id, scope, lab_id, asset_id, objective, r2_key, content_type, bytes, width, height, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(p.id, p.scope, p.labId, p.assetId, p.objective, p.r2Key, p.contentType, p.bytes, p.width, p.height, p.uploadedBy, p.uploadedAt);
+  }
+
+  deletePhotoStmt(id: string): SqlStmt {
+    return this.db.prepare('DELETE FROM lab_photos WHERE id = ?').bind(id);
   }
 
   async run(stmts: SqlStmt[]) {

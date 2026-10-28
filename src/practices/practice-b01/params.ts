@@ -18,6 +18,7 @@ export const CALIBRATION_B01: Record<string, { source: string; status: 'verified
   observationHoldS: { source: 'Propuesta §7.1', status: 'pending' },
   stereo: { source: 'Estereoscopio genérico 0,7–4,5X, sin ficha', status: 'pending' },
   binocularHead: { source: 'Recorrido interpupilar y de dioptrías típico de cabezales Siedentopf, sin ficha', status: 'pending' },
+  objective100: { source: 'Objetivo de 100X del revólver de cuatro posiciones: distancia de trabajo, σ y bandas de luz didácticas, sin ficha; aceite de inmersión no modelado', status: 'pending' },
   rigGeometry: { source: 'Proporciones a partir de vistas publicitarias de un binocular de laboratorio y un estéreo de zoom; sin cotas medidas', status: 'pending' },
 };
 
@@ -99,3 +100,20 @@ export const DEFAULT_B01_PARAMS: B01Params = {
   caseSlots: 12,
   caseOpenRiskS: 90,
 };
+
+/**
+ * Revólver de cuatro posiciones a 90° (4X, 10X, 40X y 100X de cuerpo negro), el de los intentos nuevos. Los valores del
+ * 100X son didácticos (`objective100`): la distancia de trabajo se mide desde el plano del tejido y deja la separación
+ * de enfoque por encima de `gapWarnMm` en una lámina fija.
+ */
+export function withFourObjectives<P extends { microscope: B01Params['microscope'] }>(params: P): P {
+  const m = params.microscope;
+  m.objectives = [4, 10, 40, 100];
+  m.turretDetentDeg = 90;
+  m.workingDistanceMm[100] = 0.55;
+  m.parfocalOffsetMm[100] = 0.03;
+  m.focusSigmaMm[100] = 0.005;
+  m.luminanceBand[100] = [0.34, 1.0];
+  m.diaphragmBand[100] = [0.6, 1.0];
+  return params;
+}

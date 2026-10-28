@@ -46,6 +46,22 @@ export interface CourseLab {
   mode: LabMode;
 }
 
+/** Fotografía real del ocular de una práctica (B01/B02) para una muestra y un objetivo; `scope`: curso o '*' (general). */
+export interface LabPhoto {
+  id: string;
+  scope: string;
+  labId: 'b01' | 'b02';
+  assetId: string;
+  objective: 4 | 10 | 40 | 100;
+  r2Key: string;
+  contentType: string;
+  bytes: number;
+  width: number;
+  height: number;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
 export interface Course {
   id: string;
   code: string;

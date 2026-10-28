@@ -12,9 +12,10 @@ import { hashPassword, passwordProblem, temporaryPassword, verifyPassword } from
 import type { Repo, SqlStmt } from './repo';
 import { unpackJson } from './pack';
 import { gradeSnapshot, isGradedLab, type AttemptSnapshot, type GradeResult } from '../../src/practices/grading';
+import { PHOTO_MAX_BYTES, PHOTO_TYPES, isPhotoLab, isPhotoSlot, type PhotoLab } from '../../src/practices/photo-slots';
 import {
   LAB_IDS, publicUser,
-  type AuditEntry, type Course, type CourseLab, type Enrollment, type EnrollmentStatus, type LabId, type LabMode,
+  type AuditEntry, type Course, type CourseLab, type Enrollment, type EnrollmentStatus, type LabId, type LabMode, type LabPhoto,
   type License, type Me, type Role, type Submission, type SubmissionReplay, type User, type UserStatus,
 } from './types';
 
@@ -535,3 +536,165 @@ export const studentSubmissions = (repo: Repo, student: User) => repo.submission
 export async function auditLog(repo: Repo, limit: number) {
   return repo.audit(limit);
 }
+
+// ─────────────────────────── Fotografías del ocular ───────────────────────────
+
+/** Almacén de los archivos (R2 en Cloudflare; en las pruebas, memoria). */
+export interface PhotoStore {
+  put(key: string, bytes: Uint8Array, contentType: string): Promise<void>;
+  get(key: string): Promise<{ body: ReadableStream | ArrayBuffer | Uint8Array; contentType: string } | null>;
+  delete(key: string): Promise<void>;
+}
+
+/** Lo que ve el cliente de una foto (sin la clave del almacén). */
+export interface PhotoInfo {
+  id: string;
+  assetId: string;
+  objective: number;
+  source: 'course' | 'general';
+  width: number;
+  height: number;
+  uploadedAt: string;
+  url: string;
+}
+
+const photoInfo = (p: LabPhoto): PhotoInfo => ({
+  id: p.id, assetId: p.assetId, objective: p.objective, source: p.scope === '*' ? 'general' : 'course', width: p.width, height: p.height,
+  uploadedAt: p.uploadedAt, url: `/api/photos/file/${p.id}`,
+});
+
+function photoLab(labId: string): PhotoLab {
+  if (!isPhotoLab(labId)) throw new ApiError(400, 'NO_PHOTOS_FOR_LAB');
+  return labId;
+}
+
+/** ¿Puede este usuario ver las fotos del curso `courseId`? (docente del curso, administración o estudiante con la práctica abierta). */
+async function seesCourse(repo: Repo, u: User, courseId: string, labId: PhotoLab, now: Date): Promise<boolean> {
+  if (u.role === 'admin') return true;
+  if (u.role === 'teacher') return !!(await repo.courseById(courseId))?.teacherIds.includes(u.id);
+  return (await labsFor(repo, u, now)).some((l) => l.labId === labId && l.courseId === courseId);
+}
+
+/**
+ * Fotos con que se abre la práctica: las del curso y, donde el curso no tiene, las generales. Sin `courseId`, el
+ * estudiante usa el curso por el que tiene abierta la práctica; el docente o la administración, solo las generales.
+ */
+export async function labPhotos(repo: Repo, u: User, labIdRaw: string, courseIdRaw: string | null, now: Date): Promise<PhotoInfo[]> {
+  const labId = photoLab(labIdRaw);
+  let courseId = courseIdRaw;
+  if (!courseId && u.role === 'student') courseId = (await labsFor(repo, u, now)).find((l) => l.labId === labId)?.courseId ?? null;
+  if (courseId && !(await seesCourse(repo, u, courseId, labId, now))) throw new ApiError(403, 'NOT_YOUR_COURSE');
+  if (!courseId && u.role === 'student') throw new ApiError(403, 'LAB_NOT_ASSIGNED');
+  const rows = await repo.photos(labId, courseId ? [courseId, '*'] : ['*']);
+  const best = new Map<string, LabPhoto>();
+  for (const p of rows) {
+    const k = `${p.assetId}:${p.objective}`;
+    if (!best.has(k) || p.scope !== '*') best.set(k, p);
+  }
+  return [...best.values()].map(photoInfo);
+}
+
+/** Fotos para el panel: las del curso y las generales por separado. */
+export async function coursePhotos(repo: Repo, teacher: User, courseId: string, labIdRaw: string) {
+  const labId = photoLab(labIdRaw);
+  const c = await teacherCourse(repo, teacher, courseId);
+  const rows = await repo.photos(labId, [c.id, '*']);
+  return { course: rows.filter((p) => p.scope !== '*').map(photoInfo), general: rows.filter((p) => p.scope === '*').map(photoInfo) };
+}
+
+export async function generalPhotos(repo: Repo, labIdRaw: string) {
+  return (await repo.photos(photoLab(labIdRaw), ['*'])).map(photoInfo);
+}
+
+/** Archivo de una foto, si el usuario puede verla. */
+export async function photoFile(repo: Repo, store: PhotoStore, u: User, id: string, now: Date) {
+  const p = await repo.photoById(id);
+  if (!p) throw new ApiError(404, 'PHOTO_NOT_FOUND');
+  if (p.scope !== '*' && !(await seesCourse(repo, u, p.scope, p.labId, now))) throw new ApiError(403, 'NOT_YOUR_COURSE');
+  const f = await store.get(p.r2Key);
+  if (!f) throw new ApiError(404, 'PHOTO_NOT_FOUND');
+  return f;
+}
+
+export interface PhotoInput {
+  dataB64?: string;
+  contentType?: string;
+  width?: number;
+  height?: number;
+}
+
+const decodeB64 = (b64: string) => {
+  try {
+    const bin = atob(b64);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  } catch {
+    throw new ApiError(400, 'INVALID_PHOTO');
+  }
+};
+
+/** Firma del archivo: que el contenido sea de verdad el formato declarado. */
+function looksLike(bytes: Uint8Array, type: string) {
+  const at = (i: number, ...v: number[]) => v.every((x, k) => bytes[i + k] === x);
+  if (type === 'image/jpeg') return at(0, 0xff, 0xd8, 0xff);
+  if (type === 'image/png') return at(0, 0x89, 0x50, 0x4e, 0x47);
+  return at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50);
+}
+
+/** Sube (o reemplaza) la foto de una muestra y un objetivo en un alcance (curso o '*'). */
+async function putPhoto(repo: Repo, store: PhotoStore, actor: User, scope: string, labIdRaw: string, assetId: string, objectiveRaw: string, input: PhotoInput, now: Date): Promise<PhotoInfo> {
+  const labId = photoLab(labIdRaw);
+  const objective = Number(objectiveRaw);
+  if (!isPhotoSlot(labId, assetId, objective)) throw new ApiError(400, 'INVALID_PHOTO_SLOT');
+  const type = String(input.contentType ?? '');
+  if (!(PHOTO_TYPES as readonly string[]).includes(type) || typeof input.dataB64 !== 'string') throw new ApiError(400, 'INVALID_PHOTO');
+  const w = Number(input.width);
+  const h = Number(input.height);
+  if (!Number.isInteger(w) || !Number.isInteger(h) || w < 64 || h < 64 || w > 4096 || h > 4096) throw new ApiError(400, 'INVALID_PHOTO');
+  if (input.dataB64.length > Math.ceil((PHOTO_MAX_BYTES * 4) / 3) + 4) throw new ApiError(413, 'PHOTO_TOO_LARGE');
+  const bytes = decodeB64(input.dataB64);
+  if (bytes.length > PHOTO_MAX_BYTES) throw new ApiError(413, 'PHOTO_TOO_LARGE');
+  if (!looksLike(bytes, type)) throw new ApiError(400, 'INVALID_PHOTO');
+  const id = rid('ph');
+  const photo: LabPhoto = {
+    id, scope, labId, assetId, objective, r2Key: `photos/${scope === '*' ? 'general' : scope}/${labId}/${assetId}/${objective}/${id}`,
+    contentType: type, bytes: bytes.length, width: w, height: h, uploadedBy: actor.id, uploadedAt: iso(now),
+  };
+  const old = await repo.photoAt(scope, labId, assetId, objective);
+  await store.put(photo.r2Key, bytes, type);
+  try {
+    await repo.run([...(old ? [repo.deletePhotoStmt(old.id)] : []), repo.insertPhotoStmt(photo), audit(repo, actor.id, 'photo.put', scope, `${labId}/${assetId}/${objective}X`)]);
+  } catch (e) {
+    await store.delete(photo.r2Key).catch(() => undefined);
+    throw e;
+  }
+  if (old) await store.delete(old.r2Key).catch(() => undefined);
+  return photoInfo(photo);
+}
+
+async function removePhoto(repo: Repo, store: PhotoStore, actor: User, scope: string, labIdRaw: string, assetId: string, objectiveRaw: string) {
+  const labId = photoLab(labIdRaw);
+  const p = await repo.photoAt(scope, labId, assetId, Number(objectiveRaw));
+  if (!p) throw new ApiError(404, 'PHOTO_NOT_FOUND');
+  await repo.run([repo.deletePhotoStmt(p.id), audit(repo, actor.id, 'photo.delete', scope, `${labId}/${assetId}/${p.objective}X`)]);
+  await store.delete(p.r2Key).catch(() => undefined);
+  return { ok: true };
+}
+
+export async function putCoursePhoto(repo: Repo, store: PhotoStore, teacher: User, courseId: string, labId: string, assetId: string, objective: string, input: PhotoInput, now: Date) {
+  const c = await teacherCourse(repo, teacher, courseId);
+  return putPhoto(repo, store, teacher, c.id, labId, assetId, objective, input, now);
+}
+
+export async function deleteCoursePhoto(repo: Repo, store: PhotoStore, teacher: User, courseId: string, labId: string, assetId: string, objective: string) {
+  const c = await teacherCourse(repo, teacher, courseId);
+  return removePhoto(repo, store, teacher, c.id, labId, assetId, objective);
+}
+
+export const putGeneralPhoto = (repo: Repo, store: PhotoStore, admin: User, labId: string, assetId: string, objective: string, input: PhotoInput, now: Date) =>
+  putPhoto(repo, store, admin, '*', labId, assetId, objective, input, now);
+
+export const deleteGeneralPhoto = (repo: Repo, store: PhotoStore, admin: User, labId: string, assetId: string, objective: string) =>
+  removePhoto(repo, store, admin, '*', labId, assetId, objective);
+

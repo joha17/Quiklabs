@@ -725,5 +725,12 @@
     "down": "Mirar más de frente",
     "reset": "Restablecer la vista de la estación"
   },
-  "common": { "close": "Cerrar", "yes": "Sí", "no": "No", "g": "g", "ml": "mL", "c": "°C" }
+  "common": { "close": "Cerrar", "yes": "Sí", "no": "No", "g": "g", "ml": "mL", "c": "°C" },
+  "exit": {
+    "title": "Salir del laboratorio",
+    "text": "¿Deseas guardar los cambios antes de salir? Si los guardas, al volver podrás reanudar el intento tal como lo dejaste. Si sales sin guardar, el intento se descarta y la próxima vez empezarás de cero.",
+    "cancel": "Seguir en el laboratorio",
+    "discard": "Salir sin guardar",
+    "save": "Guardar y salir"
+  }
 }

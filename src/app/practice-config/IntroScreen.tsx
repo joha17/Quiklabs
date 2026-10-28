@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { clearAttempt, loadAttempt, useLab } from '../store';
+import { loadAttempt, useLab } from '../store';
 import { tList } from '../i18n';
 import { newSeed } from '../../simulation/core/rng';
 import type { PracticeMode } from '../../practices/practice-02/definition';
@@ -35,7 +35,7 @@ export function IntroScreen() {
           <div className="resume" role="region" aria-label={t('intro.resume')}>
             <span>{t('intro.resumeInfo', { mode: t(`mode.${saved.settings.mode}`), seed: saved.settings.seed, time: fmtTime(saved.world.timeS) })}</span>
             <button className="btn primary" onClick={() => resume(saved)}>{t('intro.resume')}</button>
-            <button className="btn ghost" onClick={() => { clearAttempt(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
+            <button className="btn ghost" onClick={() => { useLab.getState().discardAndExit(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
           </div>
         )}
         <div className="intro-grid">

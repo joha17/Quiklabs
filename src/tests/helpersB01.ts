@@ -14,6 +14,9 @@ import { newPracticeB01World, type PracticeB01Options } from '../practices/pract
 import type { B01Scenario } from '../practices/practice-b01/error-scenarios';
 import { emptyB01Notebook, QUESTIONS_B01, type B01Notebook } from '../practices/practice-b01/notebook';
 
+import { turretDegFor } from '../simulation/instruments/optical/microscope-model';
+import type { ObjectiveX } from '../simulation/instruments/optical/microscope-types';
+
 export function worldB01(opts: Partial<PracticeB01Options> & { scenarios?: B01Scenario[] } = {}): OpticalWorld {
   return newPracticeB01World({ mode: 'PRACTICE', seed: 1101, ...opts });
 }
@@ -96,9 +99,9 @@ export function captureCompound(w: OpticalWorld) {
   return cmdB(w, { type: 'captureObservation', instrument: 'compound' }).id!;
 }
 
-/** Revólver al objetivo pedido (giros de 120° enclavados). */
-export function toObjective(w: OpticalWorld, x: 4 | 10 | 40) {
-  const target = { 4: 0, 10: 120, 40: 240 }[x];
+/** Revólver al objetivo pedido (enclavamientos de 120° con tres objetivos, de 90° con cuatro). */
+export function toObjective(w: OpticalWorld, x: ObjectiveX) {
+  const target = turretDegFor(x, w.params.microscope);
   if (w.microscope.turretDeg !== target) cmdB(w, { type: 'turnTurret', deltaDeg: target - w.microscope.turretDeg });
 }
 

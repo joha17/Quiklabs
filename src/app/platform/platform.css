@@ -88,3 +88,13 @@
   .pf-top-title { display: none; }
   .pf-user strong { display: none; }
 }
+
+/* Fotos del microscopio (panel docente y administración). */
+.pf-photos th[scope='row'] { font-weight: 600; min-width: 11rem; }
+.pf-photo-cell { min-width: 8.5rem; }
+.pf-photo-cell > * { vertical-align: middle; }
+.pf-photo-thumb img { display: block; width: 88px; height: 66px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #000; }
+.pf-photo-empty { display: inline-grid; place-items: center; width: 88px; height: 66px; border-radius: 8px; border: 1px dashed var(--line); color: var(--ink-2); font-size: 0.78rem; }
+.pf-photo-actions { display: flex; gap: 0.3rem; margin-top: 0.35rem; flex-wrap: wrap; }
+.pf-photo-actions .btn.disabled { opacity: 0.6; pointer-events: none; }
+.pf-photo-extra summary { cursor: pointer; font-weight: 600; margin: 0.4rem 0; }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { clearP08Attempt, loadP08Attempt, useP08 } from './store';
+import { loadP08Attempt, useP08 } from './store';
 import { tList } from '../i18n';
 import { newSeed } from '../../simulation/core/rng';
 import type { P08Mode } from '../../practices/practice-08/definition';
@@ -47,7 +47,7 @@ export function IntroScreen08({ onBack }: { onBack: () => void }) {
           <div className="resume" role="region" aria-label={t('intro.resume')}>
             <span>{t('intro.resumeInfo', { mode: t(`mode.${saved.settings.mode}`), seed: saved.settings.seed, time: fmtTime(saved.world.timeS) })} · {t(`p8.route.${saved.world.route}.name`)}</span>
             <button className="btn primary" onClick={() => resume(saved)}>{t('intro.resume')}</button>
-            <button className="btn ghost" onClick={() => { clearP08Attempt(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
+            <button className="btn ghost" onClick={() => { useP08.getState().discardAndExit(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
           </div>
         )}
         <div className="intro-grid">

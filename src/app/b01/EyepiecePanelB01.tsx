@@ -19,7 +19,7 @@ export function EyepiecePanelB01() {
   const inst = w.view.instrument;
   if (!inst) return null;
   const labels = {
-    illustrative: t('b01.eye.illustrative'), mono: t('b01.eye.mono'), pair: t('b01.eye.pair'), dark: t('b01.eye.dark'), notLocked: t('b01.eye.notLocked'), noSample: t('b01.eye.noSample'),
+    illustrative: t('b01.eye.illustrative'), photo: t('b01.eye.photo'), mono: t('b01.eye.mono'), pair: t('b01.eye.pair'), dark: t('b01.eye.dark'), notLocked: t('b01.eye.notLocked'), noSample: t('b01.eye.noSample'),
   };
   const capture = () => {
     const r = dispatch({ type: 'captureObservation', instrument: inst });

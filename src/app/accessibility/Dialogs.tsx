@@ -5,6 +5,7 @@ import { nameOf } from '../describe';
 import { tubeLabels } from '../../practices/practice-02/definition';
 import { stageEvidence } from '../../practices/practice-02/evidence';
 import { tList } from '../i18n';
+import { ExitLabPrompt } from '../common/ui';
 import type { QualitySetting } from '../../engine/quality';
 import { CoatIcon, GogglesIcon, HairIcon, ShoesIcon } from './PpeIcons';
 
@@ -261,13 +262,23 @@ function HelpDialog() {
   const { t } = useTranslation();
   const close = () => useLab.getState().setModal(null);
   const backToIntro = useLab((s) => s.backToIntro);
+  const discardAndExit = useLab((s) => s.discardAndExit);
+  const demo = useLab((s) => !!s.demo);
+  const [exiting, setExiting] = useState(false);
+  if (exiting) {
+    return (
+      <Modal key="exit" title={t('exit.title')} onClose={close}>
+        <ExitLabPrompt onSave={backToIntro} onDiscard={discardAndExit} onCancel={close} />
+      </Modal>
+    );
+  }
   return (
     <Modal title={t('intro.controls')} onClose={close}>
       <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.3rem' }}>
         {tList('intro.controlsList').map((c) => <li key={c}>{c}</li>)}
       </ul>
       <div className="foot">
-        <button className="btn ghost" onClick={backToIntro}>{t('review.back')}</button>
+        <button className="btn ghost" onClick={demo ? backToIntro : () => setExiting(true)}>{t('review.back')}</button>
         <button className="btn primary" onClick={close}>{t('common.close')}</button>
       </div>
     </Modal>

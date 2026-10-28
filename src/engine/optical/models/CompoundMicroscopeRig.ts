@@ -1,10 +1,12 @@
 /**
  * Microscopio compuesto binocular de laboratorio (§4.C), con las proporciones y la disposición de un equipo de
- * referencia tipo LABOMED LX 400 (sin logotipos ni cotas de ficha: `rigGeometry` pending). Piezas articuladas sobre
- * sus pivotes físicos:
+ * referencia tipo LABOMED LX 300/400 (sin logotipos ni cotas de ficha: `rigGeometry` pending). Piezas articuladas
+ * sobre sus pivotes físicos:
  * - brazo curvo con nariz delantera; revólver inclinado bajo la nariz (el objetivo enclavado queda vertical sobre el
- *   eje óptico) con 3 objetivos parfocales de longitud distinta y aro de color;
- * - cabezal binocular negro con tubos a 30°, gomas, distancia interpupilar y anillo de dioptrías en el tubo izquierdo;
+ *   eje óptico) con 4 objetivos parfocales de longitud distinta y aro de color (4X rojo, 10X amarillo, 40X azul y el
+ *   100X de cuerpo negro con aro blanco); los intentos con revólver de tres posiciones lo dibujan con 3;
+ * - cabezal binocular blanco con collar negro y puente transversal (Siedentopf) sobre el que se deslizan los tubos
+ *   negros a 30°, con gomas, distancia interpupilar y anillo de dioptrías en el tubo izquierdo;
  * - platina mecánica negra que sube y baja con el foco, con carro X/Y, tope trasero, pinza de resorte con lengüeta y
  *   mandos coaxiales X/Y colgando a la derecha; condensador de Abbe con palanca del iris y perilla de altura;
  * - mandos macro y micro coaxiales a ambos lados del brazo; lámpara LED en la base, rueda de intensidad e interruptor.
@@ -12,6 +14,8 @@
  */
 import * as THREE from 'three';
 import type { OpticalWorld } from '../../../simulation/optical-world/types';
+import type { ObjectiveX } from '../../../simulation/instruments/optical/microscope-types';
+import { objectivesOf, perObjective } from '../../../simulation/instruments/optical/microscope-model';
 import { GEO_B01, MIC_POS, STAGE_SEAT, stageTopZCm } from '../../../simulation/optical-world/geometry';
 import { microscopeView } from '../../../simulation/optical-world/world';
 import type { MaterialSet } from '../../renderers/materials';
@@ -23,18 +27,22 @@ type Own = <T extends THREE.Material | THREE.Texture>(m: T) => T;
 
 /** Centro de la platina respecto del origen del microscopio (cm hacia el alumno). */
 const DZ = MIC_POS.y - STAGE_SEAT.y;
-/** Inclinación del eje del revólver (rad) y radio de montaje de los objetivos (cm). */
+/** Inclinación del eje del revólver (rad) y radio de montaje de los objetivos (cm; con 4, más separados). */
 const TILT = 0.21;
-const MOUNT_R = 1.55;
+const mountR = (n: number) => (n > 3 ? 1.8 : 1.55);
 /** Altura del hombro de los objetivos (cm sobre la mesada): todos parfocales a 45 mm del plano focal. */
 const SHOULDER = 20.6;
-const OBJ_COLORS = [0xd0312d, 0xf2c230, 0x4aa3df];
+/** Aro de color de cada objetivo (código habitual: 4X rojo, 10X amarillo, 40X azul, 100X blanco). */
+const OBJ_COLORS: Record<ObjectiveX, number> = { 4: 0xd0312d, 10: 0xf2c230, 40: 0x4aa3df, 100: 0xf4f4f0 };
+/** Base de los tubos oculares sobre el puente binocular (cm) e inclinación de los tubos (rad). */
 const IPD_TUBE_Y = 36.3;
+const IPD_TUBE_Z = 3.1;
+const TUBE_TILT = Math.PI / 6;
 
 /** Altura (cm) de la lente frontal de cada objetivo según el dominio (plano focal + distancia de trabajo). */
-export function objectiveTipCm(w: OpticalWorld, x: 4 | 10 | 40) {
+export function objectiveTipCm(w: OpticalWorld, x: ObjectiveX) {
   const p = w.params.microscope;
-  return stageTopZCm(0) + (p.focalPlaneZMm + p.parfocalOffsetMm[x] + p.workingDistanceMm[x]) / 10;
+  return stageTopZCm(0) + (p.focalPlaneZMm + perObjective(p.parfocalOffsetMm, x) + perObjective(p.workingDistanceMm, x)) / 10;
 }
 
 const keep = <T extends THREE.Object3D>(o: T): T => {
@@ -83,8 +91,8 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
   // Carcasa del mecanismo de foco a ambos lados del brazo (gris) y guía de la platina.
   for (const sx of [-1, 1]) body.add(part(new THREE.CylinderGeometry(2.6, 2.6, 0.5, seg), grey, sx * 3.2, 10.5, -6.6, 0, 0, Math.PI / 2));
   body.add(part(new THREE.BoxGeometry(4.2, 11, 0.6), grey, 0, 14.5, -3.1));
-  // Cabezal binocular negro sobre el brazo, con la caja de prismas inclinada.
-  body.add(part(lathe([[0, 31], [2.4, 31], [2.4, 31.6], [0, 31.6]], seg), mats.chrome, 0, 0, 0.3));
+  // Cabezal binocular blanco sobre el brazo (collar negro de giro), con la caja de prismas inclinada.
+  body.add(part(lathe([[0, 31], [2.5, 31], [2.5, 31.6], [0, 31.6]], seg), black, 0, 0, 0.3));
   const head = sideProfile((s) => {
     s.moveTo(-6.4, 31.5);
     s.lineTo(5.2, 31.5);
@@ -94,8 +102,15 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
     s.quadraticCurveTo(-6.6, 34.6, -6.6, 33.4);
     s.lineTo(-6.4, 31.5);
   }, 6.8, 0.5);
-  body.add(part(head, black));
-  body.add(part(new THREE.CylinderGeometry(2.6, 3.1, 2.4, seg), black, 0, 35.4, 2.0, Math.PI / 6, 0, 0));
+  body.add(part(head, white));
+  body.add(part(new THREE.CylinderGeometry(2.6, 3.1, 2.4, seg), white, 0, 35.4, 2.0, Math.PI / 6, 0, 0));
+  body.add(part(new THREE.CylinderGeometry(2.66, 2.66, 0.35, seg), black, 0, 35.4, 2.0, Math.PI / 6, 0, 0));
+  // Puente binocular (Siedentopf): cuerpo transversal inclinado como los tubos, del ancho de todo el recorrido
+  // interpupilar, apoyado sobre la caja de prismas; encima, la guía negra por la que se deslizan los tubos.
+  const bridge = plan((s) => roundedRect(s, 0, 0, 10.4, 3.3, 1.55), 2.2, 0.4).translate(0, -2.2, 0);
+  body.add(part(bridge, white, 0, IPD_TUBE_Y, IPD_TUBE_Z, TUBE_TILT, 0, 0));
+  const slide = plan((s) => roundedRect(s, 0, 0, 9.7, 2.5, 1.15), 0.16, 0.05).translate(0, -0.1, 0);
+  body.add(part(slide, black, 0, IPD_TUBE_Y, IPD_TUBE_Z, TUBE_TILT, 0, 0));
   // Nariz: anillo de montaje del revólver.
   body.add(part(lathe([[0, 22.9], [2.2, 22.9], [2.4, 23.3], [0, 23.3]], seg), mats.darkMetal, 0, 0, DZ - 0.25));
   // Lámpara LED con colector en la base.
@@ -207,7 +222,9 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
   stage.add(placeAt(knobHit(0.9, 0.8, 'x', id, 'condenser'), -3.35, -2.7, DZ - 2.0));
   group.add(stage);
 
-  // ───────── Revólver inclinado con los tres objetivos ─────────
+  // ───────── Revólver inclinado con los objetivos (4; 3 en los intentos anteriores) ─────────
+  const objs = objectivesOf(w0.params.microscope);
+  const MOUNT_R = mountR(objs.length);
   const tilt = new THREE.Group();
   tilt.position.set(0, SHOULDER + MOUNT_R * Math.sin(TILT), DZ - MOUNT_R * Math.cos(TILT));
   tilt.rotation.x = TILT;
@@ -215,20 +232,26 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
   spin.add(part(lathe([[0.4, 0], [3.0, 0], [3.1, 0.3], [3.1, 1.0], [2.6, 1.6], [1.6, 2.0], [0.4, 2.1]], seg), mats.chrome));
   spin.add(part(knurled(3.12, 0.6, 30, 0.04), mats.darkMetal, 0, 0.62, 0));
   const tips: number[] = [];
-  ([4, 10, 40] as const).forEach((x, i) => {
+  objs.forEach((x, i) => {
     const L = SHOULDER - objectiveTipCm(w0, x);
     tips.push(L);
-    const a = (i * 2 * Math.PI) / 3;
+    const a = (i * 2 * Math.PI) / objs.length;
     const og = new THREE.Group();
     og.position.set(Math.sin(a) * MOUNT_R, 0, Math.cos(a) * MOUNT_R);
     og.rotation.y = a;
     const ob = new THREE.Group();
     ob.rotation.x = -TILT;
     const neck = Math.min(0.9, L * 0.25);
-    ob.add(part(lathe([[0.001, -L], [0.36, -L], [0.5, -L + 0.18], [0.72, -L + 0.55], [0.8, -L * 0.62], [0.95, -L * 0.55], [0.95, -neck], [1.0, -neck + 0.05], [1.0, 0], [0.001, 0]], seg), mats.chrome));
-    ob.add(part(new THREE.CylinderGeometry(0.975, 0.975, 0.2, seg), own(new THREE.MeshStandardMaterial({ color: OBJ_COLORS[i], roughness: 0.4 })), 0, -L * 0.42, 0));
-    ob.add(part(new THREE.CircleGeometry(0.34, seg), lensGlass, 0, -L - 0.005, 0, Math.PI / 2));
+    // El 100X es de cuerpo negro (de inmersión), con un segundo aro blanco cerca de la punta.
+    const barrel = x === 100 ? black : mats.chrome;
+    ob.add(part(lathe([[0.001, -L], [0.36, -L], [0.5, -L + 0.18], [0.72, -L + 0.55], [0.8, -L * 0.62], [0.95, -L * 0.55], [0.95, -neck], [1.0, -neck + 0.05], [1.0, 0], [0.001, 0]], seg), barrel));
+    ob.add(part(new THREE.CylinderGeometry(0.975, 0.975, 0.2, seg), own(new THREE.MeshStandardMaterial({ color: OBJ_COLORS[x], roughness: 0.4 })), 0, -L * 0.42, 0));
+    ob.add(part(new THREE.CircleGeometry(x === 100 ? 0.22 : 0.34, seg), lensGlass, 0, -L - 0.005, 0, Math.PI / 2));
     if (x === 40) ob.add(part(new THREE.CylinderGeometry(0.74, 0.74, 0.08, seg), black, 0, -L + 0.62, 0));
+    if (x === 100) {
+      ob.add(part(new THREE.CylinderGeometry(0.82, 0.82, 0.12, seg), mats.chrome, 0, -L * 0.5, 0));
+      ob.add(part(new THREE.CylinderGeometry(0.76, 0.76, 0.1, seg), own(new THREE.MeshStandardMaterial({ color: OBJ_COLORS[100], roughness: 0.4 })), 0, -L + 0.75, 0));
+    }
     og.add(ob);
     spin.add(og);
     // Tomar el revólver por un objetivo también lo gira, pero es mala técnica (E72): mismo eje, otra variante.
@@ -249,8 +272,10 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
   let diopterRing: THREE.Group | null = null;
   for (const side of ['left', 'right'] as const) {
     const t = tubes[side];
-    t.rotation.x = Math.PI / 6;
+    t.rotation.x = TUBE_TILT;
     const tb = new THREE.Group();
+    // Collar de encastre sobre la guía del puente (se desliza con la distancia interpupilar).
+    tb.add(part(lathe([[0.9, 0], [1.2, 0], [1.25, 0.12], [1.25, 0.55], [1.05, 0.75], [0.9, 0.75]], seg), black));
     tb.add(part(new THREE.CylinderGeometry(0.85, 0.9, 4.2, seg), black, 0, 2.1, 0));
     tb.add(part(new THREE.CylinderGeometry(1.0, 1.0, 2.0, seg), black, 0, 5.1, 0));
     tb.add(part(lathe([[1.0, 6.1], [1.18, 6.15], [1.18, 6.6], [0.9, 6.95], [0.75, 6.95]], seg), rubber));
@@ -306,8 +331,8 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
       dial.rotation.x = m.light01 * KIN.dialRadPer01;
       rocker.rotation.z = m.power ? 0.18 : -0.18;
       const half = (m.ipdMm ?? 63) / 20;
-      tubes.left.position.set(-half, IPD_TUBE_Y, 3.1);
-      tubes.right.position.set(half, IPD_TUBE_Y, 3.1);
+      tubes.left.position.set(-half, IPD_TUBE_Y, IPD_TUBE_Z);
+      tubes.right.position.set(half, IPD_TUBE_Y, IPD_TUBE_Z);
       if (diopterRing) diopterRing.rotation.y = (m.leftDiopter ?? 0) * KIN.diopterRadPerD;
       lampMat.opacity = m.power ? 0.25 + 0.75 * m.light01 : 0.08;
       ledMat.color.setHex(m.power ? 0x3bff59 : 0x2a2f33);
@@ -316,4 +341,4 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
 }
 
 /** Longitud de cada objetivo (para pruebas de geometría): del hombro a la lente frontal. */
-export const objectiveLengthsCm = (w: OpticalWorld) => ([4, 10, 40] as const).map((x) => SHOULDER - objectiveTipCm(w, x));
+export const objectiveLengthsCm = (w: OpticalWorld) => objectivesOf(w.params.microscope).map((x) => SHOULDER - objectiveTipCm(w, x));

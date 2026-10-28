@@ -67,6 +67,12 @@
       "SUBMISSION_TOO_LARGE": "La entrega es demasiado grande.",
       "SUBMISSION_NOT_FOUND": "No se encontró la entrega.",
       "NO_SUBMISSION_DATA": "Esta entrega no guarda el estado de la práctica (es anterior a la validación en el servidor).",
+      "INVALID_PHOTO": "La imagen no es válida: usa una foto JPEG, PNG o WebP de al menos 64 px por lado.",
+      "INVALID_PHOTO_SLOT": "Esa muestra u objetivo no admite fotos en esta práctica.",
+      "NO_PHOTOS_FOR_LAB": "Esta práctica no usa fotos del microscopio.",
+      "PHOTO_TOO_LARGE": "La foto pesa demasiado incluso reducida. Prueba con otra imagen.",
+      "PHOTO_NOT_FOUND": "La foto ya no existe.",
+      "PHOTOS_NOT_CONFIGURED": "El almacén de fotos no está configurado en el servidor.",
       "INVALID_REPLAY": "El resultado de la verificación no es válido.",
       "default": "No se pudo completar la acción ({{code}})."
     },
@@ -146,7 +152,7 @@
     },
     "admin": {
       "title": "Administración",
-      "tabs": { "overview": "Resumen", "users": "Usuarios", "courses": "Cursos y matrículas", "import": "Importar padrón", "license": "Licencia", "audit": "Auditoría" },
+      "tabs": { "overview": "Resumen", "users": "Usuarios", "courses": "Cursos y matrículas", "import": "Importar padrón", "license": "Licencia", "photos": "Fotos del microscopio", "audit": "Auditoría" },
       "stats": { "students": "Estudiantes", "teachers": "Docentes", "courses": "Cursos vigentes", "seats": "Cupos usados", "submissions": "Entregas", "suspended": "Cuentas suspendidas" },
       "license": "Licencia",
       "institution": "Institución",
@@ -213,6 +219,22 @@
       "auditWhat": "Acción",
       "auditDetail": "Detalle",
       "gradebook": "Calificaciones"
+    },
+    "photos": {
+      "title": "Fotos del microscopio",
+      "leadCourse": "Adjunta antes de abrir la práctica las fotografías reales que tus estudiantes verán por el ocular: una por muestra y objetivo. Donde no subas una, se usa la foto general de la institución o, si no hay, la ilustración didáctica. El enfoque, la luz y la platina siguen actuando sobre la foto; la nota no cambia.",
+      "leadGeneral": "Juego general de fotografías reales del ocular, para los cursos que no suban las suyas. Una por muestra y objetivo; donde falte, se usa la ilustración didáctica.",
+      "sample": "Muestra",
+      "upload": "Subir",
+      "replace": "Cambiar",
+      "remove": "Quitar",
+      "uploading": "Subiendo…",
+      "open": "Ver la foto en tamaño completo",
+      "illustration": "Ilustración",
+      "general": "general",
+      "saved": "Foto de {{name}} a {{x}}X guardada.",
+      "scenarios": "Muestras de los escenarios docentes ({{n}})",
+      "try": "Probar en el laboratorio con estas fotos"
     }
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Panel docente: sus grupos, la lista de estudiantes, la programación de prácticas (apertura, cierre y modo), el
- * libro de calificaciones exportable y la revisión de entregas (validación en el servidor y repetición del intento). Puede abrir cualquier práctica para revisarla sin generar entregas.
+ * libro de calificaciones exportable, las fotografías reales del ocular (B01/B02) y la revisión de entregas (validación en el servidor y repetición del intento). Puede abrir cualquier práctica para revisarla sin generar entregas.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,8 @@ import { LabCards } from '../LabMenu';
 import { api } from './api';
 import { usePlatform } from './session';
 import { SubmissionReview } from './SubmissionReview';
+import { PhotoManager } from './PhotoManager';
+import { isPhotoLab } from '../../practices/photo-slots';
 import { Notice, PanelShell, downloadCsv, errorText, fmtDate, fromLocalInput, pct, toLocalInput } from './ui';
 
 export interface RosterRow {
@@ -172,6 +174,12 @@ export function TeacherPanel() {
             <h2 id="pf-t-labs">{t('pf.teacher.labs')}</h2>
             <LabSchedule key={course.id} course={course} onSaved={(c) => setCourses((cs) => cs?.map((x) => (x.id === c.id ? { ...x, ...c } : x)) ?? null)} />
           </section>
+          {course.labs.some((l) => isPhotoLab(l.labId)) && (
+            <section className="pf-section" aria-labelledby="pf-t-photos">
+              <h2 id="pf-t-photos">{t('pf.photos.title')}</h2>
+              <PhotoManager key={course.id} target={{ kind: 'course', courseId: course.id }} labs={course.labs.map((l) => l.labId).filter(isPhotoLab)} />
+            </section>
+          )}
           <section className="pf-section" aria-labelledby="pf-t-gb">
             <h2 id="pf-t-gb">{t('pf.teacher.gradebook')}</h2>
             {gb ? <GradebookTable gb={gb} /> : <p className="pf-empty">{t('pf.loading')}</p>}

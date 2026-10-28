@@ -18,7 +18,7 @@ import type { B01Command } from '../../simulation/optical-world/commands';
 import { b01StageEvidence } from '../../practices/practice-b01/evidence';
 
 function harness(seed = 20261101) {
-  const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+  const opts = { mode: 'PRACTICE' as const, seed, scenarios: [], turretPositions: 4 as const };
   const world = newPracticeB01World(opts);
   const rt = new OpticalRuntime(world, 'demo-test');
   const tape: Array<[number, B01Command]> = [];

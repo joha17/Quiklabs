@@ -6,12 +6,13 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { useTranslation } from 'react-i18next';
 import { LAB_IDS, type AuditEntry, type Course, type License, type PublicUser, type Role } from '../../../worker/core/types';
 import { LabCards } from '../LabMenu';
+import { PhotoManager } from './PhotoManager';
 import { api } from './api';
 import { usePlatform } from './session';
 import { GradebookTable, type Gradebook, type RosterRow } from './TeacherPanel';
 import { Notice, PanelShell, TempPasswordDialog, downloadCsv, errorText, fmtDate, fromLocalInput, toLocalInput } from './ui';
 
-type Tab = 'overview' | 'users' | 'courses' | 'import' | 'license' | 'audit';
+type Tab = 'overview' | 'users' | 'courses' | 'import' | 'license' | 'audit' | 'photos';
 type AdminCourse = Course & { enrolled: number };
 interface Overview {
   users: { admin: number; teacher: number; student: number; suspended: number };
@@ -36,7 +37,7 @@ export function AdminPanel() {
   useEffect(() => {
     void reload().catch(() => undefined);
   }, [reload]);
-  const tabs: Tab[] = ['overview', 'users', 'courses', 'import', 'license', 'audit'];
+  const tabs: Tab[] = ['overview', 'users', 'courses', 'import', 'photos', 'license', 'audit'];
   return (
     <PanelShell title={t('pf.admin.title')}>
       <div className="pf-tabs" role="tablist" aria-label={t('pf.admin.title')}>
@@ -51,6 +52,11 @@ export function AdminPanel() {
         {tab === 'users' && <UsersTab users={users} reload={reload} onTemp={setTemp} />}
         {tab === 'courses' && <CoursesTab courses={courses} users={users} reload={reload} />}
         {tab === 'import' && <ImportTab courses={courses} reload={reload} />}
+        {tab === 'photos' && (
+          <section className="pf-section">
+            <PhotoManager target={{ kind: 'general' }} />
+          </section>
+        )}
         {tab === 'license' && <LicenseTab />}
         {tab === 'audit' && <AuditTab users={users} />}
       </div>

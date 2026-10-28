@@ -28,6 +28,11 @@
   // `npm run db:migrate:remote` antes de desplegar un cambio de esquema.
   "d1_databases": [
     { "binding": "DB", "database_name": "quiklabs", "database_id": "6dff2731-3f4c-40cd-a8f1-4bb4caaaf5fd", "migrations_dir": "migrations" }
+  ],
+  // Fotos reales del ocular (B01/B02) que suben docentes y administración. Requiere R2 habilitado en la cuenta y el
+  // bucket creado una vez: `npx wrangler r2 bucket create quiklabs-photos`. En local, Wrangler lo simula.
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "quiklabs-photos" }
   ]
   // Secreto de sesión: `npx wrangler secret put SESSION_SECRET` (en local, archivo .dev.vars).
 }

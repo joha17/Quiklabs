@@ -106,6 +106,8 @@ interface P08State {
   setPaused(p: boolean): void;
   submit(): void;
   backToIntro(): void;
+  /** Sale al inicio descartando el intento guardado: al volver se empieza de cero. */
+  discardAndExit(): void;
   save(): void;
   toggleNotebook(): void;
   toggleInventory(): void;
@@ -341,6 +343,14 @@ export const useP08 = create<P08State>()((set, get) => ({
   backToIntro() {
     get().save();
     set({ screen: 'intro', modal: null, demo: null });
+  },
+
+  discardAndExit() {
+    const rt = get().runtime;
+    if (rt) rt.paused = true;
+    // Sin runtime, ningún autoguardado (intervalo, pestaña oculta, cierre) puede volver a escribir el intento.
+    clearP08Attempt();
+    set({ screen: 'intro', modal: null, demo: null, runtime: null, paused: true });
   },
 
   save() {

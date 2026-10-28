@@ -3,16 +3,20 @@
  * platina (o la posición de la muestra) y el campo del objetivo/zoom, imagen invertida en el compuesto, desenfoque
  * según el error de foco, brillo y contraste según luz, diafragma y condensador, capas del montaje (burbujas, residuo,
  * vidrio roto), campo oscuro si falta luz o el revólver no enclava y dos círculos desplazados si la distancia
- * interpupilar del cabezal no es la del usuario. Solo presentación: nunca decide la evidencia.
+ * interpupilar del cabezal no es la del usuario. Con una fotografía real del curso para la muestra y el objetivo
+ * (`photos.ts`), la dibuja en lugar de la ilustración con los mismos efectos. Solo presentación: nunca decide la evidencia.
  */
 import { useEffect, useRef } from 'react';
 import type { OpticalWorld } from '../../../simulation/optical-world/types';
 import { microscopeView, stereoView } from '../../../simulation/optical-world/world';
-import { assetById } from '../../../simulation/specimens/assets';
+import { assetById, centerOnSpecimen } from '../../../simulation/specimens/assets';
 import { drawAsset } from './illustrations';
+import { drawPhoto, eyepiecePhoto, eyepiecePhotosVersion } from './photos';
 
 export interface EyepieceLabels {
   illustrative: string;
+  /** Pie del ocular cuando se ve una fotografía real (del curso o general). */
+  photo?: string;
   mono: string;
   pair: string;
   dark: string;
@@ -41,7 +45,9 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
       // Imagen invertida: el sistema óptico del compuesto la gira 180°.
       octx.translate(size, size);
       octx.rotate(Math.PI);
-      drawAsset(octx, { assetId: v.assetId, centerMm: v.centerMm, fovMm: v.fovMm, size });
+      const tile = compoundPhoto(v);
+      if (tile) drawPhoto(octx, tile, v.centerMm, v.fovMm, size);
+      else drawAsset(octx, { assetId: v.assetId, centerMm: v.centerMm, fovMm: v.fovMm, size });
       const m = v.slideId ? w.mounts[v.slideId] : null;
       if (m) {
         const k = size / v.fovMm;
@@ -155,6 +161,14 @@ function render(ctx: CanvasRenderingContext2D, w: OpticalWorld, instrument: 'com
   }
 }
 
+/** Foto del compuesto para la vista: solo con el revólver enclavado y el campo sobre la muestra (regiones anotadas). */
+function compoundPhoto(v: ReturnType<typeof microscopeView>) {
+  if (!v.locked || !v.assetId) return null;
+  const tile = eyepiecePhoto(v.assetId, v.objectiveX);
+  const a = tile ? assetById(v.assetId) : undefined;
+  return tile && a && centerOnSpecimen(a, v.centerMm, v.fovMm) ? tile : null;
+}
+
 /**
  * Capas de la preparación de B02 sobre la ilustración: un corte grueso superpone capas (velo pardo y oscuro), el
  * exceso de Lugol oscurece el campo y un frotis denso apila células. Nunca agregan estructuras: solo las tapan.
@@ -205,7 +219,7 @@ function viewKey(w: OpticalWorld, instrument: 'compound' | 'stereo') {
   if (instrument === 'compound') {
     const v = microscopeView(w);
     const m = v.slideId ? w.mounts[v.slideId] : null;
-    return JSON.stringify([v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown, Math.round(binocularShiftPx(w, 340)), v.zone?.specimenId, v.zone?.asset, Math.round((m?.cell?.overstain01 ?? 0) * 20)]);
+    return JSON.stringify([eyepiecePhotosVersion(), v.assetId, v.locked, v.centerMm.map((x) => Math.round(x * 1000)), Math.round(v.fovMm * 100), Math.round(v.sharpness01 * 50), Math.round(v.luminance01 * 50), Math.round(v.contrast01 * 50), m?.bubbles.length, m?.broken, Math.round((m?.contamination01 ?? 0) * 20), Math.round((m?.hydrated01 ?? 1) * 10), w.slides[v.slideId ?? '']?.faceDown, Math.round(binocularShiftPx(w, 340)), v.zone?.specimenId, v.zone?.asset, Math.round((m?.cell?.overstain01 ?? 0) * 20)]);
   }
   const v = stereoView(w);
   const s = w.stereo;
@@ -232,10 +246,11 @@ export function OpticalEyepiece({ world, instrument, size = 340, labels, version
   });
   void version;
   const mono = instrument === 'stereo' && world.stereo.channelMode === 'stereo-pair' ? labels.pair : labels.mono;
+  const real = instrument === 'compound' && labels.photo && compoundPhoto(microscopeView(world));
   return (
     <figure className="eyepiece-figure">
       <canvas ref={ref} width={size} height={size} className="eyepiece-canvas" aria-hidden="true" />
-      <figcaption className="eyepiece-note">{labels.illustrative} · {mono}</figcaption>
+      <figcaption className="eyepiece-note">{real ? labels.photo : labels.illustrative} · {mono}</figcaption>
     </figure>
   );
 }

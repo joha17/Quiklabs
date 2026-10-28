@@ -14,11 +14,11 @@ export const CALIBRATION_B02: Record<string, { source: string; status: 'verified
   lugol: { source: 'Contacto mínimo y volumen de saturación ilustrativos (sin ficha del reactivo)', status: 'pending' },
   dropper: { source: 'Gotero virtual sin calibrar (variación del S05)', status: 'pending' },
   biomass: { source: 'Masa didáctica (no medida con balanza)', status: 'hypothetical' },
-  objectiveNA: { source: 'Ejemplo §7.1 (0,10 / 0,25 / 0,65) para la prueba de resolución', status: 'hypothetical' },
+  objectiveNA: { source: 'Ejemplo §7.1 (0,10 / 0,25 / 0,65; 1,25 típico de un 100X de inmersión) para la prueba de resolución', status: 'hypothetical' },
 };
 
 /** Apertura numérica de ejemplo y λ de referencia (§3.2, §8.1): solo para el cálculo de resolución de la libreta. */
-export const RESOLUTION_B02 = { lambdaUm: 0.55, na: { 4: 0.1, 10: 0.25, 40: 0.65 } as Record<4 | 10 | 40, number> };
+export const RESOLUTION_B02 = { lambdaUm: 0.55, na: { 4: 0.1, 10: 0.25, 40: 0.65, 100: 1.25 } as Record<4 | 10 | 40 | 100, number> };
 
 /**
  * Catálogo de B01 → CEL (§9). `''`: el hecho no es un error en B02 (lo cubre otra regla o no aplica). Los gestos de

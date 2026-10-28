@@ -24,7 +24,7 @@ export type EvidenceStatus = 'visible' | 'inferred' | 'unavailable';
 
 export interface ObservationView {
   viewId: string;
-  objectiveX?: 4 | 10 | 40;
+  objectiveX?: 4 | 10 | 40 | 100;
   zoomX?: number;
   channel: 'mono' | 'left' | 'right';
   illumination: 'transmitted' | 'incident' | 'both';
@@ -284,7 +284,9 @@ export function visibleStructures(a: ObservationAssetManifest, centerMm: [number
   const out = new Set<StructureId>();
   for (const an of a.annotations) {
     if (an.evidence && an.evidence !== 'visible') continue;
-    if (opts.objectiveX !== undefined && an.observableAtObjectiveX && !an.observableAtObjectiveX.includes(opts.objectiveX)) continue;
+    // Los manifiestos (con hash congelado en cada intento) anotan hasta 40X: lo que se distingue a 40X se distingue a 100X.
+    const x = opts.objectiveX === 100 ? 40 : opts.objectiveX;
+    if (x !== undefined && an.observableAtObjectiveX && !an.observableAtObjectiveX.includes(x)) continue;
     if (opts.zoomX !== undefined && an.observableAtZoomMin !== undefined && opts.zoomX < an.observableAtZoomMin) continue;
     if (circleHitsPolygon(cx, cy, r, an.polygonNormalized)) out.add(an.structureId);
   }

@@ -46,8 +46,8 @@ Al terminar, el estudiante es capaz de:
 ## 3. Fundamento
 
 ```text
-Aumento total      M = M_ocular × M_objetivo           10X × 4 / 10 / 40  →  40X / 100X / 400X
-Campo visual       FOV ≈ FN / M_objetivo (mm)          FN = 18 mm (HIPOTÉTICO) → 4,50 / 1,80 / 0,45 mm
+Aumento total      M = M_ocular × M_objetivo           10X × 4 / 10 / 40 / 100  →  40X / 100X / 400X / 1000X
+Campo visual       FOV ≈ FN / M_objetivo (mm)          FN = 18 mm (HIPOTÉTICO) → 4,50 / 1,80 / 0,45 / 0,18 mm
 Resolución         d ≈ 0,61 λ / NA                     λ = 550 nm, NA = 0,65 → ≈ 516 nm (teórico)
 ```
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { clearP3Attempt, loadP3Attempt, useP3 } from './store';
+import { loadP3Attempt, useP3 } from './store';
 import { tList } from '../i18n';
 import { newSeed } from '../../simulation/core/rng';
 import type { P3Mode } from '../../practices/practice-03/definition';
@@ -35,7 +35,7 @@ export function IntroScreen3({ onBack }: { onBack: () => void }) {
           <div className="resume" role="region" aria-label={t('intro.resume')}>
             <span>{t('intro.resumeInfo', { mode: t(`mode.${saved.settings.mode}`), seed: saved.settings.seed, time: fmtTime(saved.world.timeS) })}</span>
             <button className="btn primary" onClick={() => resume(saved)}>{t('intro.resume')}</button>
-            <button className="btn ghost" onClick={() => { clearP3Attempt(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
+            <button className="btn ghost" onClick={() => { useP3.getState().discardAndExit(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
           </div>
         )}
         <div className="intro-grid">

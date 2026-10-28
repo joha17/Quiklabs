@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { loadLabPhotos } from '../platform/labPhotos';
 import { startB01Loops, useB01 } from './store';
 import { IntroScreenB01 } from './IntroScreenB01';
 import { LabScreenB01 } from './LabScreenB01';
@@ -13,6 +14,8 @@ export default function B01App({ onBack }: { onBack: () => void }) {
   const screen = useB01((s) => s.screen);
   const uiScale = useB01((s) => s.settings.uiScale);
   useEffect(() => startB01Loops(), []);
+  // Fotografías reales del ocular del curso (si el docente o la administración las subieron).
+  useEffect(() => loadLabPhotos('b01'), []);
   useEffect(() => {
     document.documentElement.style.setProperty('--ui-scale', String(uiScale));
   }, [uiScale]);

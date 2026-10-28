@@ -3,6 +3,7 @@
  * accesible (foco atrapado, Esc), botón de acción mantenida y formato de tiempo.
  */
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function Modal(props: { title: string; onClose?: () => void; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,6 +42,24 @@ export function Modal(props: { title: string; onClose?: () => void; children: Re
         {props.children}
       </div>
     </div>
+  );
+}
+
+/**
+ * Contenido del diálogo «Salir del laboratorio»: guardar deja el intento tal como está para reanudarlo al volver;
+ * salir sin guardar lo descarta y la próxima vez se empieza de cero. Cancelar (primer botón, recibe el foco) no sale.
+ */
+export function ExitLabPrompt(props: { onSave: () => void; onDiscard: () => void; onCancel: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <p style={{ margin: 0 }}>{t('exit.text')}</p>
+      <div className="foot">
+        <button className="btn ghost" onClick={props.onCancel}>{t('exit.cancel')}</button>
+        <button className="btn danger" onClick={props.onDiscard}>{t('exit.discard')}</button>
+        <button className="btn primary" onClick={props.onSave}>{t('exit.save')}</button>
+      </div>
+    </>
   );
 }
 

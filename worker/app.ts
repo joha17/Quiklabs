@@ -7,6 +7,8 @@
  *   teacher   courses · courses/:id/labs · courses/:id/gradebook · courses/:id/submissions
  *             submissions/:id/data (estado y cinta para repetir el intento) · submissions/:id/replay
  *   student   courses · submissions (la nota la calcula el servidor)
+ *   photos    :labId (fotos del ocular con que se abre la práctica) · file/:id (el archivo, con permiso)
+ *             teacher/courses/:id/photos/:labId[/:assetId/:objective] · admin/photos/:labId[/:assetId/:objective]
  */
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -16,6 +18,8 @@ import {
   ApiError, accessBlock, adminCourses, auditLog, changePassword, createCourse, createUser, enroll, gradebook, importStudents,
   login, me, overview, resetPassword, roster, setCourseLabs, setEnrollmentStatus, studentCourses, studentSubmissions, submit,
   courseSubmissions, recordReplay, submissionReplayData, teacherCourses, unlockUser, updateCourse, updateLicense, updateUser,
+  coursePhotos, deleteCoursePhoto, deleteGeneralPhoto, generalPhotos, labPhotos, photoFile, putCoursePhoto, putGeneralPhoto,
+  type PhotoInput, type PhotoStore,
 } from './core/service';
 import { publicUser, type Role, type User } from './core/types';
 
@@ -23,6 +27,8 @@ export interface AppDeps {
   db: SqlDb;
   secret: string;
   now?: () => Date;
+  /** Archivos de las fotos del ocular (R2). Sin él, las rutas de fotos responden 503. */
+  photos?: PhotoStore;
 }
 
 export const COOKIE = 'ql_session';
@@ -183,6 +189,29 @@ export function createApp(deps: AppDeps) {
   app.get('/student/courses', student, async (c) => c.json(await studentCourses(repo, c.get('user'), now())));
   app.get('/student/submissions', student, async (c) => c.json(await studentSubmissions(repo, c.get('user'))));
   app.post('/student/submissions', student, async (c) => c.json(await submit(repo, c.get('user'), await body(c), now()), 201));
+
+  // ── Fotografías del ocular (B01/B02): el docente las sube por curso; la administración, un juego general ──
+  const store = (): PhotoStore => {
+    if (!deps.photos) throw new ApiError(503, 'PHOTOS_NOT_CONFIGURED');
+    return deps.photos;
+  };
+  const anyone = auth();
+  app.get('/photos/file/:id', anyone, async (c) => {
+    const f = await photoFile(repo, store(), c.get('user'), c.req.param('id'), now());
+    // Cada subida tiene id propio: el archivo de un id nunca cambia.
+    return new Response(f.body as BodyInit, { headers: { 'content-type': f.contentType, 'cache-control': 'private, max-age=31536000, immutable' } });
+  });
+  app.get('/photos/:labId', anyone, async (c) => c.json(await labPhotos(repo, c.get('user'), c.req.param('labId'), c.req.query('course') ?? null, now())));
+  const slot = (c: C) => [c.req.param('labId')!, c.req.param('assetId')!, c.req.param('objective')!] as const;
+  app.get('/teacher/courses/:id/photos/:labId', teacher, async (c) => c.json(await coursePhotos(repo, c.get('user'), c.req.param('id'), c.req.param('labId'))));
+  app.put('/teacher/courses/:id/photos/:labId/:assetId/:objective', teacher, async (c) =>
+    c.json(await putCoursePhoto(repo, store(), c.get('user'), c.req.param('id'), ...slot(c), await body<PhotoInput>(c), now())));
+  app.delete('/teacher/courses/:id/photos/:labId/:assetId/:objective', teacher, async (c) =>
+    c.json(await deleteCoursePhoto(repo, store(), c.get('user'), c.req.param('id'), ...slot(c))));
+  app.get('/admin/photos/:labId', admin, async (c) => c.json(await generalPhotos(repo, c.req.param('labId'))));
+  app.put('/admin/photos/:labId/:assetId/:objective', admin, async (c) =>
+    c.json(await putGeneralPhoto(repo, store(), c.get('user'), ...slot(c), await body<PhotoInput>(c), now())));
+  app.delete('/admin/photos/:labId/:assetId/:objective', admin, async (c) => c.json(await deleteGeneralPhoto(repo, store(), c.get('user'), ...slot(c))));
 
   return app;
 }

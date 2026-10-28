@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useP09 } from './store';
 import { Modal } from './ui';
 import { tList } from '../i18n';
+import { ExitLabPrompt } from '../common/ui';
 import type { QualitySetting } from '../../engine/quality';
 import { CoatIcon, GogglesIcon } from '../accessibility/PpeIcons';
 import { p09StageEvidence } from '../../practices/practice-09/evidence';
@@ -137,13 +138,23 @@ function HelpDialog() {
   const { t } = useTranslation();
   const close = () => useP09.getState().setModal(null);
   const backToIntro = useP09((s) => s.backToIntro);
+  const discardAndExit = useP09((s) => s.discardAndExit);
+  const demo = useP09((s) => !!s.demo);
+  const [exiting, setExiting] = useState(false);
+  if (exiting) {
+    return (
+      <Modal key="exit" title={t('exit.title')} onClose={close}>
+        <ExitLabPrompt onSave={backToIntro} onDiscard={discardAndExit} onCancel={close} />
+      </Modal>
+    );
+  }
   return (
     <Modal title={t('intro.controls')} onClose={close}>
       <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.3rem' }}>
         {tList('p9.intro.controlsList').map((c) => <li key={c}>{c}</li>)}
       </ul>
       <div className="foot">
-        <button className="btn ghost" onClick={backToIntro}>{t('review.back')}</button>
+        <button className="btn ghost" onClick={demo ? backToIntro : () => setExiting(true)}>{t('review.back')}</button>
         <button className="btn primary" onClick={close}>{t('common.close')}</button>
       </div>
     </Modal>

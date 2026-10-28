@@ -38,6 +38,7 @@ del 1/7/2026 al 30/6/2027, 120 cupos.
 | Panel del estudiante | Prácticas abiertas en sus cursos (entra en el modo que fijó su docente), cursos y fechas, historial de entregas con nota. |
 | Entregas | Al entregar una práctica se envían el estado final del mundo, la libreta y la cinta de comandos del intento. **La nota la calcula el servidor** con la rúbrica de la práctica y anota los problemas de plausibilidad (reenviar el mismo intento lo reemplaza). Docentes y admin pueden abrir todas las prácticas sin generar entregas. |
 | Verificación (docente/admin) | «Entregas y verificación»: nota recalculada, avisos (semilla, parámetros alterados, conservación, reloj, modo, nota del navegador distinta) y «Verificar intento», que repite la sesión tic a tic en el navegador del docente y registra si llega al mismo estado y nota (queda en la auditoría). |
+| Fotos del microscopio (docente/admin) | B01 y B02: una fotografía real por muestra y objetivo (4X/10X/40X/100X) que el ocular muestra en lugar de la ilustración. El docente las sube por curso (sección «Fotos del microscopio» del grupo) y las prueba con «Probar en el laboratorio con estas fotos»; la administración sube un juego general en la pestaña del mismo nombre. Solo cambian lo que se ve, nunca la nota. Archivos en R2, metadatos en D1. |
 | Auditoría (admin) | Registro de altas, cambios, matrículas, licencia, bloqueos y cambios de contraseña. |
 
 Los intentos guardados en el navegador se separan por usuario (`clave:idUsuario`), así dos personas que usan el mismo
@@ -99,10 +100,13 @@ D1 guarda puntos de restauración («Time Travel»): `npx wrangler d1 time-trave
 ## Despliegue (Cloudflare)
 
 1. Secreto de sesión (ya configurado): `npx wrangler secret put SESSION_SECRET`.
-2. Esquema: `npm run db:migrate:remote` (cuando haya migraciones nuevas).
-3. `git push` a `main` (Workers Builds) o `npx wrangler deploy`.
+2. Fotos del microscopio (una vez): habilitar R2 en el panel de Cloudflare y crear el bucket
+   `npx wrangler r2 bucket create quiklabs-photos` (enlace `PHOTOS` en `wrangler.jsonc`). Sin el bucket el despliegue falla.
+3. Esquema: `npm run db:migrate:remote` (cuando haya migraciones nuevas).
+4. `git push` a `main` (Workers Builds) o `npx wrangler deploy`.
 
-Sin el secreto, la API responde `SERVER_NOT_CONFIGURED` y nadie puede entrar (los estáticos se sirven igual).
+Sin el secreto, la API responde `SERVER_NOT_CONFIGURED` y nadie puede entrar (los estáticos se sirven igual). Sin el
+almacén de fotos, sus rutas responden `PHOTOS_NOT_CONFIGURED` y el ocular usa las ilustraciones.
 Los datos de la beta que estaban en Cloudflare KV se pasaron a D1 con `worker/seed/to-sql.mjs`; el espacio KV
 `quiklabs-data` ya no se usa y se puede borrar.
 

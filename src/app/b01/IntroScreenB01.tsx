@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { clearB01Attempt, loadB01Attempt, useB01 } from './store';
+import { loadB01Attempt, useB01 } from './store';
 import { tList } from '../i18n';
 import { newSeed } from '../../simulation/core/rng';
 import type { B01Mode } from '../../practices/practice-b01/definition';
@@ -46,7 +46,7 @@ export function IntroScreenB01({ onBack }: { onBack: () => void }) {
           <div className="resume" role="region" aria-label={t('intro.resume')}>
             <span>{t('intro.resumeInfo', { mode: t(`mode.${saved.settings.mode}`), seed: saved.settings.seed, time: fmtTime(saved.world.timeS) })}</span>
             <button className="btn primary" onClick={() => resume(saved)}>{t('intro.resume')}</button>
-            <button className="btn ghost" onClick={() => { clearB01Attempt(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
+            <button className="btn ghost" onClick={() => { useB01.getState().discardAndExit(); setSavedVersion((v) => v + 1); }}>{t('intro.discard')}</button>
           </div>
         )}
         <div className="intro-grid">

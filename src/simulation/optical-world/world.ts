@@ -7,9 +7,9 @@
  */
 import { clamp, stableHash } from '../core/math';
 import { rand } from '../core/rng';
-import { OBJECTIVES, type ObjectiveX } from '../instruments/optical/microscope-types';
+import type { ObjectiveX } from '../instruments/optical/microscope-types';
 import {
-  coarseTurnLimits, fieldOfViewMm, fineTurnLimit, gapAndFocus, illumination, sharpness01, totalMagnification, turretObjective, viewCenterOnSlide, type SlideStack,
+  coarseTurnLimits, fieldOfViewMm, fineTurnLimit, gapAndFocus, illumination, isHighPower, objectivesOf, perObjective, sharpness01, totalMagnification, turretObjective, viewCenterOnSlide, type SlideStack,
 } from '../instruments/optical/microscope-model';
 import { binocular, stereoFocus, stereoFovMm, stereoLight, stereoMagnification } from '../instruments/optical/stereo-model';
 import { misplaced, outsideCase, slotOf } from '../instruments/optical/slide-carrier';
@@ -131,7 +131,7 @@ export function microscopeView(w: OpticalWorld): MicroscopeView {
   const m = w.microscope;
   const p = w.params.microscope;
   const t = turretObjective(m.turretDeg, p);
-  const obj = t.objectiveX ?? OBJECTIVES[t.index];
+  const obj = t.objectiveX ?? objectivesOf(p)[t.index];
   const slideId = m.slideOnStage;
   const stack = slideId ? stackFor(w, slideId) : null;
   const g = gapAndFocus(m, p, obj, stack);
@@ -139,12 +139,12 @@ export function microscopeView(w: OpticalWorld): MicroscopeView {
   const fov = fieldOfViewMm(p.fieldNumberMm, obj);
   const center = viewCenterOnSlide(m, m.slideOffsetMm);
   const sa = slideId ? slideAsset(w, slideId, center) : null;
-  let sharp = Number.isFinite(g.focusErrorMm) ? sharpness01(g.focusErrorMm, p.focusSigmaMm[obj]) : 0;
+  let sharp = Number.isFinite(g.focusErrorMm) ? sharpness01(g.focusErrorMm, perObjective(p.focusSigmaMm, obj)) : 0;
   let focusPlane = 0;
   // Dos planos focales (S12): el segundo plano queda 0,6σ más abajo; el micro elige cuál se ve nítido.
   if (sa && sc(w, SB.TWO_PLANES) && sa.asset.sampleKind === 'fixed') {
-    const e2 = Math.abs(g.focusErrorMm - 1.2 * p.focusSigmaMm[obj]);
-    const s2 = sharpness01(e2, p.focusSigmaMm[obj]);
+    const e2 = Math.abs(g.focusErrorMm - 1.2 * perObjective(p.focusSigmaMm, obj));
+    const s2 = sharpness01(e2, perObjective(p.focusSigmaMm, obj));
     if (s2 > sharp) {
       sharp = s2;
       focusPlane = 1;
@@ -1039,7 +1039,7 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
   const p = w.params.microscope;
   if (!deltaTurns) return ok();
   const before = microscopeView(w);
-  const obj = before.objectiveX ?? OBJECTIVES[turretObjective(m.turretDeg, p).index];
+  const obj = before.objectiveX ?? objectivesOf(p)[turretObjective(m.turretDeg, p).index];
   riskyWithCaseOpen(w);
   if (knob === 'coarse') {
     // En la zona de separación baja no se permite seguir acercando con el macro (banda persistente).
@@ -1048,8 +1048,8 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
       emitB(w, 'OPTICAL_GAP_LOW', 'ALERT');
       return no('GAP_LOW');
     }
-    // Macro a 40X (E22): cuenta el gesto entero (un arrastre son muchos pasos pequeños).
-    if (obj === 40 && deltaTurns > 0 && m.slideOnStage) {
+    // Macro a 40X o 100X (E22): cuenta el gesto entero (un arrastre son muchos pasos pequeños).
+    if (isHighPower(obj) && deltaTurns > 0 && m.slideOnStage) {
       const g = w.gesture;
       const turns = g ? (g.coarse40Turns += deltaTurns) : deltaTurns;
       if (turns > p.coarseAt40MaxTurns) errB(w, 'E22', 'COARSE_AT_40X', 'ALERT');
@@ -1068,7 +1068,7 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
     used(w, 'mic:fine');
     flagB(w, `fineAfter:${w.evidence.__objChange ?? 0}`);
     // Micro sin haber localizado el foco con el macro (E23).
-    if (w.view.instrument === 'compound' && m.slideOnStage && before.focusErrorMm > 8 * p.focusSigmaMm[obj] && (obj === 4 || obj === 10)) {
+    if (w.view.instrument === 'compound' && m.slideOnStage && before.focusErrorMm > 8 * perObjective(p.focusSigmaMm, obj) && (obj === 4 || obj === 10)) {
       bumpB(w, '__fineFar', Math.abs(deltaTurns));
       if ((w.evidence.__fineFar ?? 0) > 2) errB(w, 'E23', 'FINE_WITHOUT_COARSE', 'WARN');
     }
@@ -1077,9 +1077,9 @@ function turnFocus(w: OpticalWorld, knob: 'coarse' | 'fine', deltaTurns: number)
   if (m.slideOnStage) {
     const after = microscopeView(w);
     if (knob === 'coarse' && deltaTurns > 0) {
-      // Acercar con el macro mirando por el ocular hasta casi tocar (E69); a 40X, hasta la zona de choque (E70).
-      if (obj !== 40 && w.view.instrument === 'compound' && after.gapMm < p.gapSafeRemoveMm) errB(w, 'E69', 'COARSE_TOWARD_SLIDE', 'ALERT');
-      if (obj === 40 && after.gapMm < p.gapWarnMm) errB(w, 'E70', 'COARSE_40X_DANGER', 'ALERT');
+      // Acercar con el macro mirando por el ocular hasta casi tocar (E69); a 40X o 100X, hasta la zona de choque (E70).
+      if (!isHighPower(obj) && w.view.instrument === 'compound' && after.gapMm < p.gapSafeRemoveMm) errB(w, 'E69', 'COARSE_TOWARD_SLIDE', 'ALERT');
+      if (isHighPower(obj) && after.gapMm < p.gapWarnMm) errB(w, 'E70', 'COARSE_40X_DANGER', 'ALERT');
     }
     if (after.gapMm <= 0) collide(w, after.gapMm);
     else if (after.gapMm < p.gapWarnMm) {
@@ -1135,7 +1135,7 @@ function turnTurret(w: OpticalWorld, deltaDeg: number, grip: 'nosepiece' | 'obje
     emitB(w, 'OBJECTIVE_LOCKED', 'INFO', { x: t.objectiveX! });
     const after = microscopeView(w);
     if (m.slideOnStage) {
-      if (t.objectiveX === 40 && !w.evidence.located4x) errB(w, 'E18', 'HIGH_FIRST', 'WARN');
+      if (isHighPower(t.objectiveX) && !w.evidence.located4x) errB(w, 'E18', 'HIGH_FIRST', 'WARN');
       if (prevObj && t.objectiveX! > prevObj && before.visible.length && !after.visible.length) errB(w, 'E32', 'NOT_CENTERED_BEFORE_ZOOM', 'WARN');
       if (after.gapMm <= 0) collide(w, after.gapMm);
       // Objetivo mayor enclavado casi tocando la preparación sin comprobar la distancia de trabajo (E79).
@@ -1266,7 +1266,7 @@ function observe(w: OpticalWorld, instrument: 'compound' | 'stereo', open: boole
       return no('VIEW_NOT_ASSIGNED');
     }
     used(w, 'mic:ocular');
-    if (v.slideId && v.objectiveX === 40 && !w.evidence.located4x) errB(w, 'E18', 'HIGH_FIRST', 'WARN');
+    if (v.slideId && isHighPower(v.objectiveX) && !w.evidence.located4x) errB(w, 'E18', 'HIGH_FIRST', 'WARN');
   } else {
     if (sampleId && sampleId !== (w.stereo.sampleId ?? '')) {
       errB(w, 'E47', 'VIEW_MISMATCH', 'WARN');

@@ -21,7 +21,7 @@ import type { CellWorld } from '../../simulation/cell-world/types';
 import { b02StageEvidence } from '../../practices/practice-b02/evidence';
 
 function harness(seed = 20261102) {
-  const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+  const opts = { mode: 'PRACTICE' as const, seed, scenarios: [], turretPositions: 4 as const };
   const world = newPracticeB02World(opts);
   const rt = new OpticalRuntime<CellWorld>(world, 'demo-test', [], CELL_SIM);
   const tape: Array<[number, CellCommand]> = [];

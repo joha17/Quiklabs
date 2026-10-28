@@ -44,4 +44,4 @@ export const stereoCaptures = (w: CellWorld, sampleId?: string) => validObservat
 export const unavailableKinds = (w: CellWorld) => w.cell.incidents.map((a) => kindOfSpecimen(`m:${a.replace(/(Red|Lugol|Plain|Eosin|MB|Clear|Dense|T2)$/, '')}:0`)).filter(Boolean) as CellKind[];
 
 /** Límite de resolución de Abbe (µm) para el objetivo de ejemplo: d = 0,61·λ / AN. */
-export const resolutionUm = (objectiveX: 4 | 10 | 40) => Math.round(((0.61 * RESOLUTION_B02.lambdaUm) / RESOLUTION_B02.na[objectiveX]) * 100) / 100;
+export const resolutionUm = (objectiveX: 4 | 10 | 40 | 100) => Math.round(((0.61 * RESOLUTION_B02.lambdaUm) / RESOLUTION_B02.na[objectiveX]) * 100) / 100;

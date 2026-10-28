@@ -4,7 +4,7 @@
  * Sin DOM ni Three: lo usa el mundo de cada práctica y lo dibuja el motor.
  */
 import { clamp } from '../../core/math';
-import { OBJECTIVES, type MicroscopeParams, type MicroscopeState, type ObjectiveX } from './microscope-types';
+import { LEGACY_OBJECTIVES, type MicroscopeParams, type MicroscopeState, type ObjectiveX, type PerObjective } from './microscope-types';
 
 /** U01: M_total = M_ocular × M_objetivo. */
 export const totalMagnification = (ocularX: number, objectiveX: number) => ocularX * objectiveX;
@@ -18,9 +18,18 @@ export const resolutionLimitM = (lambdaM: number, na: number) => (0.61 * lambdaM
 /** U06: nitidez visual exp(−½ (e/σ)²). */
 export const sharpness01 = (focusErrorMm: number, sigmaMm: number) => clamp(Math.exp(-0.5 * (focusErrorMm / sigmaMm) ** 2), 0, 1);
 
+/** Objetivos montados en el revólver, en orden de enclavamiento. */
+export const objectivesOf = (p: MicroscopeParams): ObjectiveX[] => p.objectives ?? LEGACY_OBJECTIVES;
+
+/** Objetivo seco fuerte o de 100X: el macrométrico ya no se usa para acercar (E22, E70, E18). */
+export const isHighPower = (x: ObjectiveX | null | undefined) => !!x && x >= 40;
+
+/** Valor de un parámetro por objetivo; sin dato propio del 100X, el del 40X. */
+export const perObjective = <T>(r: PerObjective<T>, x: ObjectiveX): T => r[x] ?? r[40];
+
 /**
  * Objetivo en el eje según el ángulo del revólver; `null` si quedó entre enclavamientos (E19). El revólver gira la
- * vuelta completa: con tres posiciones a 120°, pasado el 40X vuelve el 4X.
+ * vuelta completa: pasado el último objetivo (100X; 40X en el de tres posiciones) vuelve el 4X.
  */
 export function turretObjective(turretDeg: number, p: MicroscopeParams): { objectiveX: ObjectiveX | null; locked: boolean; index: number } {
   const a = ((turretDeg % 360) + 360) % 360;
@@ -28,11 +37,12 @@ export function turretObjective(turretDeg: number, p: MicroscopeParams): { objec
   const k = Math.round(a / p.turretDetentDeg);
   const off = Math.abs(a - k * p.turretDetentDeg);
   const idx = k % n;
-  const locked = off <= p.turretLockTolDeg && idx < OBJECTIVES.length;
-  return { objectiveX: locked ? OBJECTIVES[idx] : null, locked, index: Math.min(idx, OBJECTIVES.length - 1) };
+  const objs = objectivesOf(p);
+  const locked = off <= p.turretLockTolDeg && idx < objs.length;
+  return { objectiveX: locked ? objs[idx] : null, locked, index: Math.min(idx, objs.length - 1) };
 }
 
-export const turretDegFor = (obj: ObjectiveX, p: MicroscopeParams) => OBJECTIVES.indexOf(obj) * p.turretDetentDeg;
+export const turretDegFor = (obj: ObjectiveX, p: MicroscopeParams) => objectivesOf(p).indexOf(obj) * p.turretDetentDeg;
 
 /** Altura de la platina (mm): macro + micro dentro de sus recorridos. */
 export function stageZmm(s: MicroscopeState, p: MicroscopeParams): number {
@@ -65,8 +75,8 @@ export function sampleHeights(stageZ: number, k: SlideStack): { focalZ: number; 
 
 /** Plano focal del objetivo y altura de su lente frontal (mm). */
 export function objectivePlanes(obj: ObjectiveX, p: MicroscopeParams): { focusZ: number; tipZ: number } {
-  const focusZ = p.focalPlaneZMm + p.parfocalOffsetMm[obj];
-  return { focusZ, tipZ: focusZ + p.workingDistanceMm[obj] };
+  const focusZ = p.focalPlaneZMm + perObjective(p.parfocalOffsetMm, obj);
+  return { focusZ, tipZ: focusZ + perObjective(p.workingDistanceMm, obj) };
 }
 
 /** Separación objetivo–preparación (mm) y error de foco (mm). Sin lámina, la separación se mide a la platina. */
@@ -85,8 +95,8 @@ export function illumination(s: MicroscopeState, p: MicroscopeParams, obj: Objec
   const issues: LightIssue[] = [];
   const cond = s.condenser01 < p.condenserMin01 ? 0.55 + 0.45 * (s.condenser01 / p.condenserMin01) : 1;
   const luminance01 = s.power ? clamp(s.light01 * (0.35 + 0.65 * s.diaphragm01) * cond * 1.4, 0, 1.2) : 0;
-  const [lo, hi] = p.luminanceBand[obj];
-  const [dlo, dhi] = p.diaphragmBand[obj];
+  const [lo, hi] = perObjective(p.luminanceBand, obj);
+  const [dlo, dhi] = perObjective(p.diaphragmBand, obj);
   if (!s.power || s.light01 <= 0.001) issues.push('LIGHT_OFF');
   else if (luminance01 < lo) issues.push('LOW_LIGHT');
   else if (luminance01 > hi) issues.push('WASHED');

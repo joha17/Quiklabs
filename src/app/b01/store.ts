@@ -103,6 +103,8 @@ interface B01State {
   setPaused(p: boolean): void;
   submit(): void;
   backToIntro(): void;
+  /** Sale al inicio descartando el intento guardado: al volver se empieza de cero. */
+  discardAndExit(): void;
   save(): void;
   toggleNotebook(): void;
   toggleInventory(): void;
@@ -129,7 +131,7 @@ const attemptIdFor = (seed: number) => `b01-${seed.toString(36)}-${Date.now().to
 
 /** Opciones de creación del mundo (también van en la cinta del intento). */
 function optionsFor(s: B01Settings, seed: number, mode: B01Mode): PracticeB01Options {
-  return { mode, seed, scenarios: s.scenarios };
+  return { mode, seed, scenarios: s.scenarios, turretPositions: 4 };
 }
 
 function worldFor(s: B01Settings, seed: number, mode: B01Mode) {
@@ -335,6 +337,14 @@ export const useB01 = create<B01State>()((set, get) => ({
   backToIntro() {
     get().save();
     set({ screen: 'intro', modal: null, demo: null });
+  },
+
+  discardAndExit() {
+    const rt = get().runtime;
+    if (rt) rt.paused = true;
+    // Sin runtime, ningún autoguardado (intervalo, pestaña oculta, cierre) puede volver a escribir el intento.
+    clearB01Attempt();
+    set({ screen: 'intro', modal: null, demo: null, runtime: null, paused: true });
   },
 
   save() {

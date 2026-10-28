@@ -58,12 +58,14 @@ async function hold(d: DemoDirectorB02, knob: KnobB02, fn: (step: (dir: number, 
   }
 }
 
-/** Gira un mando `n` pasos (el revólver: `n` posiciones, de a 12° hasta su enclavamiento). */
+/** Gira un mando `n` pasos (el revólver: `n` posiciones, en diez pasos hasta cada enclavamiento). */
 async function turn(d: DemoDirectorB02, knob: KnobB02, dir: 1 | -1, n: number, big = false) {
   const steps = knob === 'mic:turret' ? n * 10 : n;
+  // El revólver: diez pasos por posición, sea de 120° (tres objetivos) o de 90° (cuatro).
+  const k = knob === 'mic:turret' ? d.w.params.microscope.turretDetentDeg / 120 : 1;
   await hold(d, knob, async (step) => {
     for (let i = 0; i < steps; i++) {
-      step(dir, big);
+      step(dir * k, big);
       await d.wait(0.06);
     }
   });
