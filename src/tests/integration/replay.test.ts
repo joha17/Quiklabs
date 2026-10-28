@@ -9,7 +9,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { AttemptSnapshot, AttemptTape, GradedLab, TapeEntry } from '../../practices/grading';
 
 const rec = vi.hoisted(() => ({ world: null as unknown, entries: [] as Array<[number, unknown]>, depth: 0 }));
-// Solo los comandos de primer nivel: `dispatchCell` (B02) delega en `dispatchB01`, que no debe grabarse otra vez.
+// Solo los comandos de primer nivel: `dispatchPerm` (B03) delega en `dispatchCell` (B02), que delega en `dispatchB01`;
+// los internos no deben grabarse otra vez.
 const wrap = <F extends (...a: never[]) => unknown>(f: F) =>
   ((...args: Parameters<F>) => {
     const w = args[0] as unknown as { tick: number };
@@ -65,6 +66,10 @@ vi.mock('../../simulation/optical-world/world', async (orig) => {
 vi.mock('../../simulation/cell-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/cell-world/world')>();
   return { ...m, dispatchCell: wrap(m.dispatchCell) };
+});
+vi.mock('../../simulation/perm-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/perm-world/world')>();
+  return { ...m, dispatchPerm: wrap(m.dispatchPerm) };
 });
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
@@ -361,6 +366,27 @@ describe('repetición determinista — Biología B02', () => {
       }, sanitizeOnResumeB02);
       const { graded } = await verify('b02', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.9);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B03', () => {
+  for (const seed of [3303, 47]) {
+    it(`B03 semilla ${seed}: membranas, difusión, diálisis, ósmosis y Elodea con reanudación entre etapas`, async () => {
+      const hp = await import('../helpersB03');
+      const { sanitizeOnResumeB03 } = await import('../../practices/practice-b03/resume');
+      const { emptyB03Notebook } = await import('../../practices/practice-b03/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b03', opts, () => hp.worldB03(opts), (w, resume) => {
+        const out = hp.idealRouteB03(w, resume);
+        const n = emptyB03Notebook(`b03-${seed.toString(36)}-x`);
+        hp.fillNotebookB03(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB03);
+      const { graded } = await verify('b03', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }
 });

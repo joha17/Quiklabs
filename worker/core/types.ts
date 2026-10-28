@@ -5,10 +5,10 @@
  */
 export type Role = 'admin' | 'teacher' | 'student';
 export type UserStatus = 'active' | 'suspended';
-export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02';
+export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03';
 export type LabMode = 'PRACTICE' | 'GUIDED' | 'EVALUATION';
 
-export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02'];
+export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03'];
 
 export interface User {
   id: string;
@@ -46,11 +46,11 @@ export interface CourseLab {
   mode: LabMode;
 }
 
-/** Fotografía real del ocular de una práctica (B01/B02) para una muestra y un objetivo; `scope`: curso o '*' (general). */
+/** Fotografía real del ocular de una práctica (B01/B02/B03) para una muestra y un objetivo; `scope`: curso o '*' (general). */
 export interface LabPhoto {
   id: string;
   scope: string;
-  labId: 'b01' | 'b02';
+  labId: 'b01' | 'b02' | 'b03';
   assetId: string;
   objective: 4 | 10 | 40 | 100;
   r2Key: string;

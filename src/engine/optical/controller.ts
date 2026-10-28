@@ -13,7 +13,7 @@
  * el dominio calcula foco, burbujas, choques…
  */
 import type { B01Command, B01DispatchResult } from '../../simulation/optical-world/commands';
-import type { CellCommand } from '../../simulation/cell-world/commands';
+import type { PermCommand as CellCommand } from '../../simulation/perm-world/commands';
 import type { B01ObjKind, OpticalWorld, Pose } from '../../simulation/optical-world/types';
 import { microscopeView } from '../../simulation/optical-world/world';
 import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, STEREO_POS } from '../../simulation/optical-world/geometry';

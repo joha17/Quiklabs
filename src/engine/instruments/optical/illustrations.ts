@@ -60,6 +60,8 @@ export function pathPoly(ctx: CanvasRenderingContext2D, pts: number[][], m: Retu
 
 function drawElodea(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec) {
   const m = mapper(a, v);
+  // Protoplasto relativo a la pared (B03): 1 turgente, menor en plasmólisis.
+  const shrink = a.assetId === 'elodeaPlasmo' ? 0.55 : a.assetId === 'elodeaPlasmoMild' ? 0.82 : 1;
   const leaf = poly(a, 'leafBlade');
   ctx.save();
   pathPoly(ctx, leaf, m);
@@ -83,6 +85,37 @@ function drawElodea(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
         const W = (mid ? cw * 0.6 : cw) * m.k;
         const H = ch * m.k;
         ctx.fillStyle = mid ? '#9cc483' : `hsl(${95 + h(i, j) * 12}, 45%, ${70 + h(j, i) * 6}%)`;
+        if (shrink < 1 && !mid) {
+          // Plasmólisis (B03): la pared queda en su sitio y el protoplasto se retrae, dejando el espacio claro.
+          ctx.fillStyle = '#e4efd8';
+          ctx.fillRect(px, py, W, H);
+          const k = shrink * (0.92 + 0.08 * h(i, j, 7));
+          const pw = W * Math.min(1, k + 0.12);
+          const ph = H * k;
+          const cx = px + W / 2 + (h(j, i, 3) - 0.5) * (W - pw) * 0.6;
+          const cy = py + H / 2 + (h(i, j, 5) - 0.5) * (H - ph) * 0.6;
+          ctx.fillStyle = `hsl(${100 + h(i, j) * 10}, 50%, ${58 + h(j, i) * 6}%)`;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, pw / 2, ph / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          if (wallPx > 3) {
+            ctx.strokeStyle = 'rgba(40, 90, 30, 0.75)';
+            ctx.lineWidth = Math.max(0.6, wallPx * 0.06);
+            ctx.strokeRect(px, py, W, H);
+          }
+          const dot = 0.0055 * m.k;
+          if (dot > 0.6) {
+            ctx.fillStyle = '#2b6e1a';
+            for (let c = 0; c < 12; c++) {
+              const a = h(i, j, c) * Math.PI * 2;
+              const rr = 0.25 + 0.6 * h(j, i, c);
+              ctx.beginPath();
+              ctx.ellipse(cx + Math.cos(a) * rr * (pw / 2 - dot), cy + Math.sin(a) * rr * (ph / 2 - dot), dot, dot * 0.7, a, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+          continue;
+        }
         ctx.fillRect(px, py, W, H);
         if (wallPx > 3) {
           ctx.strokeStyle = 'rgba(40, 90, 30, 0.75)';
@@ -343,7 +376,7 @@ export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
   const a = assetById(v.assetId);
   if (!a) return;
   switch (baseAssetId(a.assetId)) {
-    case 'elodea': case 'elodeaDense': return drawElodea(ctx, a, v);
+    case 'elodea': case 'elodeaDense': case 'elodeaPlasmoMild': case 'elodeaPlasmo': return drawElodea(ctx, a, v);
     case 'onion': return drawOnion(ctx, a, v, true);
     case 'onionPlain': return drawOnion(ctx, a, v, false);
     case 'cornStem': return drawCrossSection(ctx, a, v, 'corn');

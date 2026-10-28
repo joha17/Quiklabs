@@ -325,7 +325,7 @@ export function dispatchB01(w: OpticalWorld, cmd: B01Command): B01DispatchResult
       return ok();
     case 'startWork': {
       const s = w.safety.ppe;
-      const missing = (['coat', 'shoes', 'hair', 'hands'] as const).filter((k) => !s[k]);
+      const missing = (w.params.ppeRequired ?? (['coat', 'shoes', 'hair', 'hands'] as const)).filter((k) => !s[k]);
       if (missing.length) {
         errB(w, 'E68', 'PPE_REQUIRED', 'CRITICAL', { n: missing.length });
         return no('PPE_MISSING');

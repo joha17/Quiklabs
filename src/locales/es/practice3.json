@@ -322,6 +322,15 @@
             "Ilustraciones didácticas"
           ]
         }
+      },
+      "b03": {
+        "title": "Fronteras celulares",
+        "subtitle": "Transporte selectivo, difusión, ósmosis y diálisis: membranas selladas con prueba de fugas, trazador con lecturas a 0/30/60 s, Biuret y AgNO₃ en ambos lados, jarabe frente a agua y Elodea en tres medios, al microscopio 4X → 40X.",
+        "points": [
+          "Membrana remojada, centrada y apretada: una junta floja o una membrana rota mezclan todo y no hay selectividad que interpretar.",
+          "Lecturas propias con su instrumento y su hora: volumen sin paralaje, colorímetro con cero, tubos rotulados y controles.",
+          "Elodea en agua, NaCl 0,9 % y 5 %: la turgencia o la plasmólisis se demuestran con capturas, no con la etiqueta del frasco."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",

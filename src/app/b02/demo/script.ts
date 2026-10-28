@@ -164,8 +164,11 @@ async function cover(d: DemoDirectorB02, x: number, y: number) {
   await putDown(d, 180, 18);
 }
 
-/** Lámina a la platina, 4X → 10X → 40X con enfoque mirando, capturas a 4X y 40X, y retiro a la bandeja. */
-async function observe(d: DemoDirectorB02, slide: string, out: string[]) {
+/**
+ * Lámina a la platina, 4X → 10X → 40X con enfoque mirando, capturas a 4X y 40X, y retiro a la bandeja. Con `to100`,
+ * además el 100X (objetivo negro): solo con el micrométrico, porque queda a medio milímetro del cubreobjetos.
+ */
+async function observe(d: DemoDirectorB02, slide: string, out: string[], to100 = false) {
   d.station('C');
   if (microscopeView(d.w).objectiveX !== 4) await turn(d, 'mic:turret', -1, 1);
   await lever(d, true);
@@ -182,8 +185,13 @@ async function observe(d: DemoDirectorB02, slide: string, out: string[]) {
   await turn(d, 'mic:diaphragm', 1, 5);
   await focusCompound(d);
   out.push(await capture(d));
+  if (to100) {
+    await turn(d, 'mic:turret', 1, 1);
+    await focusCompound(d);
+    out.push(await capture(d));
+  }
   await turn(d, 'mic:diaphragm', -1, 5);
-  await turn(d, 'mic:turret', -1, 2);
+  await turn(d, 'mic:turret', -1, to100 ? 3 : 2);
   d.c.toggleEyepiece('compound');
   await turn(d, 'mic:coarse', -1, Math.ceil(d.w.microscope.coarseTurns / 0.5) + 1, true);
   await turn(d, 'mic:fine', d.w.microscope.fineTurns > 0 ? -1 : 1, Math.round(Math.abs(d.w.microscope.fineTurns) / 0.05));
@@ -320,7 +328,7 @@ export function buildDemoScriptB02(ui: DemoUiHooksB02): DemoStepB02[] {
         await cover(d, PREP2_SPOT.x, PREP2_SPOT.y);
       },
     },
-    { part: 'C', key: 'observeBuccal', run: (d) => observe(d, 'sl4', res.buccal) },
+    { part: 'C', key: 'observeBuccal', run: (d) => observe(d, 'sl4', res.buccal, true) },
     {
       part: 'F', key: 'record',
       run: async (d) => {

@@ -54,6 +54,8 @@ export interface CellState {
   incidents: string[];
   /** Contador de zonas creadas (identificadores `m:<muestra>:<n>`). */
   zoneSeq: number;
+  /** Medios admitidos además de la receta (B03; ausente en B02). */
+  extraAllowed?: Partial<Record<CellKind, StainId[]>>;
 }
 
 export interface CellWorld extends OpticalWorld {

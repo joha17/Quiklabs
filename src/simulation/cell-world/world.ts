@@ -275,7 +275,7 @@ function smear(w: CellWorld, swabId: string, slideId: string, lengthCm: number, 
 function addZone(w: CellWorld, m: FreshMount, z: CellZone, slideId: string, contamination01: number) {
   const info = m.cell!;
   info.zones.push(z);
-  if (info.zones.length === 1) info.allowed = [...CELL_RECIPES[z.kind].reagents];
+  if (info.zones.length === 1) info.allowed = [...CELL_RECIPES[z.kind].reagents, ...(w.cell.extraAllowed?.[z.kind] ?? [])];
   m.contamination01 = clamp(m.contamination01 + contamination01, 0, 1);
   // Vidrio con restos de un preparado anterior (CEL09).
   const s = w.slides[slideId];
@@ -469,7 +469,7 @@ function wipe(w: CellWorld, cmd: Extract<CellCommand, { type: 'wipe' }>): CellDi
   }
   if (targetId === 'bench' || targetId === 'stage') {
     if (toolId === 'pp') {
-      for (const s of STAINS) {
+      for (const s of ledgerKeys(w)) {
         const v = w.cell.benchStainMl[s] ?? 0;
         w.cell.stainLedger[s].spilledMl -= v;
         w.cell.stainLedger[s].wasteMl += v;
@@ -630,7 +630,7 @@ export function stepCellWorld(w: CellWorld): void {
     if (!m.cell || !m.specimenId) continue;
     const wet = m.wetsSpecimen && liquidMl(m) >= mp.needMl * 0.5;
     // Contacto de cada colorante con el tejido humedecido.
-    if (wet) for (const s of STAINS) if ((m.cell.stainMl[s] ?? 0) > 1e-9) m.cell.contactS[s] = r6((m.cell.contactS[s] ?? 0) + dt);
+    if (wet) for (const s of ledgerKeys(w)) if ((m.cell.stainMl[s] ?? 0) > 1e-9) m.cell.contactS[s] = r6((m.cell.contactS[s] ?? 0) + dt);
     const premade = m.cell.zones.every((z) => z.premade);
     if (!wet) {
       m.hydrated01 = clamp(m.hydrated01 - mp.dehydratePerS * dt, 0, 1);
@@ -651,7 +651,7 @@ export function runCellFor(w: CellWorld, seconds: number): void {
 /** Balance total de líquido y de vidrio (B01), por colorante y de biomasa didáctica (deben ser 0). */
 export function conservedCell(w: CellWorld): Record<string, number> {
   const out = { ...conservedB01(w) };
-  for (const s of STAINS) {
+  for (const s of ledgerKeys(w)) {
     const led = w.cell.stainLedger[s];
     const reservoir = Object.values(w.dispensers).filter((d) => d.reagent === s).reduce((a, d) => a + d.ml, 0);
     const mounted = Object.values(w.mounts).reduce((a, m) => a + (m.cell?.stainMl[s] ?? 0), 0);
@@ -685,7 +685,14 @@ export interface CellWorldExtras {
   swabs: string[];
   assetOverride?: Record<string, string>;
   missingAssets?: string[];
+  /** Medios con balance propio (B02: los colorantes; B03 agrega las soluciones salinas). */
+  stains?: Exclude<StainId, 'water'>[];
+  /** Medios que una muestra admite además de su receta (B03: NaCl sobre Elodea). */
+  extraAllowed?: Partial<Record<CellKind, StainId[]>>;
 }
+
+/** Medios con balance en este mundo, en el orden en que se crearon. */
+export const ledgerKeys = (w: CellWorld) => Object.keys(w.cell.stainLedger) as Exclude<StainId, 'water'>[];
 
 /** Mundo B02: el mundo óptico de B01 creado con la mesada de B02, más el estado celular y sus balances iniciales. */
 export function createCellWorld(spec: OpticalWorldSpec, x: CellWorldExtras): CellWorld {
@@ -694,7 +701,7 @@ export function createCellWorld(spec: OpticalWorldSpec, x: CellWorldExtras): Cel
   sources.el = { kind: 'elodea', massMg: spec.dish.leaves * spec.params.cellPrep!.leafMassMg, initialMg: spec.dish.leaves * spec.params.cellPrep!.leafMassMg };
   sources.bucc = { kind: 'buccal', massMg: 20, initialMg: 20 };
   const stainLedger = Object.fromEntries(
-    STAINS.map((s) => {
+    (x.stains ?? STAINS).map((s) => {
       const res = Object.values(spec.dispensers).filter((d) => d.reagent === s).reduce((a, d) => a + d.ml, 0);
       const mounted = Object.values(spec.mounts ?? {}).reduce((a, m) => a + (m.cell?.stainMl[s] ?? 0), 0);
       return [s, { initialMl: res + mounted, wasteMl: 0, spilledMl: 0 }];
@@ -717,6 +724,7 @@ export function createCellWorld(spec: OpticalWorldSpec, x: CellWorldExtras): Cel
     incidents: [],
     zoneSeq: 0,
   };
+  if (x.extraAllowed) w.cell.extraAllowed = structuredClone(x.extraAllowed);
   for (const m of Object.values(w.mounts)) refreshAssets(w, m);
   return w;
 }

@@ -30,6 +30,8 @@ export interface OpticalHost {
   stations?: OpticalStation[];
   roomVariant?: string;
   createController?(host: OpticalHost, lab: OpticalLab3D): OpticalController;
+  /** Punto a la altura del ojo para un objetivo de lectura propio de la práctica (B03: el menisco de un recipiente o de un lado de cámara). */
+  eyeTargetOf?(target: string): { x: number; y: number; z: number } | null;
 }
 
 /** Los sonidos de la práctica B01 son los del sintetizador de la Práctica 4. */

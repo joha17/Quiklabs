@@ -106,7 +106,9 @@ describe('B02 — demostración sin navegador', () => {
     for (const k of ['ppe', 'starch', 'animal', 'elodea', 'safeParked', 'benchRestored'] as const) expect(f[k], `${k} ${diag}`).toBe(true);
     expect(w.mounts.sl1.bubbleFraction, diag).toBeLessThan(0.1);
     // Ocho capturas válidas (4X y 40X de cada muestra), Lugol con su contacto y ninguna herramienta con restos.
-    expect(w.observationOrder.filter((id) => w.observations[id].isObservationValid).length, diag).toBe(8);
+    expect(w.observationOrder.filter((id) => w.observations[id].isObservationValid).length, diag).toBe(9);
+    // El frotis bucal llega al 100X (objetivo negro) con captura válida.
+    expect(w.observationOrder.map((id) => w.observations[id]).filter((o) => o.isObservationValid && o.objectiveX === 100).length, diag).toBe(1);
     expect(w.mounts.sl2.cell!.contactS.lugol ?? 0, diag).toBeGreaterThanOrEqual(w.params.cellPrep!.lugolMinContactS);
     expect(Object.values(w.cell.toolResidue).filter(Boolean), diag).toEqual([]);
     // Conservación y reproducción de la cinta por el dominio puro.

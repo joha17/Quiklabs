@@ -17,7 +17,7 @@ import { hitMesh } from './parts';
 export const KIND_COLOR: Record<CellKind, number> = {
   elodea: 0x4f9a3a, potato: 0xeee2b8, tomato: 0xd8402a, pepper: 0xe8b218, carrot: 0xec7a12, pear: 0xeee8c8, guava: 0xf0b8a8, apple: 0xf3eccb, buccal: 0xe8dcd4,
 };
-export const STAIN_COLOR: Record<StainId, number> = { water: 0x9cc8ea, lugol: 0x8a4a1e, 'methylene-blue': 0x2a5fb8, 'eosin-1pct': 0xe0507a };
+export const STAIN_COLOR: Record<StainId, number> = { water: 0x9cc8ea, lugol: 0x8a4a1e, 'methylene-blue': 0x2a5fb8, 'eosin-1pct': 0xe0507a, 'nacl-0.9': 0xc4dcef, 'nacl-5': 0xd6e4ee };
 const SKIN: Partial<Record<CellKind, number>> = { potato: 0x9c7a4c, tomato: 0xc0281a, pepper: 0xe0a800, carrot: 0xe06a10, pear: 0xb8c050, guava: 0x9cbc5c, apple: 0xc8382a };
 
 type Own = <T extends THREE.Material | THREE.Texture>(m: T) => T;

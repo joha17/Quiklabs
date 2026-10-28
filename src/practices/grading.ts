@@ -92,12 +92,19 @@ import { b02StageEvidence } from './practice-b02/evidence';
 import { evaluateB02 } from './practice-b02/rubric';
 import { sanitizeOnResumeB02 } from './practice-b02/resume';
 import type { B02Notebook } from './practice-b02/notebook';
+import { newPracticeB03World, type PracticeB03Options } from './practice-b03';
+import { b03StageEvidence } from './practice-b03/evidence';
+import { evaluateB03 } from './practice-b03/rubric';
+import { sanitizeOnResumeB03 } from './practice-b03/resume';
+import type { B03Notebook } from './practice-b03/notebook';
+import type { PermWorld } from '../simulation/perm-world/types';
+import { conservedPerm, dispatchPerm, stepPermWorld } from '../simulation/perm-world/world';
 import { conservedCell, dispatchCell, stepCellWorld } from '../simulation/cell-world/world';
 import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03'];
 
 interface WorldBase {
   tick: number;
@@ -262,6 +269,18 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as CellWorld).scenarios, assignment: (w as CellWorld).assignment, cellAssignment: { assigned: (w as CellWorld).cell.assigned, routes: (w as CellWorld).cell.routes, assetOverride: (w as CellWorld).cell.assetOverride, missingAssets: (w as CellWorld).cell.missingAssets } }),
     conserved: (w) => conservedCell(w as CellWorld),
     mode: (o) => opt<PracticeB02Options>(o).mode,
+  },
+  b03: {
+    create: (o) => newPracticeB03World(opt<PracticeB03Options>(o)),
+    dispatch: (w, c) => void dispatchPerm(w as PermWorld, c as never),
+    step: (w) => stepPermWorld(w as PermWorld),
+    sanitize: (w) => sanitizeOnResumeB03(w as PermWorld),
+    latch: (w, nb) => void b03StageEvidence(w as PermWorld, nb as B03Notebook),
+    evaluate: (w, s) => evaluateB03(w as PermWorld, s.notebook as B03Notebook),
+    // Además de lo de B02: membrana y frascos asignados, y la concentración salina del intento.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as PermWorld).scenarios, assignment: (w as PermWorld).assignment, cellAssignment: { missingAssets: (w as PermWorld).cell.missingAssets }, permAssigned: (w as PermWorld).perm.assigned, saltMmolMl: (w as PermWorld).perm.saltMmolMl }),
+    conserved: (w) => conservedPerm(w as PermWorld),
+    mode: (o) => opt<PracticeB03Options>(o).mode,
   },
 };
 

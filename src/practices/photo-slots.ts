@@ -1,12 +1,12 @@
 /**
- * Fotografías reales del ocular (fase 2 de B01, también B02): qué muestras de cada práctica admiten una foto por
+ * Fotografías reales del ocular (fase 2 de B01, también B02 y B03): qué muestras de cada práctica admiten una foto por
  * objetivo. Lo comparten el servidor (valida la carga) y el cliente (panel del docente y ocular).
  *
  * Las fotos son SOLO PRESENTACIÓN: el ocular las dibuja en lugar de la ilustración cuando hay una para la muestra y el
  * objetivo enclavado, pero la evidencia (estructuras visibles, capturas válidas, nota) la siguen decidiendo los
  * manifiestos anotados del dominio, cuyo hash queda congelado en cada intento. Cambiar una foto no altera ninguna cinta.
  */
-export const PHOTO_LABS = ['b01', 'b02'] as const;
+export const PHOTO_LABS = ['b01', 'b02', 'b03'] as const;
 export type PhotoLab = (typeof PHOTO_LABS)[number];
 
 export const PHOTO_OBJECTIVES = [4, 10, 40, 100] as const;
@@ -30,6 +30,8 @@ export const PHOTO_SLOTS: Record<PhotoLab, PhotoSlot[]> = {
     { assetId: 'pepperRed', scenario: true }, { assetId: 'pearEosin', scenario: true }, { assetId: 'pearClear', scenario: true },
     { assetId: 'guava', scenario: true }, { assetId: 'buccalEosin', scenario: true },
   ],
+  // B03: la misma Elodea en agua, con plasmólisis incipiente y plasmolizada (NaCl).
+  b03: [{ assetId: 'elodea' }, { assetId: 'elodeaPlasmoMild' }, { assetId: 'elodeaPlasmo' }],
 };
 
 export const isPhotoLab = (x: unknown): x is PhotoLab => (PHOTO_LABS as readonly unknown[]).includes(x);

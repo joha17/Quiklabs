@@ -14,7 +14,9 @@ export type StructureId =
   | 'antenna' | 'compoundEye' | 'head' | 'thorax' | 'abdomen' | 'wing' | 'leg'
   // B02 — estructuras celulares (§3.1).
   | 'fruitCells' | 'epithelialCells' | 'cellBorder' | 'cytoplasm' | 'chromoplasts' | 'starchGrains' | 'amyloplasts' | 'sclereids'
-  | 'vacuole' | 'cellMembrane';
+  | 'vacuole' | 'cellMembrane'
+  // B03 — respuesta osmótica de Elodea (§3.3).
+  | 'protoplast' | 'periplasmicSpace';
 
 /**
  * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
@@ -239,10 +241,36 @@ export const CELL_ASSETS: Record<string, ObservationAssetManifest> = {
   buccalEosin: buccal('buccalEosin', 'Frotis bucal con eosina 1 %', 'inferred', 'visible', true),
 };
 
+const DIDACTIC_B03 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Basada en la guía «Práctica 3. Permeabilidad celular»; solo vale como condición estática, no como serie temporal.';
+const B03_OWNER = { role: 'admin' as const, id: 'u_admin', version: 1, attribution: DIDACTIC_B03 };
+
+/**
+ * Manifiestos de B03: la hoja de Elodea con el protoplasto retraído (plasmólisis incipiente y marcada). Son fotos de
+ * CONDICIÓN distintas (otra célula, otro montaje), nunca fotogramas de la misma célula (§4.2).
+ */
+export const PERM_ASSETS: Record<string, ObservationAssetManifest> = {
+  elodeaPlasmoMild: cellManifest({
+    assetId: 'elodeaPlasmoMild', name: 'Hoja de Elodea con plasmólisis incipiente (montaje fresco)', extentMm: [8, 8],
+    annotations: [
+      ...ASSETS.elodea.annotations,
+      { structureId: 'protoplast', polygonNormalized: LEAF, observableAtObjectiveX: [40] },
+      { structureId: 'periplasmicSpace', polygonNormalized: LEAF, observableAtObjectiveX: [40], evidence: 'inferred' },
+    ],
+  }, B03_OWNER),
+  elodeaPlasmo: cellManifest({
+    assetId: 'elodeaPlasmo', name: 'Hoja de Elodea plasmolizada (montaje fresco)', extentMm: [8, 8],
+    annotations: [
+      ...ASSETS.elodea.annotations,
+      { structureId: 'protoplast', polygonNormalized: LEAF, observableAtObjectiveX: [10, 40] },
+      { structureId: 'periplasmicSpace', polygonNormalized: LEAF, observableAtObjectiveX: [10, 40] },
+    ],
+  }, B03_OWNER),
+};
+
 /** Activo base que se dibuja para una versión docente (`tomatoT2` → `tomato`). */
 export const baseAssetId = (id: string) => id.replace(/T2$/, '');
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id]);
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id]);
 
 /** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
 export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {

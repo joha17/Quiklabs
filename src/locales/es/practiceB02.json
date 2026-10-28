@@ -20,7 +20,7 @@
       "DEBUG_desc": "Modo docente: zonas de cada montaje, espesores, colorantes, contacto con Lugol, restos en herramientas y conservación."
     },
     "intro": {
-      "lead": "Prepara tus propios montajes —cortes finos de frutos, un raspado de papa con Lugol, pulpa de pera y un frotis bucal teñido— y una hoja de Elodea, obsérvalos de 4X a 40X y compara cloroplastos, cromoplastos y amiloplastos con capturas propias. Lo que ves sale del espesor, el colorante y los mandos: nada se tiñe ni se enfoca solo.",
+      "lead": "Prepara tus propios montajes —cortes finos de frutos, un raspado de papa con Lugol, pulpa de pera y un frotis bucal teñido— y una hoja de Elodea, obsérvalos de 4X a 100X y compara cloroplastos, cromoplastos y amiloplastos con capturas propias. Lo que ves sale del espesor, el colorante y los mandos: nada se tiñe ni se enfoca solo.",
       "modules": [
         "A · Seguridad: EPP, vidrio roto, residuos biológicos y comunes.",
         "B · Preparación vegetal: bisturí y tabla de corte, espátula para raspar, pinza limpia entre muestras, goteros de agua y colorantes.",
@@ -120,11 +120,11 @@
       "ANIMAL": [
         "En el área animal, con un portaobjetos limpio, toma un hisopo y pásalo por la fuente virtual de epitelio.",
         "Extiende en una sola dirección sobre la lámina y descarta el hisopo en residuos biológicos.",
-        "Azul de metileno (o el colorante asignado), cubreobjetos y observación a 4X y 40X."
+        "Azul de metileno (o el colorante asignado), cubreobjetos y observación a 4X y 40X; para el núcleo, pasa al 100X (objetivo negro) y enfoca solo con el micrométrico."
       ],
       "ELODEA": [
         "Monta una hoja de Elodea en agua con la pinza limpia.",
-        "Registra a 40X; en la libreta distingue lo que una foto fija puede y no puede mostrar."
+        "Registra a 40X (o 100X para ver los cloroplastos uno a uno); en la libreta distingue lo que una foto fija puede y no puede mostrar."
       ],
       "COMPARE": [
         "Completa el atlas de plastidios con tus capturas y la comparación vegetal–animal.",
@@ -905,7 +905,7 @@
     "demo": {
       "ui": {
         "watchHelp": "Una mano virtual recorre la práctica con los mismos gestos del estudiante (no genera nota).",
-        "doneText": "Viste cuatro preparaciones con sus gestos reales —Elodea (con una corrección de burbujas), papa con Lugol esperando el contacto, un corte fino de tomate y un frotis bucal teñido—, su observación de 4X a 40X y el cierre del puesto.",
+        "doneText": "Viste cuatro preparaciones con sus gestos reales —Elodea (con una corrección de burbujas), papa con Lugol esperando el contacto, un corte fino de tomate y un frotis bucal teñido—, su observación de 4X a 40X (el frotis bucal hasta 100X) y el cierre del puesto.",
         "accelerated": "Tiempo acelerado ×{{x}}",
         "mistake": "Error a propósito: cubierta casi plana y de golpe…",
         "recover": "Corrección: levantar y bajar inclinado y lento.",
@@ -951,7 +951,7 @@
         },
         "observeBuccal": {
           "title": "Célula animal",
-          "text": "Núcleo teñido, citoplasma y límite celular; sin pared ni plastidios."
+          "text": "Núcleo teñido, citoplasma y límite celular; sin pared ni plastidios. Del 40X al 100X (objetivo negro, 1000X) solo con el micrométrico: el objetivo queda a medio milímetro del cubreobjetos."
         },
         "record": {
           "title": "Evidencia propia",

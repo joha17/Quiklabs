@@ -10,7 +10,7 @@ import { UNLOGGED_B01_COMMANDS, type B01Command, type B01DispatchResult } from '
 import { dispatchB01, b01Summary, stepB01World } from '../../simulation/optical-world/world';
 import { stableHash } from '../../simulation/core/math';
 import type { TapeRecorder } from '../platform/tape';
-import type { CellCommand } from '../../simulation/cell-world/commands';
+import type { PermCommand as CellCommand } from '../../simulation/perm-world/commands';
 
 /** Simulación que mueve el runtime: la de B01 por omisión; B02 inyecta la del mundo celular (mismo equipo). */
 export interface OpticalSim {

@@ -88,6 +88,9 @@ export function CameraRigB01() {
         }
         if (target === 'mic') return horizontal(MIC_POS.x, MIC_POS.y - 4, stageTop(w) + 4, 55);
         if (target === 'ste') return horizontal(STEREO_POS.x, STEREO_POS.y - 4, 12, 55);
+        // Menisco de la práctica (B03): la cámara se pone a su altura, de frente (sin paralaje).
+        const m = lab.host.eyeTargetOf?.(target);
+        if (m) return horizontal(m.x, m.y, m.z, 22);
         const o = w.objects[target]?.pose;
         if (!o) return;
         horizontal(o.x, o.y, o.z + 1.5, 18);

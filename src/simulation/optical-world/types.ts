@@ -13,6 +13,7 @@ import type { FluidLedger } from '../specimens/volumes';
 import type { StructureId } from '../specimens/assets';
 import type { CellPrepParams } from '../specimens/thin-section';
 import type { CellState } from '../cell-world/types';
+import type { PermParams } from '../perm-world/types';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
 
@@ -21,7 +22,10 @@ export type B01ObjKind =
   | 'paper' | 'lensPaper' | 'towel' | 'microscope' | 'slideCase' | 'stereo' | 'sampleTray' | 'leafSample' | 'insectSample'
   | 'glassBin' | 'bioWaste' | 'cleanTray'
   // B02: fuentes de tejido, tabla de corte, espátula, hisopos, fuente virtual de epitelio y residuos comunes.
-  | 'tissueSource' | 'cuttingBoard' | 'spatula' | 'swabBox' | 'swab' | 'cheekSource' | 'trashBin';
+  | 'tissueSource' | 'cuttingBoard' | 'spatula' | 'swabBox' | 'swab' | 'cheekSource' | 'trashBin'
+  // B03: membranas, cámaras de dos compartimentos, frascos, probetas, pipeta, gradilla, tubos e instrumentos.
+  | 'membraneTray' | 'membrane' | 'soakDish' | 'twoChamber' | 'reagentBottle' | 'gradCylinder' | 'pipette' | 'beaker' | 'tubeRack' | 'testTube'
+  | 'thermometer' | 'colorimeter' | 'chemWaste';
 
 export interface OpticalObject {
   id: string;
@@ -67,7 +71,7 @@ export interface ForcepsState {
 
 export interface DispenserState {
   ml: number;
-  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct';
+  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5';
 }
 
 export interface StereoSample {
@@ -145,8 +149,12 @@ export interface B01Params {
    * suprime (el hecho no es un error en esa práctica). Sin mapa, los códigos son los de B01.
    */
   codeMap?: Record<string, string>;
+  /** EPP exigido para empezar (por omisión bata, calzado, cabello y manos; B03 agrega guantes por los reactivos). */
+  ppeRequired?: PpeItemB01[];
   /** Parámetros de corte, raspado, frotis y tinción (B02). */
   cellPrep?: CellPrepParams;
+  /** Membranas, cámaras, ensayos y respuesta de Elodea (B03). */
+  perm?: PermParams;
 }
 
 export interface OpticalWorld {

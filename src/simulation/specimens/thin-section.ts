@@ -9,11 +9,14 @@ import { clamp } from '../core/math';
 import type { StructureId } from './assets';
 
 export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal';
-export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct';
+/** Medios de montaje: el agua, los colorantes de B02 y las soluciones de NaCl de B03 (medio de Elodea). */
+export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5';
 export type PrepKind = 'leaf' | 'cut' | 'scrape' | 'smear';
 
 export const CELL_KINDS: CellKind[] = ['elodea', 'potato', 'tomato', 'pepper', 'carrot', 'pear', 'guava', 'apple', 'buccal'];
 export const STAINS: Exclude<StainId, 'water'>[] = ['lugol', 'methylene-blue', 'eosin-1pct'];
+/** Medios salinos de B03 (solo existen en ese mundo; B02 conserva su lista). */
+export const SALINES: Exclude<StainId, 'water'>[] = ['nacl-0.9', 'nacl-5'];
 
 /** Parámetros de preparación (§7.1): valores de software `pending`, no medidas de un tejido real. */
 export interface CellPrepParams {

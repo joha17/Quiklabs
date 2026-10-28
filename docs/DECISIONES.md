@@ -284,6 +284,21 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 | B02-11 | Calendario de la semilla | `b02` abre el 2026-10-27 en «Biología General I» (`c_bg1_01`), una semana después de `b01`. Migración `0011_course_labs_b02.sql`. |
 | B02-12 | Demostración | Cuatro preparaciones (Elodea con la corrección de burbujas, papa con Lugol esperando el contacto, tomate, frotis bucal), 8 capturas válidas y un único error deliberado (CEL14). |
 
+## Biología B03 — Fronteras celulares (membranas y permeabilidad)
+
+| Id | Decisión | Detalle |
+|---|---|---|
+| B03-01 | Mismo motor, tercera capa | `dispatchPerm` delega en `dispatchCell` (B02), que delega en `dispatchB01`. La cinta y la calificación graban solo el comando de primer nivel; el runtime acepta el tipo de comando de B03 (superconjunto). |
+| B03-02 | Transporte por modelo, no por guion | Soluto: `P·A_util·ΔC`; agua: `Lp·A_util·(Δπ − ΔP)` con π en kelvin y la columna hidrostática de cada lado. Fugas, roturas, membrana seca o corrida cambian el resultado físicamente; ningún paso «marca» el resultado esperado. |
+| B03-03 | Lecturas como registros | Cada lectura guarda instrumento, valor, unidad y momento; la libreta las importa por id. El volumen incluye el paralaje del ángulo real de la cámara (`eyeDeg`); «ojo al menisco» (`eyeTargetOf`) lo anula. |
+| B03-04 | Tiempo acelerado como pedido | `requestTimeScale` es un comando del dominio, rechazado mientras se vierte, se pipetea o se lleva una hoja (PERM18), y queda en la cinta. |
+| B03-05 | Tubos persistentes | El tubo conserva `gotBiuret`, `gotSilver` y `sampleMl` aunque se vacíe al desecharlo, para que la evidencia de la diálisis sobreviva al cierre del puesto. |
+| B03-06 | Guantes obligatorios | `B01Params.ppeRequired` (por práctica) exige guantes en B03 (cobre del Biuret, AgNO₃); B01/B02 conservan su lista. |
+| B03-07 | Estado finito | El derrame tiene capacidad 1e9, no `Infinity`: el estado viaja como JSON (`Infinity` → `null`) y la repetición del servidor lo compara exacto. |
+| B03-08 | Textos | `practiceB03.json` define `b03.*` y `b03fb.*`; el equipo compartido usa `b02.*` / `b01.*` como respaldo. La prueba `b03-locale` comprueba además cada clave literal del código. |
+| B03-09 | Calendario y migración | `b03` abre el 2026-11-03 en «Biología General I». Migración `0013_course_labs_b03.sql` (reconstruye `course_labs` y `lab_photos` con `'b03'` en los `CHECK`). Fotos del docente para *Elodea* en los tres medios. |
+| B03-10 | Demostración | Una fuga intencional con la pinza floja (PERM02, único error), corregida y con el sello probado; difusión, diálisis con siete tubos, ósmosis acelerada solo con las manos libres, Elodea en tres medios y cierre. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

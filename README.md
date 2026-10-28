@@ -198,6 +198,15 @@ hisopo estéril sobre una fuente virtual y *Elodea*; herramientas con restos que
 con recetas por muestra y atlas de plastidios con capturas propias. 68 errores (CEL01–CEL68) y demostración automática
 (`#b02`). Detalles: [docs/BIOLOGIA_B02.md](docs/BIOLOGIA_B02.md) · guía: [docs/GUIA_BIOLOGIA_B02.md](docs/GUIA_BIOLOGIA_B02.md).
 
+## Biología B03 — Fronteras celulares (membranas y permeabilidad)
+
+Tercera práctica de Biología General, sobre el mismo equipo óptico: membranas remojadas y montadas en cámaras de dos
+compartimentos con pinza de sello y prueba de fugas, difusión de un trazador leída a 0/30/60 s (ojo o colorímetro),
+diálisis de clara de huevo y NaCl con alícuotas a tubos rotulados, Biuret, AgNO₃, blanco y controles, ósmosis frente a un
+jarabe con lecturas de volumen sin paralaje y temperatura, y *Elodea* en agua, NaCl 0,9 % y 5 %. La libreta importa las
+lecturas propias del intento. 65 errores (PERM01–PERM65) y demostración automática (`#b03`). Detalles:
+[docs/BIOLOGIA_B03.md](docs/BIOLOGIA_B03.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza

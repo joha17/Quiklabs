@@ -153,7 +153,7 @@ describe('roles y permisos', () => {
     const labs = (r: { json: Record<string, unknown> }) => (r.json.labs as Array<{ labId: string }>).map((l) => l.labId).sort();
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6']); // grupo 01
     expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p5', 'p6']); // grupo 02: P4 abre el 12/10
-    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['b01', 'b02', 'p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']); // la docente ve todas las de sus cursos (Química y Biología)
+    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['b01', 'b02', 'b03', 'p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']); // la docente ve todas las de sus cursos (Química y Biología)
     // La Práctica 7 abre el 19/10; la 8 y la 9, el 20/10.
     p.setNow('2026-10-20T18:00:00.000Z');
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('p7');
@@ -166,6 +166,10 @@ describe('roles y permisos', () => {
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).not.toContain('b02');
     p.setNow('2026-10-27T18:00:00.000Z');
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('b02');
+    // La tercera (b03) abre el 03/11.
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).not.toContain('b03');
+    p.setNow('2026-11-03T18:00:00.000Z');
+    expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('b03');
   });
 });
 
