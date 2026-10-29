@@ -14,6 +14,8 @@ import type { StructureId } from '../specimens/assets';
 import type { CellPrepParams } from '../specimens/thin-section';
 import type { CellState } from '../cell-world/types';
 import type { PermParams } from '../perm-world/types';
+import type { BioParams } from '../bio-world/types';
+import type { EnzParams } from '../enz-world/types';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
 
@@ -25,7 +27,14 @@ export type B01ObjKind =
   | 'tissueSource' | 'cuttingBoard' | 'spatula' | 'swabBox' | 'swab' | 'cheekSource' | 'trashBin'
   // B03: membranas, cámaras de dos compartimentos, frascos, probetas, pipeta, gradilla, tubos e instrumentos.
   | 'membraneTray' | 'membrane' | 'soakDish' | 'twoChamber' | 'reagentBottle' | 'gradCylinder' | 'pipette' | 'beaker' | 'tubeRack' | 'testTube'
-  | 'thermometer' | 'colorimeter' | 'chemWaste';
+  | 'thermometer' | 'colorimeter' | 'chemWaste'
+  // B04: frascos de lotes, cristalería, placas con agitador, balanza, baños, colector de gas, fotómetro y frascos de Feulgen.
+  | 'bioBottle' | 'bioCylinder' | 'bioPipette' | 'bioDropper' | 'bioRack' | 'bioTube' | 'bioBeaker' | 'hotplate' | 'stirBar' | 'balance' | 'weighBoat'
+  | 'powderJar' | 'liverSample' | 'waterBath' | 'tongs' | 'bioThermo' | 'phStrips' | 'photometer' | 'cuvette' | 'stainJar' | 'burner' | 'rinseBeaker'
+  // B05: estaciones de cinética enzimática (preparaciones, catalasa con colector, amilasa, baños y ADH).
+  | 'enzBottle' | 'enzBeaker' | 'enzCylinder' | 'enzPipette' | 'enzDropper' | 'enzRack' | 'enzTube' | 'enzPlate' | 'enzStirBar' | 'enzBalance'
+  | 'enzBoat' | 'enzJar' | 'enzSpatula' | 'enzLiver' | 'enzBoard' | 'enzKnife' | 'enzBath' | 'enzTongs' | 'enzThermo' | 'enzStrips' | 'enzCollector'
+  | 'enzClock' | 'enzPhotometer' | 'enzCuvette' | 'enzBurner' | 'enzWaste' | 'enzRinse';
 
 export interface OpticalObject {
   id: string;
@@ -37,10 +46,12 @@ export interface OpticalObject {
   label?: string;
 }
 
-export type PpeItemB01 = 'coat' | 'shoes' | 'hair' | 'hands' | 'gloves';
+/** EPP de las prácticas ópticas; las gafas solo las exige B04 (reactivos cáusticos y yodo). */
+export type PpeItemB01 = 'coat' | 'shoes' | 'hair' | 'hands' | 'gloves' | 'goggles';
 
 export interface SafetyStateB01 {
-  ppe: Record<PpeItemB01, boolean>;
+  /** Las gafas faltan en los mundos de B01–B03 (no se exigen allí; un mundo nuevo de B04 las agrega). */
+  ppe: Record<Exclude<PpeItemB01, 'goggles'>, boolean> & { goggles?: boolean };
   block: { code: string; since: number } | null;
   /** Accidente consumado (choque, vidrio roto): anula el componente de seguridad. */
   incident: { code: string; since: number } | null;
@@ -155,6 +166,10 @@ export interface B01Params {
   cellPrep?: CellPrepParams;
   /** Membranas, cámaras, ensayos y respuesta de Elodea (B03). */
   perm?: PermParams;
+  /** Lotes, preparaciones, ensayos de biomoléculas y enzimas (B04). */
+  bio?: BioParams;
+  /** Preparaciones, catalasa, amilasa, baños y ADH (B05). */
+  enz?: EnzParams;
 }
 
 export interface OpticalWorld {

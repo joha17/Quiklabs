@@ -135,7 +135,11 @@ function drawParenchyma(ctx: CanvasRenderingContext2D, a: ObservationAssetManife
 }
 
 /** Frotis bucal: células escamosas aplanadas; el colorante decide si se distinguen núcleo y citoplasma. */
-function drawBuccal(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec, stain: 'plain' | 'mb' | 'eosin') {
+type BuccalStain = 'plain' | 'mb' | 'eosin' | 'feulgen' | 'feulgenWeak' | 'feulgenDamaged';
+/** Núcleo según la tinción: azul (azul de metileno), apenas rosado (eosina), magenta nítido, pálido o difuso (Feulgen B04). */
+const NUCLEUS: Partial<Record<BuccalStain, string>> = { mb: 'rgba(25, 40, 120, 0.9)', eosin: 'rgba(190, 110, 140, 0.35)', feulgen: 'rgba(185, 20, 115, 0.9)', feulgenWeak: 'rgba(215, 120, 170, 0.45)', feulgenDamaged: 'rgba(200, 120, 160, 0.3)' };
+
+function drawBuccal(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec, stain: BuccalStain) {
   const m = mapper(a, v);
   const region = poly(a, 'epithelialCells');
   ctx.save();
@@ -143,8 +147,9 @@ function drawBuccal(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
   ctx.clip();
   const cw = 0.09;
   const r = m.range(cw, cw);
-  const cyto = stain === 'mb' ? 'rgba(120, 160, 215, 0.45)' : stain === 'eosin' ? 'rgba(235, 140, 170, 0.45)' : 'rgba(230, 228, 220, 0.35)';
-  const edge = stain === 'mb' ? 'rgba(40, 70, 140, 0.8)' : stain === 'eosin' ? 'rgba(170, 60, 100, 0.7)' : 'rgba(150, 148, 140, 0.45)';
+  const feul = stain.startsWith('feulgen');
+  const cyto = stain === 'mb' ? 'rgba(120, 160, 215, 0.45)' : stain === 'eosin' ? 'rgba(235, 140, 170, 0.45)' : feul ? 'rgba(240, 225, 232, 0.4)' : 'rgba(230, 228, 220, 0.35)';
+  const edge = stain === 'mb' ? 'rgba(40, 70, 140, 0.8)' : stain === 'eosin' ? 'rgba(170, 60, 100, 0.7)' : feul ? 'rgba(160, 120, 140, 0.55)' : 'rgba(150, 148, 140, 0.45)';
   if ((r.i1 - r.i0) * (r.j1 - r.j0) < 30000) {
     for (let j = r.j0; j <= r.j1; j++) {
       for (let i = r.i0; i <= r.i1; i++) {
@@ -174,10 +179,12 @@ function drawBuccal(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
         }
         // Núcleo: nítido con azul de metileno, apenas insinuado con eosina, ausente sin teñir.
         const nr = R * 0.14;
-        if (nr > 0.8 && stain !== 'plain') {
+        if (nr > 0.8 && NUCLEUS[stain]) {
+          // Sobrehidrólisis: el ADN degradado deja un núcleo más grande y difuso.
+          const k = stain === 'feulgenDamaged' ? 1.5 : 1;
           ctx.beginPath();
-          ctx.ellipse(px + (h(i, j, 3) - 0.5) * R * 0.3, py + (h(j, i, 4) - 0.5) * R * 0.3, nr * 1.2, nr, 0, 0, Math.PI * 2);
-          ctx.fillStyle = stain === 'mb' ? 'rgba(25, 40, 120, 0.9)' : 'rgba(190, 110, 140, 0.35)';
+          ctx.ellipse(px + (h(i, j, 3) - 0.5) * R * 0.3, py + (h(j, i, 4) - 0.5) * R * 0.3, nr * 1.2 * k, nr * k, 0, 0, Math.PI * 2);
+          ctx.fillStyle = NUCLEUS[stain]!;
           ctx.fill();
         }
       }
@@ -186,10 +193,15 @@ function drawBuccal(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
   ctx.restore();
 }
 
-/** Dibuja un activo de B02 (por su id base); devuelve false si no es de esta práctica. */
+/** Dibuja un activo de B02 o B04 (por su id base); devuelve false si no es de estas prácticas. */
 export function drawCellAsset(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec, baseId: string): boolean {
   if (PARENCHYMA[baseId]) {
     drawParenchyma(ctx, a, v, PARENCHYMA[baseId]);
+    return true;
+  }
+  // B04: frotis de Feulgen (sin teñir y control sin hidrólisis: núcleos sin color).
+  if (baseId === 'feulgenBuccal' || baseId === 'feulgenWeak' || baseId === 'feulgenDamaged' || baseId === 'feulgenRaw' || baseId === 'feulgenNeg') {
+    drawBuccal(ctx, a, v, baseId === 'feulgenBuccal' ? 'feulgen' : baseId === 'feulgenWeak' ? 'feulgenWeak' : baseId === 'feulgenDamaged' ? 'feulgenDamaged' : 'plain');
     return true;
   }
   if (baseId.startsWith('buccal')) {

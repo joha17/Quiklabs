@@ -10,7 +10,12 @@ import { UNLOGGED_B01_COMMANDS, type B01Command, type B01DispatchResult } from '
 import { dispatchB01, b01Summary, stepB01World } from '../../simulation/optical-world/world';
 import { stableHash } from '../../simulation/core/math';
 import type { TapeRecorder } from '../platform/tape';
-import type { PermCommand as CellCommand } from '../../simulation/perm-world/commands';
+import type { PermCommand } from '../../simulation/perm-world/commands';
+import type { BioCommand } from '../../simulation/bio-world/commands';
+import type { EnzCommand } from '../../simulation/enz-world/commands';
+
+/** Comandos que acepta el runtime: los del mundo de transporte (B03) y los bioquímicos (B04), que extienden los de B01/B02. */
+type CellCommand = PermCommand | BioCommand | EnzCommand;
 
 /** Simulación que mueve el runtime: la de B01 por omisión; B02 inyecta la del mundo celular (mismo equipo). */
 export interface OpticalSim {
@@ -87,7 +92,7 @@ export class OpticalRuntime<W extends OpticalWorld = OpticalWorld> {
   private toAction(cmd: CellCommand, r: B01DispatchResult): PracticeB01Event {
     const w = this.world;
     const { type, ...payload } = cmd as Record<string, unknown> & { type: string };
-    const ids = ['id', 'sourceId', 'targetId', 'slideId', 'coverId', 'toolId', 'dispenserId', 'observationId', 'swabId', 'objectId', 'containerId'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
+    const ids = ['id', 'sourceId', 'targetId', 'slideId', 'coverId', 'toolId', 'dispenserId', 'observationId', 'swabId', 'objectId', 'containerId', 'tubeId', 'vesselId', 'barId', 'plateId', 'bathId', 'cuvetteId', 'sampleId', 'wasteId'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
     const prev = this.actions[this.actions.length - 1]?.stateHash ?? '0';
     return {
       attemptId: this.attemptId,

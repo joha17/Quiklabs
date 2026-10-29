@@ -628,9 +628,9 @@ export class OpticalController {
     const near = (x: number, y: number, r: number) => Math.hypot(h.x - x, h.y - y) <= r;
     const prep = Object.values(w.objects).find((o) => o.support === 'prep');
     if (prep && near(prep.pose.x, prep.pose.y, 4.2)) return prep.id;
-    if (near(w.objects.el.pose.x, w.objects.el.pose.y, GEO_B01.dish.r)) return 'el';
+    if (w.objects.el && near(w.objects.el.pose.x, w.objects.el.pose.y, GEO_B01.dish.r)) return 'el';
     if (near(COVER_BOX.x, COVER_BOX.y, 2.5)) return 'cvBox';
-    if (near(w.objects.lp.pose.x, w.objects.lp.pose.y, 4)) return 'lp';
+    if (w.objects.lp && near(w.objects.lp.pose.x, w.objects.lp.pose.y, 4)) return 'lp';
     if (near(STEREO_BASE.x, STEREO_BASE.y, 6)) return 'stereoBase';
     if (near(SAMPLE_TRAY.x, SAMPLE_TRAY.y, 6)) return 'sampleTray';
     if (near(MIC_POS.x, MIC_POS.y, 9)) return 'mic';

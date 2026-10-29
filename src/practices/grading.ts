@@ -99,12 +99,26 @@ import { sanitizeOnResumeB03 } from './practice-b03/resume';
 import type { B03Notebook } from './practice-b03/notebook';
 import type { PermWorld } from '../simulation/perm-world/types';
 import { conservedPerm, dispatchPerm, stepPermWorld } from '../simulation/perm-world/world';
+import { newPracticeB04World, type PracticeB04Options } from './practice-b04';
+import { b04StageEvidence } from './practice-b04/evidence';
+import { evaluateB04 } from './practice-b04/rubric';
+import { sanitizeOnResumeB04 } from './practice-b04/resume';
+import type { B04Notebook } from './practice-b04/notebook';
+import type { BioWorld } from '../simulation/bio-world/types';
+import { conservedBio, dispatchBio, stepBioWorld } from '../simulation/bio-world/world';
+import { newPracticeB05World, type PracticeB05Options } from './practice-b05';
+import { b05StageEvidence } from './practice-b05/evidence';
+import { evaluateB05 } from './practice-b05/rubric';
+import { sanitizeOnResumeB05 } from './practice-b05/resume';
+import type { B05Notebook } from './practice-b05/notebook';
+import type { EnzWorld } from '../simulation/enz-world/types';
+import { conservedEnz, dispatchEnz, stepEnzWorld } from '../simulation/enz-world/world';
 import { conservedCell, dispatchCell, stepCellWorld } from '../simulation/cell-world/world';
 import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05'];
 
 interface WorldBase {
   tick: number;
@@ -281,6 +295,30 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as PermWorld).scenarios, assignment: (w as PermWorld).assignment, cellAssignment: { missingAssets: (w as PermWorld).cell.missingAssets }, permAssigned: (w as PermWorld).perm.assigned, saltMmolMl: (w as PermWorld).perm.saltMmolMl }),
     conserved: (w) => conservedPerm(w as PermWorld),
     mode: (o) => opt<PracticeB03Options>(o).mode,
+  },
+  b04: {
+    create: (o) => newPracticeB04World(opt<PracticeB04Options>(o)),
+    dispatch: (w, c) => void dispatchBio(w as BioWorld, c as never),
+    step: (w) => stepBioWorld(w as BioWorld),
+    sanitize: (w) => sanitizeOnResumeB04(w as BioWorld),
+    latch: (w, nb) => void b04StageEvidence(w as BioWorld, nb as B04Notebook),
+    evaluate: (w, s) => evaluateB04(w as BioWorld, s.notebook as B04Notebook),
+    // Además de lo de B02: lotes asignados (composición sembrada), módulo ADH y el inventario inicial del balance.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as BioWorld).scenarios, assignment: (w as BioWorld).assignment, cellAssignment: { missingAssets: (w as BioWorld).cell.missingAssets }, lots: (w as BioWorld).bio.lots, adh: (w as BioWorld).bio.adhEnabled, initial: (w as BioWorld).bio.initial }),
+    conserved: (w) => conservedBio(w as BioWorld),
+    mode: (o) => opt<PracticeB04Options>(o).mode,
+  },
+  b05: {
+    create: (o) => newPracticeB05World(opt<PracticeB05Options>(o)),
+    dispatch: (w, c) => void dispatchEnz(w as EnzWorld, c as never),
+    step: (w) => stepEnzWorld(w as EnzWorld),
+    sanitize: (w) => sanitizeOnResumeB05(w as EnzWorld),
+    latch: (w, nb) => void b05StageEvidence(w as EnzWorld, nb as B05Notebook),
+    evaluate: (w, s) => evaluateB05(w as EnzWorld, s.notebook as B05Notebook),
+    // Además de lo de B02: escenarios enzimáticos, módulo ADH y el inventario inicial del balance (ledger).
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as EnzWorld).scenarios, assignment: (w as EnzWorld).assignment, cellAssignment: { missingAssets: (w as EnzWorld).cell.missingAssets }, adh: (w as EnzWorld).enz.adhEnabled, initial: (w as EnzWorld).enz.initial }),
+    conserved: (w) => conservedEnz(w as EnzWorld),
+    mode: (o) => opt<PracticeB05Options>(o).mode,
   },
 };
 

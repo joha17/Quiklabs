@@ -1,12 +1,12 @@
 /**
- * Fotografías reales del ocular (fase 2 de B01, también B02 y B03): qué muestras de cada práctica admiten una foto por
+ * Fotografías reales del ocular (fase 2 de B01, también B02, B03, B04 y B05): qué muestras de cada práctica admiten una foto por
  * objetivo. Lo comparten el servidor (valida la carga) y el cliente (panel del docente y ocular).
  *
  * Las fotos son SOLO PRESENTACIÓN: el ocular las dibuja en lugar de la ilustración cuando hay una para la muestra y el
  * objetivo enclavado, pero la evidencia (estructuras visibles, capturas válidas, nota) la siguen decidiendo los
  * manifiestos anotados del dominio, cuyo hash queda congelado en cada intento. Cambiar una foto no altera ninguna cinta.
  */
-export const PHOTO_LABS = ['b01', 'b02', 'b03'] as const;
+export const PHOTO_LABS = ['b01', 'b02', 'b03', 'b04', 'b05'] as const;
 export type PhotoLab = (typeof PHOTO_LABS)[number];
 
 export const PHOTO_OBJECTIVES = [4, 10, 40, 100] as const;
@@ -32,6 +32,13 @@ export const PHOTO_SLOTS: Record<PhotoLab, PhotoSlot[]> = {
   ],
   // B03: la misma Elodea en agua, con plasmólisis incipiente y plasmolizada (NaCl).
   b03: [{ assetId: 'elodea' }, { assetId: 'elodeaPlasmoMild' }, { assetId: 'elodeaPlasmo' }],
+  // B04: frotis bucal y epidermis de cebolla teñidos por Feulgen, el control sin hidrólisis y la raíz de referencia.
+  b04: [
+    { assetId: 'feulgenBuccal' }, { assetId: 'feulgenOnion' }, { assetId: 'feulgenNeg' }, { assetId: 'rootTip' },
+    { assetId: 'feulgenWeak', scenario: true }, { assetId: 'feulgenDamaged', scenario: true },
+  ],
+  // B05: los gránulos de almidón de la papa, sin teñir y con Lugol (mismo microscopio que B02).
+  b05: [{ assetId: 'potatoPlain' }, { assetId: 'potatoLugol' }],
 };
 
 export const isPhotoLab = (x: unknown): x is PhotoLab => (PHOTO_LABS as readonly unknown[]).includes(x);

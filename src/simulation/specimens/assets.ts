@@ -16,7 +16,9 @@ export type StructureId =
   | 'fruitCells' | 'epithelialCells' | 'cellBorder' | 'cytoplasm' | 'chromoplasts' | 'starchGrains' | 'amyloplasts' | 'sclereids'
   | 'vacuole' | 'cellMembrane'
   // B03 — respuesta osmótica de Elodea (§3.3).
-  | 'protoplast' | 'periplasmicSpace';
+  | 'protoplast' | 'periplasmicSpace'
+  // B04 — tinción de Feulgen (ADN nuclear en magenta, §3.1).
+  | 'dnaStain';
 
 /**
  * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
@@ -267,10 +269,44 @@ export const PERM_ASSETS: Record<string, ObservationAssetManifest> = {
   }, B03_OWNER),
 };
 
+const DIDACTIC_B04 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Basada en la guía «Práctica 4. Moléculas biológicas»: la reacción de Feulgen tiñe el ADN, no cualquier ácido nucleico.';
+const B04_OWNER = { role: 'admin' as const, id: 'u_admin', version: 1, attribution: DIDACTIC_B04 };
+const feulgenSmear = (id: string, name: string, dna: EvidenceStatus, cellsAt: number[] = [4, 10, 40]): ObservationAssetManifest =>
+  cellManifest({
+    assetId: id, name, extentMm: [6, 6],
+    annotations: [
+      { structureId: 'epithelialCells', polygonNormalized: SMEAR, observableAtObjectiveX: cellsAt },
+      { structureId: 'cellBorder', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40] },
+      { structureId: 'nucleus', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40], evidence: dna === 'visible' ? 'visible' : 'inferred' },
+      { structureId: 'dnaStain', polygonNormalized: SMEAR, observableAtObjectiveX: [10, 40], evidence: dna },
+    ],
+  }, B04_OWNER);
+
+/**
+ * Manifiestos de B04: frotis bucal y epidermis de cebolla con Feulgen, control sin hidrólisis y las condiciones de un
+ * tratamiento mal hecho (subhidrólisis, sobrehidrólisis, sin teñir). El ADN solo se acredita donde la región es visible.
+ */
+export const FEULGEN_ASSETS: Record<string, ObservationAssetManifest> = {
+  feulgenBuccal: feulgenSmear('feulgenBuccal', 'Frotis bucal con reacción de Feulgen', 'visible'),
+  feulgenWeak: feulgenSmear('feulgenWeak', 'Frotis bucal con Feulgen débil (subhidrólisis)', 'inferred'),
+  feulgenDamaged: feulgenSmear('feulgenDamaged', 'Frotis bucal con Feulgen degradado (sobrehidrólisis)', 'unavailable', [10, 40]),
+  feulgenRaw: feulgenSmear('feulgenRaw', 'Frotis bucal fijable sin teñir', 'unavailable', [10, 40]),
+  feulgenNeg: feulgenSmear('feulgenNeg', 'Frotis bucal: control de Feulgen sin hidrólisis', 'unavailable'),
+  feulgenOnion: cellManifest({
+    assetId: 'feulgenOnion', name: 'Epidermis de cebolla con reacción de Feulgen', extentMm: [10, 10],
+    annotations: [
+      { structureId: 'epidermalCells', polygonNormalized: rect(0.12, 0.2, 0.88, 0.8), observableAtObjectiveX: [4, 10, 40] },
+      { structureId: 'cellWall', polygonNormalized: rect(0.12, 0.2, 0.88, 0.8), observableAtObjectiveX: [10, 40] },
+      { structureId: 'nucleus', polygonNormalized: rect(0.12, 0.2, 0.88, 0.8), observableAtObjectiveX: [10, 40] },
+      { structureId: 'dnaStain', polygonNormalized: rect(0.12, 0.2, 0.88, 0.8), observableAtObjectiveX: [10, 40] },
+    ],
+  }, B04_OWNER),
+};
+
 /** Activo base que se dibuja para una versión docente (`tomatoT2` → `tomato`). */
 export const baseAssetId = (id: string) => id.replace(/T2$/, '');
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id]);
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id]);
 
 /** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
 export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {

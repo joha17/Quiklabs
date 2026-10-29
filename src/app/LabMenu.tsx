@@ -15,6 +15,8 @@ import { loadP10Attempt } from './p10/persistence';
 import { loadB01Attempt } from './b01/persistence';
 import { loadB02Attempt } from './b02/persistence';
 import { loadB03Attempt } from './b03/persistence';
+import { loadB04Attempt } from './b04/persistence';
+import { loadB05Attempt } from './b05/persistence';
 import { SUBJECTS, subjectOf, type Subject } from './labCatalog';
 import './menu.css';
 
@@ -52,6 +54,8 @@ export function LabCards({ locked = false, only, extra, grouped = false }: { loc
     const b01 = loadB01Attempt();
     const b02 = loadB02Attempt();
     const b03 = loadB03Attempt();
+    const b04 = loadB04Attempt();
+    const b05 = loadB05Attempt();
     return [
       { id: 'p01', number: 1, key: 'menu.labs.p01', saved: p01 ? { mode: p01.settings.mode, minutes: Math.round(p01.world.timeS / 60), submitted: p01.submitted } : null },
       { id: 'p2', number: 2, key: 'menu.labs.p2', saved: p2 ? { mode: p2.settings.mode, minutes: Math.round(p2.world.timeS / 60), submitted: p2.submitted } : null },
@@ -66,6 +70,8 @@ export function LabCards({ locked = false, only, extra, grouped = false }: { loc
       { id: 'b01', number: 11, key: 'menu.labs.b01', saved: b01 ? { mode: b01.settings.mode, minutes: Math.round(b01.world.timeS / 60), submitted: b01.submitted } : null },
       { id: 'b02', number: 12, key: 'menu.labs.b02', saved: b02 ? { mode: b02.settings.mode, minutes: Math.round(b02.world.timeS / 60), submitted: b02.submitted } : null },
       { id: 'b03', number: 13, key: 'menu.labs.b03', saved: b03 ? { mode: b03.settings.mode, minutes: Math.round(b03.world.timeS / 60), submitted: b03.submitted } : null },
+      { id: 'b04', number: 14, key: 'menu.labs.b04', saved: b04 ? { mode: b04.settings.mode, minutes: Math.round(b04.world.timeS / 60), submitted: b04.submitted } : null },
+      { id: 'b05', number: 15, key: 'menu.labs.b05', saved: b05 ? { mode: b05.settings.mode, minutes: Math.round(b05.world.timeS / 60), submitted: b05.submitted } : null },
     ];
   }, []);
   const visible = cards.filter((c) => !only || only.includes(c.id));

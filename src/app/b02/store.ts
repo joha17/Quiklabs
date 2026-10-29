@@ -91,7 +91,7 @@ interface B02State {
   setSettings(p: Partial<B02Settings>): void;
   start(opts?: { sameSeed?: boolean }): void;
   resume(saved: SavedB02Attempt): void;
-  confirmPpe(items: Record<PpeItemB01, boolean>): boolean;
+  confirmPpe(items: Partial<Record<PpeItemB01, boolean>>): boolean;
   dispatch(cmd: CellCommand): CellDispatchResult;
   select(id: string | null): void;
   setHeld(id: string | null): void;

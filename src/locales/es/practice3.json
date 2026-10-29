@@ -331,6 +331,24 @@
           "Lecturas propias con su instrumento y su hora: volumen sin paralaje, colorímetro con cero, tubos rotulados y controles.",
           "Elodea en agua, NaCl 0,9 % y 5 %: la turgencia o la plasmólisis se demuestran con capturas, no con la etiqueta del frasco."
         ]
+      },
+      "b04": {
+        "title": "Detectives moleculares",
+        "subtitle": "Identificación de biomoléculas y regulación de enzimas: Lugol, Biuret, emulsión y Benedict con blanco y patrón, ADN por Feulgen al microscopio, catalasa con O₂ recogido y amilasa leída con Lugol y Benedict por separado.",
+        "points": [
+          "Tubos rotulados ENSAYO/LOTE, pipeta limpia entre lotes y un control negativo y otro positivo en cada ensayo: sin controles no hay identificación.",
+          "Preparaciones pesadas y medidas, con la temperatura leída en el líquido; los baños y la pinza para lo caliente.",
+          "La actividad enzimática se compara con el mismo volumen, el mismo tiempo y la masa de tejido: el calor desnaturaliza, la falta de enzima no hidroliza."
+        ]
+      },
+      "b05": {
+        "title": "Cinética en acción",
+        "subtitle": "Catalasa, amilasa y regulación enzimática: tasa inicial de O₂ recogido con el captador y tu cronómetro, efecto del calor y del pH, hidrólisis del almidón seguida con Lugol y Benedict a tiempos medidos y gránulos de almidón de la papa al microscopio.",
+        "points": [
+          "Preparaciones pesadas y medidas con su lectura: el hígado se agita sin calor y la temperatura se lee en el líquido, no en la perilla.",
+          "Colector sellado, en cero y leído a la altura del menisco; la tasa inicial sale de TUS lecturas con el tiempo de TU cronómetro, con blanco sin enzima.",
+          "Alícuotas a 0, 120, 300 y 600 s reveladas por separado: Lugol mide el almidón que queda, Benedict los azúcares reductores; lo caliente, con pinza."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",

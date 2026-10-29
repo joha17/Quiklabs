@@ -89,7 +89,7 @@ interface B01State {
   setSettings(p: Partial<B01Settings>): void;
   start(opts?: { sameSeed?: boolean }): void;
   resume(saved: SavedB01Attempt): void;
-  confirmPpe(items: Record<PpeItemB01, boolean>): boolean;
+  confirmPpe(items: Partial<Record<PpeItemB01, boolean>>): boolean;
   dispatch(cmd: B01Command): B01DispatchResult;
   select(id: string | null): void;
   setHeld(id: string | null): void;

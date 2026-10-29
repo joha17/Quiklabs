@@ -299,6 +299,48 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 | B03-09 | Calendario y migración | `b03` abre el 2026-11-03 en «Biología General I». Migración `0013_course_labs_b03.sql` (reconstruye `course_labs` y `lab_photos` con `'b03'` en los `CHECK`). Fotos del docente para *Elodea* en los tres medios. |
 | B03-10 | Demostración | Una fuga intencional con la pinza floja (PERM02, único error), corregida y con el sello probado; difusión, diálisis con siete tubos, ósmosis acelerada solo con las manos libres, Elodea en tres medios y cierre. |
 
+## Biología B04 — Detectives moleculares (biomoléculas y enzimas)
+
+| Id | Decisión | Detalle |
+|---|---|---|
+| B04-01 | Mismo motor, cuarta capa | `dispatchBio` delega en `dispatchCell` (B02 → B01). `BioWorld` extiende `CellWorld`; la cinta graba solo el comando de primer nivel. |
+| B04-02 | Color por especies | Lugol, Biuret, Benedict y emulsión se calculan con las especies del tubo (`biochem/model.ts`), nunca con el nombre del lote. Una suspensión agitada de almidón da color uniforme (`homog01 ≥ 0,7`); con grumos, localizado. |
+| B04-03 | Cinta como única fuente | Toda mutación del estado (incluida la inclinación al verter) pasa por un comando; la repetición del servidor reconstruye el mundo exacto. |
+| B04-04 | Rótulos ENSAYO/LOTE | Los tubos se identifican por rótulo, no por número (C-BIO4-04); los rótulos y controles se conservan al desechar el tubo para la evidencia. |
+| B04-05 | Catalasa con controles | Blanco sin enzima, hígado crudo, hervido (con temperatura registrada) y papa; gas a 60 s con colector sellado (C-BIO4-02). |
+| B04-06 | Amilasa por alícuotas | Control de almidón sin enzima; Lugol y Benedict en alícuotas separadas del tubo de incubación; las alícuotas no repiten la exigencia de blanco. |
+| B04-07 | Feulgen = ADN | Alcance corregido (C-BIO4-01); hidrólisis débil, excesiva, sin hidrólisis y sin teñir con ilustraciones propias; cebolla positiva. |
+| B04-08 | ADH cerrado | Opcional y solo simulado: sin metanol manipulable, sin conclusiones de Fehling ni yodoformo como prueba directa (C-BIO4-05/06/07). |
+| B04-09 | Calendario y migración | `b04` abre el 2026-11-10 en «Biología General I». Migración `0014_course_labs_b04.sql`. |
+| B04-10 | Demostración | Recorrido completo sin errores: P1/P2, doce tubos de ensayo, Feulgen, cuatro de catalasa, cuatro de amilasa, registro y cierre. |
+
+## Biología B05 — Cinética en acción (catalasa, amilasa y regulación enzimática)
+
+| Id | Decisión | Detalle |
+|---|---|---|
+| BIO5-01 | Blanco sin tejido | El sexto tubo de catalasa que la guía anuncia y no define es el blanco sin tejido + H₂O₂ (`cat-blank`), adición de Quiklabs. |
+| BIO5-02 | Nombres por ensayo | Rótulos inequívocos (`cat-base`, `cat-blank`, `cat-heat`, `cat-acid`, `amy`, `amy-ctrl`, `L0–L3`, `B0/B3`…); ninguna tabla hereda el título de otra. |
+| BIO5-03/04/07 | Fehling y yodoformo no miden ADH | Solo se discuten como limitaciones (H07, H08, H10); la evidencia de ADH es la cinética de NADH a 340 nm, y solo si el modelo UV está validado. |
+| BIO5-05 | Unidades declaradas | NaOH y HCl 1 mol/L con unidad e incertidumbre; el frasco madre cáustico no se vierte (S07): solo gotero. |
+| BIO5-06 | pH por especies | La tasa sale del pH efectivo (tampón + gotas + mezcla), no de la etiqueta del tubo; la tira tiene resolución y se interfiere si se reutiliza (T08). |
+| BIO5-08 | Controles en la definición | Cada conjunto de control está en `definition.ts` y en las pruebas (blanco, control de almidón, blanco UV). |
+| BIO5-09 | Independiente de B04 | B04 se construyó en paralelo con su propia química (`bio-world`, `biochem`). B05 reutiliza B01/B02 por inyección (`dispatchEnz → dispatchCell → dispatchB01`, `EnzController extends CellController`) y NO importa módulos de B04; la unificación queda pendiente. Los anteojos de B04 tampoco se exigen aún. |
+| BIO5-10 | Espuma ≠ gas | El O₂ se mide en el colector; la espuma es aspecto secundario y anotarla como gas es C08. |
+| BIO5-11 | Parámetros pendientes | Actividades, Km, kcat, umbrales de indicadores y desnaturalización viven en `params.ts` con estado `pending`; solo ε340 está verificado. |
+| BIO5-12 | Tasa por ventana declarada | Serie de al menos cuatro lecturas con el cronómetro del mundo; la tasa inicial se calcula en la ventana que el estudiante declara y se contrasta (N01, N02, C13). |
+| BIO5-13 | Indicadores no específicos | Lugol y Benedict salen de especies (cadenas largas, reductores); «glucosa pura» (A15) e «hidrólisis completa» por Lugol negativo (A16) son errores de interpretación. |
+| BIO5-14 | Metanol restringido | Fuera del módulo ADH, tocar el metanol se rechaza con bloqueo (S02); dentro, solo dosis virtual. |
+| BIO5-15 | Competencia, no inhibición total | Metanol como sustrato competidor con Ki; afirmar inhibición total es H06 y un mecanismo con un solo punto, N10. |
+| BIO5-16 | ADH no calificable sin UV | Sin curva UV validada (SC26) el módulo no se asigna; con ella, sin blanco UV la lectura queda marcada (H02). |
+| BIO5-17 | Instrumentos heredados | Microscopio, montaje y captura de B01/B02 sin cambios; sus pruebas de regresión siguen en verde. |
+| BIO5-18 | Balance de O₂ conservativo | Generado = disuelto + colector + venteado + atrapado; fugas, desconexión, tapón y llave cerrada mueven gas entre cuentas, nunca lo crean ni destruyen. Sin redondeos en las cuentas: el servidor compara con tolerancia 1e-9. |
+| BIO5-19 | Térmico reversible vs. desnaturalización | La temperatura actúa de forma reversible en la velocidad; la desnaturalización es irreversible (enfriar no recupera, T05/N09). |
+| BIO5-20 | Incidencias sin culpa | Recurso faltante o burbuja de la pipeta asignada (SC13) → `incident:B05RES`, nunca `err:*`; el ítem se excluye sin descuento. |
+| BIO5-21 | Microscopio compartido | Los códigos de B01/B02 se traducen a MIC01–MIC06 (`CODE_MAP_B05`); los demás no aplican. Revólver de cuatro objetivos. |
+| BIO5-22 | Re-inclinar no es otra toma | `startPour` sobre un chorro en curso hacia el mismo destino solo cambia la inclinación: no cuenta otra dosis de peróxido ni otra alícuota del lote. Toda inclinación pasa por comando (cinta exacta). |
+| BIO5-23 | Calendario y migración | `b05` abre el 2026-11-17 en «Biología General I», tarjeta 15. Migración `0015_course_labs_b05.sql` (CHECK con `'b04'` y `'b05'`). Fotos del docente: papa sin teñir y con Lugol. |
+| BIO5-24 | Demostración | Recorrido sin errores: P1, P3 y P2 (la placa 2 queda para el extracto), línea base, blanco, calor y pH, incubación con alícuotas, papa al microscopio, libreta y cierre. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

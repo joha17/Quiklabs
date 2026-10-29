@@ -148,12 +148,13 @@ function drawElodea(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, 
   ctx.stroke();
 }
 
-function drawOnion(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec, stained: boolean) {
+/** `feulgen`: B04, citoplasma casi incoloro y núcleos magenta (solo el ADN toma el Schiff). */
+function drawOnion(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v: ViewSpec, stained: boolean, feulgen = false) {
   const m = mapper(a, v);
   const region = poly(a, 'epidermalCells');
   ctx.save();
   pathPoly(ctx, region, m);
-  ctx.fillStyle = stained ? '#d9c2e8' : '#ece9e2';
+  ctx.fillStyle = feulgen ? '#f1e6ec' : stained ? '#d9c2e8' : '#ece9e2';
   ctx.fill();
   ctx.clip();
   const cw = 0.28;
@@ -167,16 +168,16 @@ function drawOnion(ctx: CanvasRenderingContext2D, a: ObservationAssetManifest, v
       const [px, py] = m.toPx(x0, y0);
       const W = cw * m.k;
       const H = ch * m.k;
-      ctx.fillStyle = stained ? `hsl(${280 + h(i, j) * 10}, 35%, ${78 + h(j, i) * 6}%)` : `hsl(40, 10%, ${88 + h(i, j) * 4}%)`;
+      ctx.fillStyle = feulgen ? `hsl(330, 18%, ${89 + h(j, i) * 4}%)` : stained ? `hsl(${280 + h(i, j) * 10}, 35%, ${78 + h(j, i) * 6}%)` : `hsl(40, 10%, ${88 + h(i, j) * 4}%)`;
       ctx.fillRect(px, py, W, H);
       if (H > 2.5) {
-        ctx.strokeStyle = stained ? 'rgba(90, 40, 120, 0.8)' : 'rgba(120, 115, 100, 0.55)';
+        ctx.strokeStyle = feulgen ? 'rgba(150, 100, 125, 0.6)' : stained ? 'rgba(90, 40, 120, 0.8)' : 'rgba(120, 115, 100, 0.55)';
         ctx.lineWidth = Math.max(0.6, 0.006 * m.k);
         ctx.strokeRect(px, py, W, H);
       }
       const nr = 0.012 * m.k;
       if (stained && nr > 0.8) {
-        ctx.fillStyle = 'rgba(70, 20, 100, 0.85)';
+        ctx.fillStyle = feulgen ? 'rgba(185, 20, 115, 0.9)' : 'rgba(70, 20, 100, 0.85)';
         ctx.beginPath();
         ctx.ellipse(px + W * (0.3 + h(i, j, 1) * 0.4), py + H * 0.5, nr * 1.3, nr, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -379,6 +380,7 @@ export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
     case 'elodea': case 'elodeaDense': case 'elodeaPlasmoMild': case 'elodeaPlasmo': return drawElodea(ctx, a, v);
     case 'onion': return drawOnion(ctx, a, v, true);
     case 'onionPlain': return drawOnion(ctx, a, v, false);
+    case 'feulgenOnion': return drawOnion(ctx, a, v, true, true);
     case 'cornStem': return drawCrossSection(ctx, a, v, 'corn');
     case 'rootTip': return drawCrossSection(ctx, a, v, 'root');
     case 'leaf': return drawLeafStereo(ctx, a, v);

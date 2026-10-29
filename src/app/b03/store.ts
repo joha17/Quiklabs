@@ -92,7 +92,7 @@ interface B03State {
   setSettings(p: Partial<B03Settings>): void;
   start(opts?: { sameSeed?: boolean }): void;
   resume(saved: SavedB03Attempt): void;
-  confirmPpe(items: Record<PpeItemB01, boolean>): boolean;
+  confirmPpe(items: Partial<Record<PpeItemB01, boolean>>): boolean;
   dispatch(cmd: PermCommand): PermDispatchResult;
   select(id: string | null): void;
   setHeld(id: string | null): void;

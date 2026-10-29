@@ -25,6 +25,8 @@ const P10App = lazy(() => import('./p10/P10App'));
 const B01App = lazy(() => import('./b01/B01App'));
 const B02App = lazy(() => import('./b02/B02App'));
 const B03App = lazy(() => import('./b03/B03App'));
+const B04App = lazy(() => import('./b04/B04App'));
+const B05App = lazy(() => import('./b05/B05App'));
 
 const Loading = () => <div className="scene-loading" role="status">…</div>;
 
@@ -98,12 +100,14 @@ function LabHost({ id, mode }: { id: LabId; mode: string | null }) {
     if (id === 'b01') void import('./b01/store').then((m) => m.useB01.getState().setSettings({ mode: mode as never }));
     if (id === 'b02') void import('./b02/store').then((m) => m.useB02.getState().setSettings({ mode: mode as never }));
     if (id === 'b03') void import('./b03/store').then((m) => m.useB03.getState().setSettings({ mode: mode as never }));
+    if (id === 'b04') void import('./b04/store').then((m) => m.useB04.getState().setSettings({ mode: mode as never }));
+    if (id === 'b05') void import('./b05/store').then((m) => m.useB05.getState().setSettings({ mode: mode as never }));
   }, [id, mode]);
   const back = () => open('panel');
   if (id === 'p2') return <P2App onBack={back} />;
   return (
     <Suspense fallback={<Loading />}>
-      {id === 'p01' ? <P01App onBack={back} /> : id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : id === 'p6' ? <P6App onBack={back} /> : id === 'p7' ? <P07App onBack={back} /> : id === 'p8' ? <P08App onBack={back} /> : id === 'p9' ? <P09App onBack={back} /> : id === 'b01' ? <B01App onBack={back} /> : id === 'b02' ? <B02App onBack={back} /> : id === 'b03' ? <B03App onBack={back} /> : <P10App onBack={back} />}
+      {id === 'p01' ? <P01App onBack={back} /> : id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : id === 'p6' ? <P6App onBack={back} /> : id === 'p7' ? <P07App onBack={back} /> : id === 'p8' ? <P08App onBack={back} /> : id === 'p9' ? <P09App onBack={back} /> : id === 'b01' ? <B01App onBack={back} /> : id === 'b02' ? <B02App onBack={back} /> : id === 'b03' ? <B03App onBack={back} /> : id === 'b04' ? <B04App onBack={back} /> : id === 'b05' ? <B05App onBack={back} /> : <P10App onBack={back} />}
     </Suspense>
   );
 }

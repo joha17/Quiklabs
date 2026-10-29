@@ -207,6 +207,23 @@ jarabe con lecturas de volumen sin paralaje y temperatura, y *Elodea* en agua, N
 lecturas propias del intento. 65 errores (PERM01–PERM65) y demostración automática (`#b03`). Detalles:
 [docs/BIOLOGIA_B03.md](docs/BIOLOGIA_B03.md).
 
+## Biología B04 — Detectives moleculares (biomoléculas y enzimas)
+
+Cuarta práctica de Biología General, sobre el mismo equipo óptico: lotes preparados por el estudiante (almidón en plancha
+con agitador, extracto de hígado, amilasa), Lugol, Biuret, emulsión y Benedict con blanco y patrón en tubos rotulados
+ENSAYO/LOTE, ADN con Feulgen en frotis bucal y cebolla, catalasa medida por el gas recogido con blanco y tres
+condiciones, y amilasa leída con Lugol y Benedict en alícuotas separadas. Módulo ADH opcional y cerrado. 86 errores y
+demostración automática (`#b04`). Detalles: [docs/BIOLOGIA_B04.md](docs/BIOLOGIA_B04.md).
+
+## Biología B05 — Cinética en acción (catalasa, amilasa y regulación enzimática)
+
+Quinta práctica de Biología General, sobre el mismo equipo óptico: el estudiante prepara almidón, extracto de hígado y
+amilasa con balanza, probetas y agitación magnética; mide el O₂ de la catalasa con colector sellado y cronómetro (línea
+base, blanco sin tejido, calor y pH), incuba la amilasa a 37 °C con alícuotas a 0/120/300/600 s reveladas con Lugol y
+Benedict, observa gránulos de almidón de papa y calcula tasa inicial, PV = nRT y glucosilos con sus propias lecturas.
+Módulo ADH opcional (NADH a 340 nm). 101 errores con consecuencia física y demostración automática (`#b05`). Detalles:
+[docs/BIOLOGIA_B05.md](docs/BIOLOGIA_B05.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza

@@ -71,6 +71,14 @@ vi.mock('../../simulation/perm-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/perm-world/world')>();
   return { ...m, dispatchPerm: wrap(m.dispatchPerm) };
 });
+vi.mock('../../simulation/bio-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/bio-world/world')>();
+  return { ...m, dispatchBio: wrap(m.dispatchBio) };
+});
+vi.mock('../../simulation/enz-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/enz-world/world')>();
+  return { ...m, dispatchEnz: wrap(m.dispatchEnz) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -386,6 +394,48 @@ describe('repetición determinista — Biología B03', () => {
         return out.w;
       }, sanitizeOnResumeB03);
       const { graded } = await verify('b03', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B04', () => {
+  for (const seed of [4404, 59]) {
+    it(`B04 semilla ${seed}: preparaciones, ensayos, Feulgen, catalasa y amilasa con reanudación entre etapas`, async () => {
+      const hb4 = await import('../helpersB04');
+      const { sanitizeOnResumeB04 } = await import('../../practices/practice-b04/resume');
+      const { emptyB04Notebook } = await import('../../practices/practice-b04/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b04', opts, () => hb4.worldB04(opts), (w, resume) => {
+        const out = hb4.idealRouteB04(w, resume);
+        const n = emptyB04Notebook(`b04-${seed.toString(36)}-x`);
+        hb4.fillNotebookB04(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB04);
+      const { graded } = await verify('b04', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B05', () => {
+  for (const seed of [5505, 61]) {
+    it(`B05 semilla ${seed}: preparaciones, catalasa, amilasa y papa al microscopio con reanudación entre estaciones`, async () => {
+      const hb5 = await import('../helpersB05');
+      const { sanitizeOnResumeB05 } = await import('../../practices/practice-b05/resume');
+      const { emptyB05Notebook } = await import('../../practices/practice-b05/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b05', opts, () => hb5.worldB05(opts), (w, resume) => {
+        const out = hb5.idealRouteB05(w, resume);
+        const n = emptyB05Notebook(`b05-${seed.toString(36)}-x`);
+        hb5.fillNotebookB05(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB05);
+      const { graded } = await verify('b05', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }
