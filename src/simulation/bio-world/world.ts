@@ -35,6 +35,8 @@ export const DROPPER_IDS = ['dI', 'dNa', 'dCu'] as const;
 export const PIPETTE_IDS = ['pi', 'pv'] as const;
 export const CYLINDER_IDS_B04 = ['g100', 'g10'] as const;
 export const WASTE_IDS = ['cw', 'bw', 'tr'] as const;
+/** Objeto de la mesada de cada corriente de residuos (donde queda el recipiente desechado). */
+const WASTE_OBJECT: Record<(typeof WASTE_IDS)[number], string> = { cw: 'cw', bw: 'bioWaste', tr: 'trashBin' };
 export const STAIN_JARS = ['jFix', 'jHcl', 'jWash', 'jSch'] as const;
 /** Ensayos que dan nombre a un tubo (`LUG/L-PAP`). */
 export const ASSAYS = ['LUG', 'BIU', 'EMU', 'BEN', 'CAT', 'AMY', 'ADH'] as const;
@@ -328,11 +330,14 @@ function deposit(w: BioWorld, toolId: string, targetId: string): BioDispatchResu
     spillPowder(w, sp.load, k);
     return ok({ value: 0 });
   }
+  const jars = dominant(sp.load);
   for (const [jar, g] of Object.entries(sp.load)) {
     powderInto(w, v, jar, g * k);
     sp.load[jar] = r6(g * (1 - k));
   }
-  afterPowder(w, targetId, dominant(sp.load));
+  // La espátula tocó el líquido: queda húmeda hasta secarla (la próxima carga arrastra agua, M10).
+  if (v.volumeMl > 0.05) sp.wet = true;
+  afterPowder(w, targetId, jars);
   return ok({ value: r6(total * k) });
 }
 
@@ -1214,9 +1219,10 @@ function disposeVessel(w: BioWorld, vesselId: string, wasteId: string): BioDispa
     t.collector = null;
     t.bath = null;
     const o = w.objects[vesselId];
+    const bin = w.objects[WASTE_OBJECT[wasteId as (typeof WASTE_IDS)[number]]];
     if (o) {
       o.support = wasteId;
-      o.pose = { ...w.objects[wasteId].pose, z: 3 };
+      if (bin) o.pose = { ...bin.pose, z: 3 };
     }
   }
   flagB(w, `disposed:${vesselId}:${wasteId}`);

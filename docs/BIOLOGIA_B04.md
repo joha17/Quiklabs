@@ -78,6 +78,7 @@ src/locales/es/practiceB04.json          textos (`b04.*`, `b04fb.*`)
 | Archivo | Qué comprueba |
 |---|---|
 | `b04-flow.test.ts` | Ruta ideal sin errores, todas las etapas, conservación y nota > 0,85 |
+| `b04-errors.test.ts` | Un caso por código (los 86) con su consecuencia real en el estado o en la libreta, códigos traducidos del microscopio y balance con derrames |
 | `b04-science.test.ts` | Referencias del modelo (gas ideal, MM, desnaturalización, Lugol, Biuret, Benedict, emulsión) |
 | `b04-locale.test.ts` | Textos de cada código, etapa, escenario, ítem, activo de Feulgen y cada clave literal del código |
 | `b04-demo.test.ts` | Demostración sin navegador con el `BioController`: sin errores, todas las etapas, tubos leídos y desechados, balance y cinta reproducible |
