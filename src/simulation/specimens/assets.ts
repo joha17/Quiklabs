@@ -18,7 +18,11 @@ export type StructureId =
   // B03 — respuesta osmótica de Elodea (§3.3).
   | 'protoplast' | 'periplasmicSpace'
   // B04 — tinción de Feulgen (ADN nuclear en magenta, §3.1).
-  | 'dnaStain';
+  | 'dnaStain'
+  // B06 — atlas celular comparado (§3.1): epidermis, protistas, procariotas y sangre.
+  | 'stoma' | 'guardCells' | 'euglenaCell' | 'pellicle' | 'eyespot' | 'flagellum' | 'parameciumCell' | 'cilia' | 'oralGroove'
+  | 'contractileVacuole' | 'foodVacuole' | 'macronucleus' | 'bacilli' | 'cellChain' | 'cyanoFilament' | 'heterocyst'
+  | 'erythrocyte' | 'leukocyte' | 'platelet' | 'neutrophil' | 'lymphocyte';
 
 /**
  * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
@@ -306,7 +310,144 @@ export const FEULGEN_ASSETS: Record<string, ObservationAssetManifest> = {
 /** Activo base que se dibuja para una versión docente (`tomatoT2` → `tomato`). */
 export const baseAssetId = (id: string) => id.replace(/T2$/, '');
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id]);
+const DIDACTIC_B06 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Basada en la guía «Práctica 6. Estructura de la célula»; las regiones anotadas fijan qué puede rotularse, nunca se agregan estructuras.';
+
+/** Manifiesto de B06: fresco o lámina permanente, con vistas hasta 100X (las regiones dicen a qué objetivo se distinguen). */
+function divManifest(
+  m: Omit<ObservationAssetManifest, 'contentHash' | 'ownerRole' | 'ownerId' | 'captureQuality' | 'fallbackPolicy' | 'sourceAttribution' | 'version' | 'views'>,
+  owner: { role: 'admin' | 'teacher'; id: string; version: number; attribution?: string } = { role: 'admin', id: 'u_admin', version: 1 },
+): ObservationAssetManifest {
+  const views: ObservationView[] = [4, 10, 40, 100].map((o) => ({ viewId: `x${o}`, objectiveX: o as 4 | 10 | 40 | 100, channel: 'mono', illumination: 'transmitted', focalPlanes: 1 }));
+  const base = {
+    ...m, views, version: owner.version, ownerRole: owner.role, ownerId: owner.id, captureQuality: 'illustrative' as const,
+    fallbackPolicy: 'admin-version' as const, sourceAttribution: owner.attribution ?? DIDACTIC_B06,
+  };
+  return { ...base, contentHash: stableHash(base) };
+}
+
+/** Elipse normalizada (organismos). */
+const ellipse = (cx: number, cy: number, rx: number, ry: number, rot = 0, n = 16) =>
+  Array.from({ length: n }, (_, i) => {
+    const t = (2 * Math.PI * i) / n;
+    const x = rx * Math.cos(t);
+    const y = ry * Math.sin(t);
+    return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)];
+  });
+
+/** Posiciones (normalizadas) de las regiones de B06; la ilustración del ocular dibuja exactamente estas. */
+export const DIV_LAYOUT = {
+  /** Tradescantia: poros estomáticos (centro) y sus células oclusivas (anillo). */
+  stomata: [[0.5, 0.52], [0.34, 0.36], [0.66, 0.42], [0.42, 0.7]] as [number, number][],
+  /** Euglena y Paramecium: centro, semiejes y giro de cada organismo. */
+  euglena: [[0.5, 0.5, 0.05, 0.016, 0.5], [0.3, 0.36, 0.05, 0.016, -0.7], [0.64, 0.7, 0.05, 0.016, 2.2]] as [number, number, number, number, number][],
+  paramecium: [[0.5, 0.5, 0.075, 0.03, 0.3], [0.7, 0.72, 0.075, 0.03, -1.1]] as [number, number, number, number, number][],
+  /** Burbuja de aire típica del medio de cultivo, fuera de los organismos. */
+  cultureBubble: [0.62, 0.32, 0.035] as [number, number, number],
+  /** Sangre: eritrocitos, leucocitos y plaquetas (círculos separados). */
+  rbc: [[0.3, 0.32], [0.42, 0.3], [0.56, 0.34], [0.68, 0.4], [0.34, 0.58], [0.5, 0.6], [0.64, 0.66], [0.42, 0.74]] as [number, number][],
+  wbc: [[0.46, 0.46], [0.66, 0.54]] as [number, number][],
+  plt: [[0.38, 0.45], [0.56, 0.48], [0.54, 0.76]] as [number, number][],
+} as const;
+
+const RBC_R = 0.035;
+const WBC_R = 0.05;
+const PLT_R = 0.012;
+
+const tradescantia = (id: string, name: string, stomata: EvidenceStatus): ObservationAssetManifest =>
+  divManifest({
+    assetId: id, name, sampleKind: 'fresh', extentMm: [4, 4],
+    annotations: [
+      { structureId: 'epidermalCells', polygonNormalized: TISSUE, observableAtObjectiveX: [4, 10, 40, 100] },
+      { structureId: 'cellWall', polygonNormalized: TISSUE, observableAtObjectiveX: [10, 40, 100] },
+      { structureId: 'nucleus', polygonNormalized: TISSUE, observableAtObjectiveX: [40, 100], evidence: 'inferred' },
+      ...DIV_LAYOUT.stomata.map(([x, y]) => ({ structureId: 'stoma' as const, polygonNormalized: circle(x, y, 0.02, 12), observableAtObjectiveX: [10, 40, 100], evidence: stomata })),
+      ...DIV_LAYOUT.stomata.map(([x, y]) => ({ structureId: 'guardCells' as const, polygonNormalized: band(circle(x, y, 0.05, 14), 0.4), observableAtObjectiveX: [40, 100], evidence: stomata === 'visible' ? ('visible' as const) : ('unavailable' as const) })),
+    ],
+  });
+
+const euglena = (id: string, name: string, eyespot: EvidenceStatus, chloroplasts: EvidenceStatus): ObservationAssetManifest =>
+  divManifest({
+    assetId: id, name, sampleKind: 'fresh', extentMm: [1.6, 1.6],
+    annotations: DIV_LAYOUT.euglena.flatMap(([x, y, rx, ry, r]) => [
+      { structureId: 'euglenaCell' as const, polygonNormalized: ellipse(x, y, rx, ry, r), observableAtObjectiveX: [10, 40, 100] },
+      { structureId: 'pellicle' as const, polygonNormalized: band(ellipse(x, y, rx, ry, r), 0.8), observableAtObjectiveX: [40, 100] },
+      { structureId: 'chloroplasts' as const, polygonNormalized: ellipse(x, y, rx * 0.7, ry * 0.7, r), observableAtObjectiveX: [40, 100], evidence: chloroplasts },
+      { structureId: 'eyespot' as const, polygonNormalized: circle(x + Math.cos(r) * rx * 0.7, y + Math.sin(r) * rx * 0.7, 0.006, 8), observableAtObjectiveX: [40, 100], evidence: eyespot },
+      // El flagelo no se verificó en ninguna fuente de la biblioteca (§3.1): existe, pero no puede rotularse.
+      { structureId: 'flagellum' as const, polygonNormalized: circle(x + Math.cos(r) * rx * 1.3, y + Math.sin(r) * rx * 1.3, 0.012, 8), observableAtObjectiveX: [40, 100], evidence: 'inferred' as const },
+      { structureId: 'nucleus' as const, polygonNormalized: circle(x, y, 0.01, 8), observableAtObjectiveX: [40, 100], evidence: 'inferred' as const },
+    ]),
+  });
+
+const paramecium = (id: string, name: string, fine: boolean, macro: EvidenceStatus, cilia: EvidenceStatus): ObservationAssetManifest =>
+  divManifest({
+    assetId: id, name, sampleKind: 'fresh', extentMm: [2.4, 2.4],
+    annotations: DIV_LAYOUT.paramecium.flatMap(([x, y, rx, ry, r]) => [
+      { structureId: 'parameciumCell' as const, polygonNormalized: ellipse(x, y, rx, ry, r), observableAtObjectiveX: [4, 10, 40, 100] },
+      { structureId: 'foodVacuole' as const, polygonNormalized: ellipse(x, y, rx * 0.5, ry * 0.5, r), observableAtObjectiveX: [40, 100] },
+      { structureId: 'oralGroove' as const, polygonNormalized: circle(x, y + ry * 0.5, 0.012, 8), observableAtObjectiveX: [40, 100], evidence: fine ? ('visible' as const) : ('inferred' as const) },
+      { structureId: 'contractileVacuole' as const, polygonNormalized: circle(x + Math.cos(r) * rx * 0.6, y + Math.sin(r) * rx * 0.6, 0.012, 8), observableAtObjectiveX: [40, 100], evidence: fine ? ('visible' as const) : ('inferred' as const) },
+      { structureId: 'macronucleus' as const, polygonNormalized: ellipse(x, y, rx * 0.25, ry * 0.4, r), observableAtObjectiveX: [40, 100], evidence: macro },
+      { structureId: 'cilia' as const, polygonNormalized: band(ellipse(x, y, rx * 1.12, ry * 1.25, r), 0.86), observableAtObjectiveX: [40, 100], evidence: cilia },
+    ]),
+  });
+
+const bloodSmear = (id: string, name: string, platelets: EvidenceStatus, leukocytes: EvidenceStatus, differential: boolean, owner?: Parameters<typeof divManifest>[1]): ObservationAssetManifest =>
+  divManifest({
+    assetId: id, name, sampleKind: 'fixed', extentMm: [0.6, 0.6],
+    annotations: [
+      ...DIV_LAYOUT.rbc.map(([x, y]) => ({ structureId: 'erythrocyte' as const, polygonNormalized: circle(x, y, RBC_R, 12), observableAtObjectiveX: [10, 40, 100] })),
+      ...DIV_LAYOUT.wbc.map(([x, y]) => ({ structureId: 'leukocyte' as const, polygonNormalized: circle(x, y, WBC_R, 12), observableAtObjectiveX: [10, 40, 100], evidence: leukocytes })),
+      ...DIV_LAYOUT.wbc.map(([x, y]) => ({ structureId: 'nucleus' as const, polygonNormalized: circle(x, y, WBC_R * 0.6, 10), observableAtObjectiveX: [40, 100], evidence: leukocytes })),
+      ...DIV_LAYOUT.plt.map(([x, y]) => ({ structureId: 'platelet' as const, polygonNormalized: circle(x, y, PLT_R, 8), observableAtObjectiveX: [40, 100], evidence: platelets })),
+      ...(differential ? [
+        { structureId: 'neutrophil' as const, polygonNormalized: circle(DIV_LAYOUT.wbc[0][0], DIV_LAYOUT.wbc[0][1], WBC_R, 12), observableAtObjectiveX: [40, 100] },
+        { structureId: 'lymphocyte' as const, polygonNormalized: circle(DIV_LAYOUT.wbc[1][0], DIV_LAYOUT.wbc[1][1], WBC_R, 12), observableAtObjectiveX: [40, 100] },
+      ] : []),
+    ],
+  }, owner);
+
+const BACT = blob(0.36, 0.9, 20);
+const TEACHER_B06 = { role: 'teacher' as const, id: 'u_teacher_demo', version: 2, attribution: 'Activo docente asignado al grupo (SC-TEACHER-OVERRIDE); ilustración didáctica, no microfotografía.' };
+
+/**
+ * Manifiestos de B06. Las bacterias nunca anotan nucléolo (no lo tienen) ni nucleoide; el flagelo de Euglena y los
+ * cilios de Paramecium solo son rotulables en las fuentes que los validan. Las regiones con 100X solo se distinguen a 100X.
+ */
+export const DIV_ASSETS: Record<string, ObservationAssetManifest> = {
+  tradescantia: tradescantia('tradescantia', 'Epidermis inferior de Tradescantia con estomas', 'visible'),
+  tradescantiaBlur: tradescantia('tradescantiaBlur', 'Epidermis de Tradescantia con estomas poco discernibles', 'inferred'),
+  euglena: euglena('euglena', 'Euglena viva en gota de cultivo', 'inferred', 'visible'),
+  euglenaVisible: euglena('euglenaVisible', 'Euglena viva con estigma identificable', 'visible', 'visible'),
+  euglenaLugol: euglena('euglenaLugol', 'Euglena tras Lugol (inmovilizada; el Lugol no prueba glucógeno)', 'inferred', 'inferred'),
+  paramecium: paramecium('paramecium', 'Paramecium vivo en gota de cultivo', false, 'inferred', 'unavailable'),
+  parameciumFine: paramecium('parameciumFine', 'Paramecium vivo, recurso de alta calidad', true, 'inferred', 'visible'),
+  parameciumNigrosin: paramecium('parameciumNigrosin', 'Paramecium con nigrosina (contraste negativo; no fija)', false, 'inferred', 'inferred'),
+  parameciumLugol: paramecium('parameciumLugol', 'Paramecium tras Lugol (inmovilizado)', false, 'visible', 'inferred'),
+  parameciumT2: paramecium('parameciumT2', 'Paramecium vivo (activo docente v2)', true, 'inferred', 'visible'),
+  bacillus: divManifest({
+    assetId: 'bacillus', name: 'Bacillus cereus, preparado permanente teñido', sampleKind: 'fixed', extentMm: [0.8, 0.8],
+    annotations: [
+      { structureId: 'bacilli', polygonNormalized: BACT, observableAtObjectiveX: [40, 100] },
+      { structureId: 'cellChain', polygonNormalized: BACT, observableAtObjectiveX: [100] },
+    ],
+  }),
+  cyano: divManifest({
+    assetId: 'cyano', name: 'Cianobacterias filamentosas, preparado permanente', sampleKind: 'fixed', extentMm: [1.2, 1.2],
+    annotations: [
+      { structureId: 'cyanoFilament', polygonNormalized: BACT, observableAtObjectiveX: [10, 40, 100] },
+      { structureId: 'heterocyst', polygonNormalized: BACT, observableAtObjectiveX: [40, 100] },
+    ],
+  }),
+  blood: bloodSmear('blood', 'Frotis sanguíneo teñido (preparado docente)', 'visible', 'visible', false),
+  bloodT2: bloodSmear('bloodT2', 'Frotis sanguíneo teñido (activo docente v2)', 'visible', 'visible', false, TEACHER_B06),
+  bloodLowContrast: bloodSmear('bloodLowContrast', 'Frotis sanguíneo con tinción débil', 'inferred', 'visible', false),
+  bloodDifferential: bloodSmear('bloodDifferential', 'Frotis sanguíneo con leucocitos identificados por experto', 'visible', 'visible', true),
+  bloodRaw: bloodSmear('bloodRaw', 'Frotis sanguíneo fijado sin teñir', 'unavailable', 'inferred', false),
+  bloodWrightWeak: bloodSmear('bloodWrightWeak', 'Frotis con Wright sin tampón (contraste insuficiente)', 'inferred', 'inferred', false),
+};
+
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id] ?? DIV_ASSETS[id]);
 
 /** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
 export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {
@@ -349,7 +490,8 @@ export function visibleStructures(a: ObservationAssetManifest, centerMm: [number
   for (const an of a.annotations) {
     if (an.evidence && an.evidence !== 'visible') continue;
     // Los manifiestos (con hash congelado en cada intento) anotan hasta 40X: lo que se distingue a 40X se distingue a 100X.
-    const x = opts.objectiveX === 100 ? 40 : opts.objectiveX;
+    // Los de B06 anotan también 100X: entonces la región exige ese objetivo.
+    const x = opts.objectiveX === 100 && !an.observableAtObjectiveX?.includes(100) ? 40 : opts.objectiveX;
     if (x !== undefined && an.observableAtObjectiveX && !an.observableAtObjectiveX.includes(x)) continue;
     if (opts.zoomX !== undefined && an.observableAtZoomMin !== undefined && opts.zoomX < an.observableAtZoomMin) continue;
     if (circleHitsPolygon(cx, cy, r, an.polygonNormalized)) out.add(an.structureId);

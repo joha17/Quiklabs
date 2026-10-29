@@ -7,6 +7,7 @@
  */
 import { assetById, baseAssetId, type ObservationAssetManifest } from '../../../simulation/specimens/assets';
 import { drawCellAsset } from './illustrationsCell';
+import { drawDivAsset } from './illustrationsDiv';
 
 export interface ViewSpec {
   assetId: string;
@@ -386,6 +387,6 @@ export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
     case 'leaf': return drawLeafStereo(ctx, a, v);
     case 'insect': return drawInsect(ctx, a, v, false);
     case 'insectShiny': return drawInsect(ctx, a, v, true);
-    default: drawCellAsset(ctx, a, v, baseAssetId(a.assetId));
+    default: if (!drawDivAsset(ctx, a, v, baseAssetId(a.assetId))) drawCellAsset(ctx, a, v, baseAssetId(a.assetId));
   }
 }

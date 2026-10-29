@@ -56,6 +56,8 @@ export interface CellState {
   zoneSeq: number;
   /** Medios admitidos además de la receta (B03; ausente en B02). */
   extraAllowed?: Partial<Record<CellKind, StainId[]>>;
+  /** Variantes de recurso del intento (B06; ausente en B02–B05). */
+  variants?: { blurStomata: boolean; eugVisible: boolean; parFine: boolean };
 }
 
 export interface CellWorld extends OpticalWorld {

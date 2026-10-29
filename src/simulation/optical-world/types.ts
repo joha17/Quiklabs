@@ -16,6 +16,7 @@ import type { CellState } from '../cell-world/types';
 import type { PermParams } from '../perm-world/types';
 import type { BioParams } from '../bio-world/types';
 import type { EnzParams } from '../enz-world/types';
+import type { DivParams } from '../div-world/types';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
 
@@ -34,7 +35,9 @@ export type B01ObjKind =
   // B05: estaciones de cinética enzimática (preparaciones, catalasa con colector, amilasa, baños y ADH).
   | 'enzBottle' | 'enzBeaker' | 'enzCylinder' | 'enzPipette' | 'enzDropper' | 'enzRack' | 'enzTube' | 'enzPlate' | 'enzStirBar' | 'enzBalance'
   | 'enzBoat' | 'enzJar' | 'enzSpatula' | 'enzLiver' | 'enzBoard' | 'enzKnife' | 'enzBath' | 'enzTongs' | 'enzThermo' | 'enzStrips' | 'enzCollector'
-  | 'enzClock' | 'enzPhotometer' | 'enzCuvette' | 'enzBurner' | 'enzWaste' | 'enzRinse';
+  | 'enzClock' | 'enzPhotometer' | 'enzCuvette' | 'enzBurner' | 'enzWaste' | 'enzRinse'
+  // B06: epidermis de Tradescantia, aceite de inmersión, pañuelo, zona sin desinfectar, cultivo cerrado y lanceta bloqueada.
+  | 'plantPot' | 'oilBottle' | 'tissue' | 'dirtyZone' | 'culturePlate' | 'lancetBox' | 'wrightBottle' | 'sampleCards';
 
 export interface OpticalObject {
   id: string;
@@ -82,7 +85,7 @@ export interface ForcepsState {
 
 export interface DispenserState {
   ml: number;
-  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5';
+  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5' | 'methylcellulose' | 'nigrosin';
 }
 
 export interface StereoSample {
@@ -170,6 +173,8 @@ export interface B01Params {
   bio?: BioParams;
   /** Preparaciones, catalasa, amilasa, baños y ADH (B05). */
   enz?: EnzParams;
+  /** Protistas vivos, aceite de inmersión, morfometría y tinción de Wright (B06). */
+  div?: DivParams;
 }
 
 export interface OpticalWorld {

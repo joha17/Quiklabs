@@ -76,6 +76,8 @@ export class CellController extends OpticalController {
     if (prep2 && near(prep2.pose.x, prep2.pose.y, 4.2)) return prep2.id;
     if (near(BOARD_POS.x, BOARD_POS.y, GEO_B02.board.w / 2)) return 'board';
     for (const id of Object.keys(w.cell?.sources ?? {})) {
+      // Un gotero de cultivo (B06) es también una fuente: el que se sostiene no es su propio objetivo.
+      if (id === h.id) continue;
       const o = w.objects[id];
       if (o && near(o.pose.x, o.pose.y, GEO_B02.source.r + 0.6)) return id;
     }

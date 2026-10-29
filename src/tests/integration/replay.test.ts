@@ -67,6 +67,10 @@ vi.mock('../../simulation/cell-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/cell-world/world')>();
   return { ...m, dispatchCell: wrap(m.dispatchCell) };
 });
+vi.mock('../../simulation/div-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/div-world/world')>();
+  return { ...m, dispatchDiv: wrap(m.dispatchDiv) };
+});
 vi.mock('../../simulation/perm-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/perm-world/world')>();
   return { ...m, dispatchPerm: wrap(m.dispatchPerm) };
@@ -437,6 +441,27 @@ describe('repetición determinista — Biología B05', () => {
       }, sanitizeOnResumeB05);
       const { graded } = await verify('b05', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B06', () => {
+  for (const [seed, scenarios] of [[2606, []], [67, ['SC-BACT-IMMERSION']]] as const) {
+    it(`B06 semilla ${seed}: preparaciones frescas, protistas, láminas permanentes, marcas y medición con reanudación entre rutas`, async () => {
+      const hb6 = await import('../helpersB06');
+      const { sanitizeOnResumeB06 } = await import('../../practices/practice-b06/resume');
+      const { emptyB06Notebook } = await import('../../practices/practice-b06/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [...scenarios] };
+      let nb: unknown = null;
+      const r = record('b06', opts, () => hb6.worldB06(opts), (w, resume) => {
+        const out = hb6.idealRouteB06(w, resume);
+        const n = emptyB06Notebook(`b06-${seed.toString(36)}-x`);
+        hb6.fillNotebookB06(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB06);
+      const { graded } = await verify('b06', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.9);
     }, 300000);
   }
 });

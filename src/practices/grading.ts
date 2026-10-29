@@ -113,12 +113,19 @@ import { sanitizeOnResumeB05 } from './practice-b05/resume';
 import type { B05Notebook } from './practice-b05/notebook';
 import type { EnzWorld } from '../simulation/enz-world/types';
 import { conservedEnz, dispatchEnz, stepEnzWorld } from '../simulation/enz-world/world';
+import { newPracticeB06World, type PracticeB06Options } from './practice-b06';
+import { b06StageEvidence } from './practice-b06/evidence';
+import { evaluateB06 } from './practice-b06/rubric';
+import { sanitizeOnResumeB06 } from './practice-b06/resume';
+import type { B06Notebook } from './practice-b06/notebook';
+import type { DivWorld } from '../simulation/div-world/types';
+import { conservedDiv, dispatchDiv, stepDivWorld } from '../simulation/div-world/world';
 import { conservedCell, dispatchCell, stepCellWorld } from '../simulation/cell-world/world';
 import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06'];
 
 interface WorldBase {
   tick: number;
@@ -319,6 +326,18 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as EnzWorld).scenarios, assignment: (w as EnzWorld).assignment, cellAssignment: { missingAssets: (w as EnzWorld).cell.missingAssets }, adh: (w as EnzWorld).enz.adhEnabled, initial: (w as EnzWorld).enz.initial }),
     conserved: (w) => conservedEnz(w as EnzWorld),
     mode: (o) => opt<PracticeB05Options>(o).mode,
+  },
+  b06: {
+    create: (o) => newPracticeB06World(opt<PracticeB06Options>(o)),
+    dispatch: (w, c) => void dispatchDiv(w as DivWorld, c as never),
+    step: (w) => stepDivWorld(w as DivWorld),
+    sanitize: (w) => sanitizeOnResumeB06(w as DivWorld),
+    latch: (w, nb) => void b06StageEvidence(w as DivWorld, nb as B06Notebook),
+    evaluate: (w, s) => evaluateB06(w as DivWorld, s.notebook as B06Notebook),
+    // Además de lo de B02: módulo de inmersión, escala certificada, láminas rotas y los inventarios de aceite y Wright.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as DivWorld).scenarios, assignment: (w as DivWorld).assignment, cellAssignment: { assigned: (w as DivWorld).cell.assigned, assetOverride: (w as DivWorld).cell.assetOverride, missingAssets: (w as DivWorld).cell.missingAssets, variants: (w as DivWorld).cell.variants }, div: { immersion: (w as DivWorld).div.immersion, scale: (w as DivWorld).div.scale, brokenSlides: (w as DivWorld).div.brokenSlides, brokenFixed: (w as DivWorld).div.brokenFixed, ledger: { oil: (w as DivWorld).div.ledger.oil.initialMl, wri: (w as DivWorld).div.ledger.wri.initialMl, buf: (w as DivWorld).div.ledger.buf.initialMl } } }),
+    conserved: (w) => conservedDiv(w as DivWorld),
+    mode: (o) => opt<PracticeB06Options>(o).mode,
   },
 };
 

@@ -224,6 +224,14 @@ Benedict, observa gránulos de almidón de papa y calcula tasa inicial, PV = nRT
 Módulo ADH opcional (NADH a 340 nm). 101 errores con consecuencia física y demostración automática (`#b05`). Detalles:
 [docs/BIOLOGIA_B05.md](docs/BIOLOGIA_B05.md).
 
+## Biología B06 — Atlas celular comparado (procariotas, protistas, plantas y sangre)
+
+Sexta práctica de Biología General, sobre el mismo equipo óptico: fichas fresca/permanente, epidermis de *Tradescantia*
+pelada con la pinza, *Paramecium* (con metilcelulosa) y *Euglena* vivos con la movilidad registrada mirando, frotis
+bucal teñido, *Elodea*, y *Bacillus* y sangre en láminas permanentes (100X con aceite solo con módulo de inmersión).
+Marcas sobre capturas propias y longitudes con la escala del objetivo e incertidumbre. 75 errores y demostración
+automática (`#b06`). Detalles: [docs/BIOLOGIA_B06.md](docs/BIOLOGIA_B06.md).
+
 ## Práctica 10 — Gases ideales y ley de Boyle
 
 Constante R con el CO₂ de una alícuota de bicarbonato y vinagre recogido sobre agua en una bureta invertida (balanza

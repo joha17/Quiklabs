@@ -8,15 +8,23 @@
 import { clamp } from '../core/math';
 import type { StructureId } from './assets';
 
-export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal';
-/** Medios de montaje: el agua, los colorantes de B02 y las soluciones de NaCl de B03 (medio de Elodea). */
-export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5';
-export type PrepKind = 'leaf' | 'cut' | 'scrape' | 'smear';
+export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal' | 'tradescantia' | 'euglena' | 'paramecium';
+/**
+ * Medios de montaje: el agua, los colorantes de B02, las soluciones de NaCl de B03 (medio de Elodea) y los de B06
+ * (metilcelulosa, que solo aumenta la viscosidad, y nigrosina, contraste negativo que no fija).
+ */
+export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5' | 'methylcellulose' | 'nigrosin';
+/** `peel`: epidermis separada con pinza (B06); `drop`: gota de un cultivo vivo (B06). */
+export type PrepKind = 'leaf' | 'cut' | 'scrape' | 'smear' | 'peel' | 'drop';
 
 export const CELL_KINDS: CellKind[] = ['elodea', 'potato', 'tomato', 'pepper', 'carrot', 'pear', 'guava', 'apple', 'buccal'];
 export const STAINS: Exclude<StainId, 'water'>[] = ['lugol', 'methylene-blue', 'eosin-1pct'];
 /** Medios salinos de B03 (solo existen en ese mundo; B02 conserva su lista). */
 export const SALINES: Exclude<StainId, 'water'>[] = ['nacl-0.9', 'nacl-5'];
+/** Muestras frescas de B06 (las de B02 conservan su lista) y sus medios con balance propio. */
+export const DIV_KINDS: CellKind[] = ['tradescantia', 'euglena', 'paramecium'];
+export const DIV_MEDIA: Exclude<StainId, 'water'>[] = ['methylene-blue', 'lugol', 'methylcellulose', 'nigrosin'];
+const ALL_KINDS: CellKind[] = [...CELL_KINDS, ...DIV_KINDS];
 
 /** Parámetros de preparación (§7.1): valores de software `pending`, no medidas de un tejido real. */
 export interface CellPrepParams {
@@ -47,6 +55,15 @@ export interface CellPrepParams {
   leafMassMg: number;
   /** Desgarro a partir del cual no se reconocen los límites celulares. */
   tearMax: number;
+}
+
+/**
+ * Epidermis separada con la pinza (B06, §6.5): el espesor lo decide el gesto (ángulo de tirón) y el largo, el área.
+ * Una tira gruesa arrastra mesófilo (varias capas): es el «corte grueso» de B02 con las mismas reglas de visibilidad.
+ */
+export function peelFragment(p: CellPrepParams, kind: CellKind, sourceId: string, thicknessMm: number, lengthCm: number): CellFragment {
+  const f = cutFragment(p, kind, sourceId, thicknessMm, lengthCm);
+  return { ...f, prep: 'peel' };
 }
 
 export interface CellFragment {
@@ -126,7 +143,7 @@ export function zoneVisible(p: CellPrepParams, visible: StructureId[], z: CellZo
   if (z.areaMm2 < p.minAreaMm2) return [];
   let out = visible;
   // Corte grueso: luz que atraviesa varias capas; solo el bulto del tejido.
-  if (z.thicknessMm > p.thickMaxMm) out = out.filter((s) => s === 'fruitCells' || s === 'epithelialCells' || s === 'leafBlade');
+  if (z.thicknessMm > p.thickMaxMm) out = out.filter((s) => s === 'fruitCells' || s === 'epithelialCells' || s === 'leafBlade' || s === 'epidermalCells');
   if (z.tear01 > p.tearMax) out = out.filter((s) => s !== 'cellWall' && s !== 'cellBorder' && s !== 'sclereids');
   if (info.overstain01 > 0.6) out = out.filter((s) => s !== 'starchGrains');
   if (z.prep === 'smear' && info.smearDensity01 > p.smearDenseMax) out = out.filter((s) => s !== 'cellBorder' && s !== 'nucleus' && s !== 'cytoplasm');
@@ -153,7 +170,7 @@ export const BLOCKING_CELL_ISSUES = ['THICK', 'TOO_SMALL', 'TORN', 'OVERSTAIN', 
 /** Muestra de un `specimenId` de zona (`m:tomato:2` → `tomato`). */
 export const kindOfSpecimen = (specimenId: string | null | undefined): CellKind | null => {
   const k = specimenId?.split(':')[1]?.split('@')[0];
-  return k && (CELL_KINDS as string[]).includes(k) ? (k as CellKind) : null;
+  return k && (ALL_KINDS as string[]).includes(k) ? (k as CellKind) : null;
 };
 
 const round3 = (v: number) => Math.round(v * 1000) / 1000;

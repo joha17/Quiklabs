@@ -27,6 +27,10 @@ export const CELL_RECIPES: Record<CellKind, CellRecipe> = {
   guava: { kind: 'guava', preps: ['cut'], reagents: ['water', 'eosin-1pct'], required: null, tools: ['sc'] },
   apple: { kind: 'apple', preps: ['cut'], reagents: ['water', 'eosin-1pct'], required: null, tools: ['sc'] },
   buccal: { kind: 'buccal', preps: ['smear'], reagents: ['water', 'methylene-blue', 'eosin-1pct'], required: 'any', tools: ['swab'] },
+  // B06: epidermis separada con pinza; protistas en gota de cultivo (metilcelulosa, Lugol y nigrosina admitidos y documentados).
+  tradescantia: { kind: 'tradescantia', preps: ['peel'], reagents: ['water'], required: null, tools: ['fc'] },
+  euglena: { kind: 'euglena', preps: ['drop'], reagents: ['water', 'methylcellulose', 'lugol', 'nigrosin'], required: null, tools: ['pipette'] },
+  paramecium: { kind: 'paramecium', preps: ['drop'], reagents: ['water', 'methylcellulose', 'lugol', 'nigrosin'], required: null, tools: ['pipette'] },
 };
 
 export const stainVolume = (info: CellMountInfo, s: StainId) => info.stainMl[s] ?? 0;
@@ -52,6 +56,8 @@ export interface AssetChoice {
   override: Record<string, string>;
   /** Recursos que faltan en la asignación (S18). */
   missing: string[];
+  /** Variantes de B06 (ausentes en B02–B05). */
+  div?: { blurStomata: boolean; eugVisible: boolean; parFine: boolean };
 }
 
 /** Recurso base de la condición de una zona. */
@@ -66,6 +72,10 @@ export function baseAssetFor(z: CellZone, info: CellMountInfo, c: AssetChoice, m
     case 'guava': return 'guava';
     case 'apple': return 'missing:apple';
     case 'buccal': return hasStain(info, 'methylene-blue') ? 'buccalMB' : hasStain(info, 'eosin-1pct') ? 'buccalEosin' : 'buccalPlain';
+    case 'tradescantia': return c.div?.blurStomata ? 'tradescantiaBlur' : 'tradescantia';
+    // Lugol sobre un protista vivo: lo inmoviliza (recurso de la condición, no prueba de una reserva).
+    case 'euglena': return hasStain(info, 'lugol') ? 'euglenaLugol' : c.div?.eugVisible ? 'euglenaVisible' : 'euglena';
+    case 'paramecium': return hasStain(info, 'lugol') ? 'parameciumLugol' : hasStain(info, 'nigrosin') ? 'parameciumNigrosin' : c.div?.parFine ? 'parameciumFine' : 'paramecium';
   }
 }
 

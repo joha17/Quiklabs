@@ -21,7 +21,7 @@ interface StudentCourse {
   labs: Array<{ labId: LabId; opensAt: string; closesAt: string; mode: LabMode; open: boolean }>;
 }
 
-const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p8: 'menu.labs.p8.title', p9: 'menu.labs.p9.title', p10: 'menu.labs.p10.title', b01: 'menu.labs.b01.title', b02: 'menu.labs.b02.title', b03: 'menu.labs.b03.title', b04: 'menu.labs.b04.title', b05: 'menu.labs.b05.title' };
+const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p8: 'menu.labs.p8.title', p9: 'menu.labs.p9.title', p10: 'menu.labs.p10.title', b01: 'menu.labs.b01.title', b02: 'menu.labs.b02.title', b03: 'menu.labs.b03.title', b04: 'menu.labs.b04.title', b05: 'menu.labs.b05.title', b06: 'menu.labs.b06.title' };
 
 export function StudentPanel() {
   const { t } = useTranslation();

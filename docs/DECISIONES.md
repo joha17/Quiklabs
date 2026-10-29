@@ -341,6 +341,25 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 | BIO5-23 | Calendario y migración | `b05` abre el 2026-11-17 en «Biología General I», tarjeta 15. Migración `0015_course_labs_b05.sql` (CHECK con `'b04'` y `'b05'`). Fotos del docente: papa sin teñir y con Lugol. |
 | BIO5-24 | Demostración | Recorrido sin errores: P1, P3 y P2 (la placa 2 queda para el extracto), línea base, blanco, calor y pH, incubación con alícuotas, papa al microscopio, libreta y cierre. |
 
+## Biología B06 — Atlas celular comparado (procariotas, protistas, plantas y sangre)
+
+| Id | Decisión | Detalle |
+|---|---|---|
+| B06-01 | Sin punción ni cultivos abiertos | La sangre se estudia en el frotis preparado por el docente y *B. cereus* en lámina permanente; la lanceta y abrir la placa se bloquean (CEL-005/006). |
+| B06-02 | Capa sobre B02 | `dispatchDiv → dispatchCell → dispatchB01`, `DivController extends CellController`; el microscopio, el montaje y el frotis bucal no cambian. |
+| B06-03 | 100X solo con módulo | Sin `SC-BACT-IMMERSION` el revólver no tiene 100X ni hay aceite (`NO_IMMERSION_MODULE`); los bacilos se distinguen desde 40X. |
+| B06-04 | Muestras vivas | Viabilidad y viscosidad por lámina; Lugol, secado, calor o arrastrar el cubreobjetos las inmovilizan. La movilidad se registra mirando, antes del Lugol. |
+| B06-05 | Sin velocidad sin video | `estimateSpeed` devuelve `NOT_EVALUABLE` salvo video docente con escala temporal (REF-09). |
+| B06-06 | Marcas con veredicto del manifiesto | `markRegion` (u, v de la captura) se contrasta con las regiones anotadas visibles: `valid`, `not-visible`, `wrong`, `outside`, `bubble` o `never` (nucléolo bacteriano, REF-08). |
+| B06-07 | Medición en píxeles | `measure` usa coordenadas de la captura (0–1000 px); µm/px sale del campo del objetivo; una escala «supuesta» se rechaza (CEL-055). |
+| B06-08 | Sin escala, sin nota | `SC-NO-SCALE` rechaza la medición con `UNCALIBRATED_SCALE` como incidencia; el ítem queda null (REF-07). |
+| B06-09 | FN hipotético | FN = 18 mm es el caso de la guía (`hypothetical`); velocidades y viscosidad son parámetros didácticos. |
+| B06-10 | Incidencias sin culpa | Recurso ausente, objetivo de foto distinto o escala ausente → `incident:*`, nunca `err:*`; el ítem se difiere. |
+| B06-11 | Goteros de cultivo | Cada cultivo tiene su gotero movible; mezclar cultivos en una gota (CEL-020) o rotular otro taxón deja la identidad en duda. |
+| B06-12 | Calendario y migración | `b06` abre el 2026-11-24 en «Biología General I», tarjeta 16. Migración `0016_course_labs_b06.sql`. |
+| B06-13 | Errores de libreta | CEL-037/043/046/047 y los de interpretación (061–071) son `nb:*`: se detectan contra las capturas, marcas y mediciones propias. |
+| B06-14 | Localizar a 4X sin estructuras | Sangre y bacterias no resuelven ninguna región a 4X: enfocar a 4X una lámina permanente ya acredita la localización, para que empezar por ella y pasar a 40X no cuente como CEL-025. |
+
 ## Resumen por hitos
 
 - **H0** Vite + TS estricto + ESLint (con regla de arquitectura) + Vitest + Playwright. `npm test` y `npm run build` pasan.

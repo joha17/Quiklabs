@@ -5,10 +5,10 @@
  */
 export type Role = 'admin' | 'teacher' | 'student';
 export type UserStatus = 'active' | 'suspended';
-export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05';
+export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06';
 export type LabMode = 'PRACTICE' | 'GUIDED' | 'EVALUATION';
 
-export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05'];
+export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06'];
 
 export interface User {
   id: string;
@@ -50,7 +50,7 @@ export interface CourseLab {
 export interface LabPhoto {
   id: string;
   scope: string;
-  labId: 'b01' | 'b02' | 'b03' | 'b04' | 'b05';
+  labId: 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06';
   assetId: string;
   objective: 4 | 10 | 40 | 100;
   r2Key: string;

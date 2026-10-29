@@ -4,14 +4,14 @@
  */
 import { create } from 'zustand';
 
-export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05';
+export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06';
 export type LegalRoute = 'privacidad' | 'terminos' | 'cookies' | 'accesibilidad';
 export type Route = LabId | 'login' | 'panel' | LegalRoute;
-export const ROUTES: Route[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'login', 'panel', 'privacidad', 'terminos', 'cookies', 'accesibilidad'];
+export const ROUTES: Route[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'login', 'panel', 'privacidad', 'terminos', 'cookies', 'accesibilidad'];
 
 export const isLegal = (r: Route | null): r is LegalRoute => r === 'privacidad' || r === 'terminos' || r === 'cookies' || r === 'accesibilidad';
 
-export const isLab = (r: Route | null): r is LabId => r === 'p01' || r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6' || r === 'p7' || r === 'p8' || r === 'p9' || r === 'p10' || r === 'b01' || r === 'b02' || r === 'b03' || r === 'b04' || r === 'b05';
+export const isLab = (r: Route | null): r is LabId => r === 'p01' || r === 'p2' || r === 'p3' || r === 'p4' || r === 'p5' || r === 'p6' || r === 'p7' || r === 'p8' || r === 'p9' || r === 'p10' || r === 'b01' || r === 'b02' || r === 'b03' || r === 'b04' || r === 'b05' || r === 'b06';
 
 function fromHash(): Route | null {
   if (typeof window === 'undefined') return null;

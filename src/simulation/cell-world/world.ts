@@ -59,6 +59,7 @@ export function assetChoice(w: CellWorld): AssetChoice {
   return {
     denseElodea: scC(w, SC.DENSE_ELODEA), similarFruits: scC(w, SC.SIMILAR_FRUITS), clearSclereids: scC(w, SC.CLEAR_SCLEREIDS),
     override: w.cell.assetOverride, missing: w.cell.missingAssets,
+    ...(w.cell.variants ? { div: w.cell.variants } : {}),
   };
 }
 
@@ -272,7 +273,7 @@ function smear(w: CellWorld, swabId: string, slideId: string, lengthCm: number, 
 }
 
 /** Coloca una zona sobre el montaje: contaminación del vidrio, centrado, reactivos ya presentes y recurso. */
-function addZone(w: CellWorld, m: FreshMount, z: CellZone, slideId: string, contamination01: number) {
+export function addZone(w: CellWorld, m: FreshMount, z: CellZone, slideId: string, contamination01: number) {
   const info = m.cell!;
   info.zones.push(z);
   if (info.zones.length === 1) info.allowed = [...CELL_RECIPES[z.kind].reagents, ...(w.cell.extraAllowed?.[z.kind] ?? [])];
@@ -689,6 +690,8 @@ export interface CellWorldExtras {
   stains?: Exclude<StainId, 'water'>[];
   /** Medios que una muestra admite además de su receta (B03: NaCl sobre Elodea). */
   extraAllowed?: Partial<Record<CellKind, StainId[]>>;
+  /** Variantes de recurso de B06. */
+  variants?: CellWorld['cell']['variants'];
 }
 
 /** Medios con balance en este mundo, en el orden en que se crearon. */
@@ -725,6 +728,7 @@ export function createCellWorld(spec: OpticalWorldSpec, x: CellWorldExtras): Cel
     zoneSeq: 0,
   };
   if (x.extraAllowed) w.cell.extraAllowed = structuredClone(x.extraAllowed);
+  if (x.variants) w.cell.variants = { ...x.variants };
   for (const m of Object.values(w.mounts)) refreshAssets(w, m);
   return w;
 }
