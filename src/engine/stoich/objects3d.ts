@@ -11,7 +11,7 @@ import type { P5Object, P5World } from '../../simulation/stoich-world/types';
 import { tubeTempC } from '../../simulation/stoich-world/world';
 import { MOLAR_MASS } from '../../simulation/stoichiometry/stoich';
 import type { QualityLevel } from '../quality';
-import { materials } from '../renderers/materials';
+import { asGlass, materials } from '../renderers/materials';
 import { labelTexture, lcdTexture, tapeTexture } from '../renderers/textures';
 import { BALANCE_GEO, CLAMP_ARM, TUBE5 } from '../../practices/practice-05/definition';
 import type { FrameCtx5 } from './StoichLab3D';
@@ -282,7 +282,7 @@ export function createObjVisual5(o: P5Object, w0: P5World, q: QualityLevel, labe
       const inner = new THREE.Group();
       const L = TUBE5.length;
       const R = TUBE5.outerR;
-      const glassMat = own(mats.glass.clone());
+      const glassMat = own(asGlass(mats.glass.clone()));
       const wall = new THREE.Mesh(new THREE.CylinderGeometry(R, R, L - R, seg, 1, true), glassMat);
       wall.position.y = R + (L - R) / 2;
       const bottom = new THREE.Mesh(new THREE.SphereGeometry(R, seg, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), glassMat);
@@ -636,7 +636,7 @@ export function createObjVisual5(o: P5Object, w0: P5World, q: QualityLevel, labe
     }
 
     case 'sugarJar': {
-      const jarMat = own(new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.05, transparent: true, opacity: 0.35 }));
+      const jarMat = own(asGlass(new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.03, transparent: true, opacity: 0.12, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false })));
       const jar = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 8, seg, 1, true), jarMat);
       jar.position.y = 4;
       const sugar = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 5, seg), own(new THREE.MeshStandardMaterial({ color: 0xfaf7ee, roughness: 1 }))));

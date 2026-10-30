@@ -361,6 +361,6 @@ describe('§28.5 magnesio', () => {
       for (let t = 0; t < 2; t += 0.013) expect(mgLightIntensity({ burning: true, shielded: false, reduced }, t)).toBeLessThanOrEqual(MG_LIGHT_MAX);
     }
     expect(mgLightIntensity({ burning: true, shielded: true, reduced: false }, 0.3)).toBeLessThan(mgLightIntensity({ burning: true, shielded: false, reduced: false }, 0.3));
-    expect(mgExposure({ burning: false, shielded: false, reduced: false })).toBeCloseTo(1.05);
+    expect(mgExposure({ burning: false, shielded: false, reduced: false })).toBeCloseTo(0.9);
   });
 });

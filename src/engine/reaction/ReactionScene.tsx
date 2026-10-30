@@ -694,15 +694,15 @@ export function ReactionScene({ lab, setting }: { lab: ReactionLab3D; setting: Q
   return (
     <Canvas
       key={`${q}:${epoch}`}
-      shadows={p.shadows ? (q === 'HIGH' ? 'soft' : true) : false}
+      shadows={p.shadows ? 'soft' : false}
       dpr={[1, p.maxDpr]}
-      gl={{ antialias: p.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
+      gl={{ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
       camera={{ fov: 38, near: 1, far: 3000, position: [80, 40, 60] }}
       onCreated={({ gl, scene, camera }) => {
         lab.three = { gl, scene, camera };
         gl.localClippingEnabled = true;
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMapping = THREE.NeutralToneMapping;
+        gl.toneMappingExposure = 0.9;
       }}
       data-testid="lab-3d"
     >

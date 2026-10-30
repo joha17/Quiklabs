@@ -1,6 +1,6 @@
 /**
- * Escena 3D de la práctica B01 (React Three Fiber) con la sala, luces y cámara de las demás prácticas y el estilo cel
- * shading con contorno (Toon3D). Orden de cada fotograma: dominio con paso fijo → interacción → vistas → efectos
+ * Escena 3D de la práctica B01 (React Three Fiber) con la sala, luces y cámara de las demás prácticas y materiales
+ * realistas. Orden de cada fotograma: dominio con paso fijo → interacción → vistas → efectos
  * (charco de lo derramado). Los objetos se apoyan donde el controlador los deja; la sala conserva sus colisionadores.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -15,7 +15,6 @@ import { Environment, Lights, Room } from '../scene/LabScene';
 import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture } from '../renderers/textures';
-import { Toon3D, outlineObject } from '../effects/Toon3D';
 import { LinearGrab, RotaryGrab, partFrame } from './gestures';
 import { gripKey, type HitData } from './parts';
 import type { PickHitB01 } from './controller';
@@ -68,8 +67,6 @@ function ObjView({ id }: { id: string }) {
   const quality = lab.quality;
   const visual = useMemo(() => {
     const v = createObjVisualB01(w0.objects[id], w0, quality, lab.host.nameTag(id));
-    // Cada objeto lleva su contorno (estilo cel shading, ver Toon3D).
-    outlineObject(v.group);
     return v;
   }, [id, quality]);
   useEffect(() => registerHits(lab, visual.group), [lab, visual]);
@@ -450,15 +447,15 @@ export function OpticalScene({ lab, setting }: { lab: OpticalLab3D; setting: Qua
   return (
     <Canvas
       key={`${q}:${epoch}`}
-      shadows={p.shadows ? (q === 'HIGH' ? 'soft' : true) : false}
+      shadows={p.shadows ? 'soft' : false}
       dpr={[1, p.maxDpr]}
-      gl={{ antialias: p.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
+      gl={{ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
       camera={{ fov: 38, near: 1, far: 3000, position: [80, 40, 60] }}
       onCreated={({ gl, scene, camera }) => {
         lab.three = { gl, scene, camera };
         gl.localClippingEnabled = true;
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMapping = THREE.NeutralToneMapping;
+        gl.toneMappingExposure = 0.9;
       }}
       data-testid="lab-3d"
     >
@@ -476,7 +473,6 @@ export function OpticalScene({ lab, setting }: { lab: OpticalLab3D; setting: Qua
         <CameraRigB01 />
         <Bridge />
         <PerfProbe setting={setting} onQuality={setAuto} />
-        <Toon3D />
       </OpticalLabContext.Provider>
     </Canvas>
   );

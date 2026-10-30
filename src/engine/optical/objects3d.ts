@@ -10,8 +10,8 @@ import type { OpticalObject, OpticalWorld } from '../../simulation/optical-world
 import { GEO_B01, stageTopZCm } from '../../simulation/optical-world/geometry';
 import { microscopeView } from '../../simulation/optical-world/world';
 import type { QualityLevel } from '../quality';
-import { materials } from '../renderers/materials';
-import { labelTexture } from '../renderers/textures';
+import { asGlass, materials } from '../renderers/materials';
+import { labelTexture, grainTexture } from '../renderers/textures';
 import type { FrameCtxB01 } from './OpticalLab3D';
 import { buildCompoundMicroscope } from './models/CompoundMicroscopeRig';
 import { buildStereoMicroscope } from './models/StereoMicroscopeRig';
@@ -82,7 +82,12 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
     case 'fixedSlide': {
       const S = GEO_B01.slide;
       const inner = new THREE.Group();
-      const glass = shadowed(box(S.w, S.h, S.d, mats.glass));
+      // Vidrio de portaobjetos: algo más denso y verdoso que el de los frascos, para que el canto se lea sin contorno.
+      const slideGlass = own(asGlass(mats.glass.clone(), 0.25));
+      slideGlass.color.setHex(0xd4ebe2);
+      slideGlass.opacity = 0.2;
+      // Vidrio claro y tan delgado que su sombra rayaría la superficie sobre la que apoya: ni la proyecta ni la recibe.
+      const glass = box(S.w, S.h, S.d, slideGlass);
       glass.position.y = S.h / 2;
       glass.renderOrder = 3;
       inner.add(glass);
@@ -140,7 +145,8 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
           const m = w.microscope;
           x = ob.pose.x + m.stageXmm / 10;
           y = ob.pose.y + m.stageYmm / 10;
-          z = stageTopZCm(microscopeView(w).stageZmm);
+          // Apenas por encima de la platina: dos caras coplanares parpadean en rayas.
+          z = stageTopZCm(microscopeView(w).stageZmm) + 0.015;
         }
         group.position.set(x, z, -y);
         const upright = ob.support.startsWith('case:');
@@ -377,20 +383,21 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
     }
     case 'slideCase': {
       const C = GEO_B01.slideCase;
-      const wood = own(new THREE.MeshStandardMaterial({ color: 0x3f2a20, roughness: 0.62 }));
+      const wood = own(new THREE.MeshPhysicalMaterial({ map: own(grainTexture()), roughness: 0.48, clearcoat: 0.35, clearcoatRoughness: 0.4 }));
+      const rounded = (w: number, h: number, d: number) => new RoundedBoxGeometry(w, h, d, 2, Math.min(0.07, Math.min(w, h, d) * 0.45));
       const felt = own(new THREE.MeshStandardMaterial({ color: 0x1f4a3e, roughness: 0.95 }));
-      const rack = own(new THREE.MeshStandardMaterial({ color: 0xd9cdb8, roughness: 0.7 }));
+      const rack = own(new THREE.MeshStandardMaterial({ map: own(grainTexture('#a98a63', '#7d6243')), roughness: 0.6 }));
       const brass = own(new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 0.7, roughness: 0.35 }));
       // Bandeja hueca: fondo con paño, cuatro paredes y dos peines cuyas ranuras reciben las láminas de canto.
       const tray = new THREE.Group();
-      tray.add(part(new THREE.BoxGeometry(C.w, C.rackZ - 0.15, C.d), wood, 0, (C.rackZ - 0.15) / 2, 0));
+      tray.add(part(rounded(C.w, C.rackZ - 0.15, C.d), wood, 0, (C.rackZ - 0.15) / 2, 0));
       tray.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.15, C.d - 2 * C.wall), felt, 0, C.rackZ - 0.075, 0));
-      for (const sz of [-1, 1]) tray.add(part(new THREE.BoxGeometry(C.w, C.h - C.rackZ + 0.15, C.wall), wood, 0, (C.h + C.rackZ - 0.15) / 2, sz * (C.d - C.wall) / 2));
-      for (const sx of [-1, 1]) tray.add(part(new THREE.BoxGeometry(C.wall, C.h - C.rackZ + 0.15, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.h + C.rackZ - 0.15) / 2, 0));
+      for (const sz of [-1, 1]) tray.add(part(rounded(C.w, C.h - C.rackZ + 0.15, C.wall), wood, 0, (C.h + C.rackZ - 0.15) / 2, sz * (C.d - C.wall) / 2));
+      for (const sx of [-1, 1]) tray.add(part(rounded(C.wall, C.h - C.rackZ + 0.15, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.h + C.rackZ - 0.15) / 2, 0));
       for (const sz of [-1, 1]) {
         const rz = sz * (C.d / 2 - C.wall - 0.14);
-        tray.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.45, 0.28), rack, 0, C.rackZ + 0.225, rz));
-        for (let i = 0; i <= C.slots; i++) tray.add(part(new THREE.BoxGeometry(0.22, 0.95, 0.34), rack, (i - C.slots / 2) * C.pitch, C.rackZ + 0.475, rz));
+        tray.add(part(rounded(C.w - 2 * C.wall, 0.4, 0.2), rack, 0, C.rackZ + 0.2, rz));
+        for (let i = 0; i <= C.slots; i++) tray.add(part(rounded(0.3, 0.8, 0.3), rack, (i - C.slots / 2) * C.pitch, C.rackZ + 0.4, rz));
       }
       // Bisagras y cierre.
       for (const sx of [-1, 1]) tray.add(part(new THREE.CylinderGeometry(0.16, 0.16, 2.2, 10), brass, sx * C.w * 0.3, C.h, -C.d / 2 - 0.03, 0, 0, Math.PI / 2));
@@ -402,10 +409,10 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
       lidPivot.position.set(0, C.h, -C.d / 2);
       const lid = new THREE.Group();
       const shellT = 0.3;
-      lid.add(part(new THREE.BoxGeometry(C.w, shellT, C.d), wood, 0, C.lidH - shellT / 2, C.d / 2));
+      lid.add(part(rounded(C.w, shellT, C.d), wood, 0, C.lidH - shellT / 2, C.d / 2));
       lid.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.04, C.d - 2 * C.wall), felt, 0, C.lidH - shellT - 0.02, C.d / 2));
-      for (const z of [C.wall / 2, C.d - C.wall / 2]) lid.add(part(new THREE.BoxGeometry(C.w, C.lidH - shellT, C.wall), wood, 0, (C.lidH - shellT) / 2, z));
-      for (const sx of [-1, 1]) lid.add(part(new THREE.BoxGeometry(C.wall, C.lidH - shellT, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.lidH - shellT) / 2, C.d / 2));
+      for (const z of [C.wall / 2, C.d - C.wall / 2]) lid.add(part(rounded(C.w, C.lidH - shellT, C.wall), wood, 0, (C.lidH - shellT) / 2, z));
+      for (const sx of [-1, 1]) lid.add(part(rounded(C.wall, C.lidH - shellT, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.lidH - shellT) / 2, C.d / 2));
       mergeRigid(lid);
       shadowed(lid);
       const lbl = labelPlane(['Láminas fijas'], 7, 1.6, own, '#7a5a2a');

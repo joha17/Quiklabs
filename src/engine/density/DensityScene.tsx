@@ -1,6 +1,6 @@
 /**
  * Escena 3D de la Práctica 1 (React Three Fiber), con la misma sala, luces y cámara que las demás prácticas y el estilo
- * cel shading con contorno (Toon3D) para que el vidrio se distinga. Orden de cada fotograma: dominio con paso fijo →
+ * materiales realistas. Orden de cada fotograma: dominio con paso fijo →
  * interacción → vistas → efectos (chorro al verter, chorro de la pipeta al descargar, gotas de la piseta, charcos).
  * Los objetos se apoyan donde el controlador los deja; la sala conserva sus colisionadores.
  */
@@ -17,7 +17,6 @@ import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture } from '../renderers/textures';
 import { POUR_LIP01, surfaceZ } from './layout';
-import { Toon3D, outlineObject } from '../effects/Toon3D';
 import { fluidMl } from '../../simulation/density-world/world';
 import { lipOffset } from '../interaction/pourDock';
 
@@ -71,8 +70,6 @@ function ObjView({ id }: { id: string }) {
   const quality = lab.quality;
   const visual = useMemo(() => {
     const v = createObjVisual01(w0.objects[id], w0, quality);
-    // Cada objeto lleva su contorno (estilo cel shading, ver Toon3D).
-    outlineObject(v.group);
     return v;
   }, [id, quality]);
   useEffect(() => registerHits(lab, visual.group), [lab, visual]);
@@ -472,15 +469,15 @@ export function DensityScene({ lab, setting }: { lab: DensityLab3D; setting: Qua
   return (
     <Canvas
       key={`${q}:${epoch}`}
-      shadows={p.shadows ? (q === 'HIGH' ? 'soft' : true) : false}
+      shadows={p.shadows ? 'soft' : false}
       dpr={[1, p.maxDpr]}
-      gl={{ antialias: p.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
+      gl={{ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
       camera={{ fov: 38, near: 1, far: 3000, position: [80, 40, 60] }}
       onCreated={({ gl, scene, camera }) => {
         lab.three = { gl, scene, camera };
         gl.localClippingEnabled = true;
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMapping = THREE.NeutralToneMapping;
+        gl.toneMappingExposure = 0.9;
       }}
       data-testid="lab-3d"
     >
@@ -498,7 +495,6 @@ export function DensityScene({ lab, setting }: { lab: DensityLab3D; setting: Qua
         <CameraRig01 />
         <Bridge />
         <PerfProbe setting={setting} onQuality={setAuto} />
-        <Toon3D />
       </DensityLabContext.Provider>
     </Canvas>
   );

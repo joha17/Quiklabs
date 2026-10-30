@@ -357,12 +357,10 @@ export function createObjVisual09(o: P09Object, w0: P09World, q: QualityLevel, l
       const flameMat = own(new THREE.MeshBasicMaterial({ color: 0x6aa0ff, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
       const flame = new THREE.Mesh(new THREE.ConeGeometry(1.1, 7, 16, 1, true), flameMat);
       flame.position.y = E.h + 3.5;
-      flame.userData.outlineId = -1;
       flame.renderOrder = 6;
       const coreMat = own(new THREE.MeshBasicMaterial({ color: 0x3a6dff, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
       const core = new THREE.Mesh(new THREE.ConeGeometry(0.5, 2.5, 12, 1, true), coreMat);
       core.position.y = E.h + 1.3;
-      core.userData.outlineId = -1;
       core.renderOrder = 7;
       const knob = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.6, 12), mats.rubberRed));
       knob.rotation.z = Math.PI / 2;

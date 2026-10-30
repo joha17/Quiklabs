@@ -19,7 +19,6 @@ import { InteractionBridge } from './InteractionBridge';
 import { Effects3D } from '../effects/Effects3D';
 import { NameTags3D } from '../effects/NameTags3D';
 import { DemoCursor3D } from '../effects/DemoCursor3D';
-import { Toon3D, outlineOccluder } from '../effects/Toon3D';
 import { useLab } from '../../app/store';
 
 /** Pasos por fotograma como máximo al reproducir acelerado (demostración). */
@@ -55,13 +54,13 @@ function Driver() {
   return null;
 }
 
-export function Environment() {
+export function Environment({ intensity = 0.75 }: { intensity?: number }) {
   const { gl, scene } = useThree();
   useEffect(() => {
     const pmrem = new THREE.PMREMGenerator(gl);
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const env = pmrem.fromScene(new RoomEnvironment(), 0.01).texture;
     scene.environment = env;
-    scene.environmentIntensity = 0.55;
+    scene.environmentIntensity = intensity;
     scene.background = new THREE.Color(0xdfe5e8);
     // Niebla leve: la mesada se ve nítida y la sala se aclara hacia el fondo, así la atención queda en el trabajo.
     scene.fog = new THREE.Fog(0xdfe5e8, 260, 820);
@@ -70,12 +69,12 @@ export function Environment() {
       env.dispose();
       pmrem.dispose();
     };
-  }, [gl, scene]);
+  }, [gl, scene, intensity]);
   return null;
 }
 
 /** Luz direccional con sombra que sigue a la estación visible (sombras nítidas en un área acotada). */
-export function Lights({ q }: { q: QualityLevel }) {
+export function Lights({ q, hemi = 0.2, ambient = 0, sun = 1.9, shadowScale = 2, shadowRadius = 4 }: { q: QualityLevel; hemi?: number; ambient?: number; sun?: number; shadowScale?: number; shadowRadius?: number }) {
   const light = useRef<THREE.DirectionalLight>(null);
   const { controls } = useThree() as unknown as { controls: { target: THREE.Vector3 } | null };
   const p = QUALITY[q];
@@ -89,13 +88,14 @@ export function Lights({ q }: { q: QualityLevel }) {
   });
   return (
     <>
-      <hemisphereLight args={[0xffffff, 0x8a7e72, 0.75]} />
-      <ambientLight intensity={0.15} />
+      <hemisphereLight args={[0xffffff, 0x8a7e72, hemi]} />
+      <ambientLight intensity={ambient} />
       <directionalLight
         ref={light}
-        intensity={2.2}
+        intensity={sun}
         castShadow={p.shadows}
-        shadow-mapSize={[p.shadowMapSize, p.shadowMapSize]}
+        shadow-mapSize={[p.shadowMapSize * shadowScale, p.shadowMapSize * shadowScale]}
+        shadow-radius={shadowRadius}
         shadow-camera-left={-110}
         shadow-camera-right={110}
         shadow-camera-top={90}
@@ -112,8 +112,6 @@ export function Lights({ q }: { q: QualityLevel }) {
 export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' }) {
   const room = useMemo(() => {
     const g = createRoom(q, variant);
-    // La sala tapa los contornos de lo que queda detrás, pero no lleva contorno propio.
-    outlineOccluder(g);
     return g;
   }, [q, variant]);
   return (
@@ -202,15 +200,15 @@ export function LabScene({ lab }: { lab: Lab3D }) {
   return (
     <Canvas
       key={`${q}:${epoch}`}
-      shadows={p.shadows ? (q === 'HIGH' ? 'soft' : true) : false}
+      shadows={p.shadows ? 'soft' : false}
       dpr={[1, p.maxDpr]}
-      gl={{ antialias: p.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
+      gl={{ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
       camera={{ fov: 38, near: 1, far: 3000, position: [55, 60, 70] }}
       onCreated={({ gl, scene, camera }) => {
         lab.three = { gl, scene, camera };
         gl.localClippingEnabled = true;
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMapping = THREE.NeutralToneMapping;
+        gl.toneMappingExposure = 0.9;
       }}
       data-testid="lab-3d"
     >
@@ -228,7 +226,6 @@ export function LabScene({ lab }: { lab: Lab3D }) {
         <CameraRig />
         <InteractionBridge />
         <PerfProbe onQuality={setAuto} />
-        <Toon3D />
       </LabContext.Provider>
     </Canvas>
   );

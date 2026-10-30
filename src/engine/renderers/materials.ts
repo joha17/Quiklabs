@@ -29,16 +29,37 @@ export interface MaterialSet {
 
 const cache = new Map<QualityLevel, MaterialSet>();
 
+/** Fracción de luz difusa que conserva un vidrio incoloro: casi nada se dispersa, por eso no parece plástico lechoso. */
+const CLEAR_GLASS_DIFFUSE = 0.12;
+
+/**
+ * Comportamiento óptico del vidrio sin `transmission`: el centro casi no se ve y solo aparece donde refleja, en los
+ * reflejos y en el borde (Fresnel), con un tono medio verdoso que se distingue tanto contra la pared clara como contra la mesada oscura.
+ */
+export function asGlass<T extends THREE.MeshPhysicalMaterial>(m: T, diffuse = CLEAR_GLASS_DIFFUSE): T {
+  m.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader
+      .replace('vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;', `vec3 totalDiffuse = ( reflectedLight.directDiffuse + reflectedLight.indirectDiffuse ) * ${diffuse.toFixed(3)};`)
+      .replace('#include <opaque_fragment>', `#include <opaque_fragment>
+	float glassFresnel = pow( 1.0 - abs( dot( normalize( normal ), normalize( vViewPosition ) ) ), 3.0 );
+	float glassGlint = smoothstep( 0.8, 2.5, max( outgoingLight.r, max( outgoingLight.g, outgoingLight.b ) ) );
+	gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( 0.5, 0.62, 0.6 ), glassFresnel * 0.7 );
+	gl_FragColor.a = clamp( gl_FragColor.a + glassFresnel * 0.6 + glassGlint * 0.4, 0.0, 1.0 );`);
+  };
+  m.customProgramCacheKey = () => `glass:${diffuse}`;
+  return m;
+}
+
 export function materials(q: QualityLevel): MaterialSet {
   const c = cache.get(q);
   if (c) return c;
   const rich = q !== 'LOW';
   const glass = new THREE.MeshPhysicalMaterial({
     color: 0xeef6fb,
-    roughness: 0.04,
+    roughness: 0.02,
     metalness: 0,
     transparent: true,
-    opacity: rich ? 0.22 : 0.28,
+    opacity: rich ? 0.1 : 0.14,
     clearcoat: rich ? 1 : 0,
     clearcoatRoughness: 0.05,
     envMapIntensity: rich ? 1.6 : 1.0,
@@ -47,17 +68,18 @@ export function materials(q: QualityLevel): MaterialSet {
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const glassHot = glass.clone();
+  asGlass(glass);
+  const glassHot = asGlass(glass.clone(), 0.3);
   glassHot.color = new THREE.Color(0xffd9c9);
-  const amberGlass = glass.clone();
-  amberGlass.color = new THREE.Color(0xa0662a);
-  amberGlass.opacity = 0.55;
+  const amberGlass = asGlass(glass.clone(), 0.75);
+  amberGlass.color = new THREE.Color(0x8a4f1c);
+  amberGlass.opacity = 0.62;
   const set: MaterialSet = {
     glass,
     glassHot,
     amberGlass,
     porcelain: new THREE.MeshPhysicalMaterial({ color: 0xf8f6f0, roughness: 0.25, clearcoat: rich ? 0.8 : 0, clearcoatRoughness: 0.15 }),
-    plasticWhite: new THREE.MeshPhysicalMaterial({ color: 0xf2f4f6, roughness: 0.45, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false }),
+    plasticWhite: new THREE.MeshPhysicalMaterial({ color: 0xf2f4f6, roughness: 0.45, transparent: true, opacity: 0.72, side: THREE.DoubleSide, shadowSide: THREE.BackSide, depthWrite: false }),
     plasticBlue: new THREE.MeshStandardMaterial({ color: 0x2f7fd1, roughness: 0.45 }),
     plasticYellow: new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.5 }),
     rubberRed: new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.65 }),

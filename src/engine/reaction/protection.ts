@@ -9,9 +9,9 @@ export interface MgViewState {
   reduced: boolean;
 }
 
-/** Exposición del tono de la cámara (1,05 normal). */
+/** Exposición del tono de la cámara (0,9 normal). */
 export function mgExposure(s: MgViewState): number {
-  if (!s.burning) return 1.05;
+  if (!s.burning) return 0.9;
   return s.reduced ? 0.6 : 0.72;
 }
 

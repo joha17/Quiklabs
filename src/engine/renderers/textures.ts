@@ -443,3 +443,33 @@ export function softDotTexture(): THREE.CanvasTexture {
   g.fillRect(0, 0, 64, 64);
   return tex(c);
 }
+
+/** Veta de madera procedural (repetible a lo largo de la pieza). */
+export function grainTexture(base = '#4a3022', vein = '#2c1b12'): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 256;
+  const g = c.getContext('2d')!;
+  g.fillStyle = base;
+  g.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < 90; i++) {
+    const y0 = (i * 97.13) % c.height;
+    const amp = 2 + ((i * 13) % 7);
+    const ph = i * 1.7;
+    g.strokeStyle = vein;
+    g.globalAlpha = 0.08 + ((i * 7) % 10) / 45;
+    g.lineWidth = 0.6 + ((i * 3) % 4) * 0.5;
+    g.beginPath();
+    for (let x = 0; x <= c.width; x += 16) {
+      const y = y0 + Math.sin(x / 140 + ph) * amp + Math.sin(x / 47 + ph * 2) * 0.8;
+      if (x === 0) g.moveTo(x, y);
+      else g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
