@@ -15,6 +15,7 @@ import { labelTexture } from '../renderers/textures';
 import type { FrameCtxB01 } from './OpticalLab3D';
 import { buildCompoundMicroscope } from './models/CompoundMicroscopeRig';
 import { buildStereoMicroscope } from './models/StereoMicroscopeRig';
+import { mergeRigid, part } from './models/geom';
 import { hitMesh } from './parts';
 import { KIND_COLOR, STAIN_COLOR, buildCellObject, mountTint } from './objects3dCell';
 import { buildPermObject } from './objects3dPerm';
@@ -376,27 +377,48 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
     }
     case 'slideCase': {
       const C = GEO_B01.slideCase;
-      const body = shadowed(box(C.w, C.h, C.d, own(new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.7 }))));
-      body.position.y = C.h / 2;
-      const inside = box(C.w - 0.6, 0.1, C.d - 0.6, own(new THREE.MeshStandardMaterial({ color: 0xd7ccc8 })));
-      inside.position.y = C.h + 0.02;
+      const wood = own(new THREE.MeshStandardMaterial({ color: 0x3f2a20, roughness: 0.62 }));
+      const felt = own(new THREE.MeshStandardMaterial({ color: 0x1f4a3e, roughness: 0.95 }));
+      const rack = own(new THREE.MeshStandardMaterial({ color: 0xd9cdb8, roughness: 0.7 }));
+      const brass = own(new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 0.7, roughness: 0.35 }));
+      // Bandeja hueca: fondo con paño, cuatro paredes y dos peines cuyas ranuras reciben las láminas de canto.
+      const tray = new THREE.Group();
+      tray.add(part(new THREE.BoxGeometry(C.w, C.rackZ - 0.15, C.d), wood, 0, (C.rackZ - 0.15) / 2, 0));
+      tray.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.15, C.d - 2 * C.wall), felt, 0, C.rackZ - 0.075, 0));
+      for (const sz of [-1, 1]) tray.add(part(new THREE.BoxGeometry(C.w, C.h - C.rackZ + 0.15, C.wall), wood, 0, (C.h + C.rackZ - 0.15) / 2, sz * (C.d - C.wall) / 2));
+      for (const sx of [-1, 1]) tray.add(part(new THREE.BoxGeometry(C.wall, C.h - C.rackZ + 0.15, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.h + C.rackZ - 0.15) / 2, 0));
+      for (const sz of [-1, 1]) {
+        const rz = sz * (C.d / 2 - C.wall - 0.14);
+        tray.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.45, 0.28), rack, 0, C.rackZ + 0.225, rz));
+        for (let i = 0; i <= C.slots; i++) tray.add(part(new THREE.BoxGeometry(0.22, 0.95, 0.34), rack, (i - C.slots / 2) * C.pitch, C.rackZ + 0.475, rz));
+      }
+      // Bisagras y cierre.
+      for (const sx of [-1, 1]) tray.add(part(new THREE.CylinderGeometry(0.16, 0.16, 2.2, 10), brass, sx * C.w * 0.3, C.h, -C.d / 2 - 0.03, 0, 0, Math.PI / 2));
+      tray.add(part(new THREE.BoxGeometry(1.6, 0.7, 0.08), brass, 0, C.h - 0.3, C.d / 2 + 0.04));
+      mergeRigid(tray);
+      shadowed(tray);
+      // Tapa de cajón: con la caja cerrada cubre las láminas que asoman sobre el borde.
       const lidPivot = new THREE.Group();
       lidPivot.position.set(0, C.h, -C.d / 2);
-      const lid = shadowed(box(C.w, 0.5, C.d, own(new THREE.MeshStandardMaterial({ color: 0x6d4c41, roughness: 0.6 }))));
-      lid.position.set(0, 0.25, C.d / 2);
-      const lbl = labelPlane(['Caja de láminas fijas'], 9, 1.2, own, '#3e2723');
+      const lid = new THREE.Group();
+      const shellT = 0.3;
+      lid.add(part(new THREE.BoxGeometry(C.w, shellT, C.d), wood, 0, C.lidH - shellT / 2, C.d / 2));
+      lid.add(part(new THREE.BoxGeometry(C.w - 2 * C.wall, 0.04, C.d - 2 * C.wall), felt, 0, C.lidH - shellT - 0.02, C.d / 2));
+      for (const z of [C.wall / 2, C.d - C.wall / 2]) lid.add(part(new THREE.BoxGeometry(C.w, C.lidH - shellT, C.wall), wood, 0, (C.lidH - shellT) / 2, z));
+      for (const sx of [-1, 1]) lid.add(part(new THREE.BoxGeometry(C.wall, C.lidH - shellT, C.d - 2 * C.wall), wood, sx * (C.w - C.wall) / 2, (C.lidH - shellT) / 2, C.d / 2));
+      mergeRigid(lid);
+      shadowed(lid);
+      const lbl = labelPlane(['Láminas fijas'], 7, 1.6, own, '#7a5a2a');
       lbl.rotation.x = -Math.PI / 2;
-      lbl.position.set(0, 0.51, C.d / 2);
-      lid.add(lbl);
-      lidPivot.add(lid);
-      group.add(body, inside, lidPivot);
-      group.add(at(hit(new THREE.BoxGeometry(C.w, 1.2, 2), id, 'lid', { kind: 'press', axis: 'x', click: true }), 0, C.h + 0.4, C.d / 2));
+      lbl.position.set(0, C.lidH + 0.01, C.d / 2);
+      lidPivot.add(lid, lbl);
+      lidPivot.add(at(hit(new THREE.BoxGeometry(C.w, C.lidH + 0.2, 2.4), id, 'lid', { kind: 'press', axis: 'x', click: true }), 0, C.lidH / 2, C.d - 1.2));
+      group.add(tray, lidPivot);
       group.add(at(hit(new THREE.BoxGeometry(C.w, C.h, C.d), id), 0, C.h / 2, 0));
       ring = selRing(11);
       group.add(ring);
       update = (ctx) => {
         lidPivot.rotation.x = ctx.world.slideCase.open ? -1.9 : 0;
-        lbl.position.z = C.d / 2;
       };
       break;
     }

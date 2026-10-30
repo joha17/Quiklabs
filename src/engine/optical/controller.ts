@@ -16,10 +16,10 @@ import type { B01Command, B01DispatchResult } from '../../simulation/optical-wor
 import type { PermCommand as CellCommand } from '../../simulation/perm-world/commands';
 import type { B01ObjKind, OpticalWorld, Pose } from '../../simulation/optical-world/types';
 import { microscopeView } from '../../simulation/optical-world/world';
-import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, STEREO_POS } from '../../simulation/optical-world/geometry';
+import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STEREO_BASE, STEREO_POS } from '../../simulation/optical-world/geometry';
 import type { OpticalHost } from './host';
 import type { OpticalLab3D } from './OpticalLab3D';
-import { spotsFor, stageTop, type Spot } from './layout';
+import { freeBenchSpot, halfExtents, pushOutOf, solidsOf, spotsFor, stageTop, type Solid, type Spot } from './layout';
 import { KIN, type PartGrip } from './parts';
 import type { GrabTracker } from './gestures';
 
@@ -82,6 +82,10 @@ export type KnobB01 =
 const CARRY_Z: Partial<Record<B01ObjKind, number>> = {
   slide: 6, fixedSlide: 6, forceps: 5, scalpel: 5, dropperBottle: 9, paper: 4, lensPaper: 4, towel: 4, leafSample: 6, insectSample: 6, spatula: 5, swab: 5,
 };
+/** Columna del brazo del microscopio respecto de su origen (cm) y altura hasta la que cierra el paso. */
+const ARM = { y0: 3.4, y1: 10.4, hw: 3, topZ: 32 } as const;
+/** Altura de paso sobre la platina: libra el tope, el carro y la pinza. */
+const STAGE_CLEARANCE = 0.6;
 const TOOL_KINDS = new Set<B01ObjKind>(['forceps', 'scalpel', 'dropperBottle', 'paper', 'lensPaper', 'towel', 'spatula', 'swab']);
 
 export class OpticalController {
@@ -564,9 +568,10 @@ export class OpticalController {
       if (Math.hypot(p.x - s.x, p.y - s.y) > s.r) continue;
       const occupants = Object.values(this.w.objects).filter((o) => o.id !== id && o.support === s.id).length;
       if (occupants && !this.sharedSpot(s.id)) continue;
-      // En la platina y la base la lámina o la muestra conservan su desalineación (la ve el dominio).
+      // En la platina y la base la lámina o la muestra conservan su desalineación (la ve el dominio);
+      // en la platina, los topes trasero e izquierdo no se atraviesan: la lámina se queda contra ellos.
       const keep = s.id === 'stage' || s.id === 'stereoBase';
-      const pose: Pose = keep ? { x: p.x, y: p.y, z: s.z, rotationRad: 0 } : this.spotPose(s, occupants);
+      const pose: Pose = s.id === 'stage' ? { x: Math.max(p.x, s.x), y: Math.min(p.y, s.y), z: s.z, rotationRad: 0 } : keep ? { x: p.x, y: p.y, z: s.z, rotationRad: 0 } : this.spotPose(s, occupants);
       const r = this.dispatch({ type: 'setPose', id, pose, support: s.id });
       if (r.ok) {
         this.host.sound('glass');
@@ -597,16 +602,32 @@ export class OpticalController {
   /** Altura mínima de la mano sobre los apoyos (cm): baja hasta apoyar sobre la platina, el área de montaje… */
   protected floorAt(x: number, y: number): number {
     let floor = 0;
-    if (Math.hypot(x - STAGE_SEAT.x, y - STAGE_SEAT.y) < 8) floor = stageTop(this.w) + 0.2;
+    const [hw, hd] = this.held ? halfExtents(this.held.kind) : [0, 0];
+    for (const s of solidsOf(this.w)) {
+      if (Math.abs(x - s.x) >= s.hw + hw || Math.abs(y - s.y) >= s.hd + hd) continue;
+      // Sobre el microscopio se pasa por encima de la platina, no por debajo.
+      floor = Math.max(floor, s.kind === 'microscope' ? stageTop(this.w) + STAGE_CLEARANCE : s.top + 0.3);
+    }
     if (Math.hypot(x - PREP_SPOT.x, y - PREP_SPOT.y) < 9) floor = Math.max(floor, PREP_SPOT.z + 0.3);
     if (Math.hypot(x - STEREO_POS.x, y - STEREO_POS.y) < 9) floor = Math.max(floor, STEREO_BASE.z + 0.3);
     return floor;
   }
 
+  private aroundArm(kind: B01ObjKind, x: number, y: number): [number, number] {
+    const mic = Object.values(this.w.objects).find((o) => o.kind === 'microscope')?.pose;
+    if (!mic) return [x, y];
+    const [hw, hd] = halfExtents(kind);
+    const arm: Solid = { kind: 'microscope', x: mic.x, y: mic.y + (ARM.y0 + ARM.y1) / 2, hw: ARM.hw, hd: (ARM.y1 - ARM.y0) / 2, top: ARM.topZ };
+    return pushOutOf(arm, x, y, hw, hd);
+  }
+
   layOnBench(id: string, x0: number, y0: number) {
     const o = this.w.objects[id];
     const z = o?.kind === 'slide' || o?.kind === 'fixedSlide' ? 0.05 : o && TOOL_KINDS.has(o.kind) && o.kind !== 'dropperBottle' ? 0.4 : 0;
-    this.dispatch({ type: 'setPose', id, pose: { x: Math.max(4, Math.min(556, x0)), y: Math.max(4, Math.min(60, y0)), z, rotationRad: 0 }, support: 'bench' });
+    const [hw, hd] = o ? halfExtents(o.kind) : [0, 0];
+    // Lo que se suelta sobre un equipo cae a su lado, nunca dentro de él.
+    const [x, y] = freeBenchSpot(this.w, Math.max(4, Math.min(556, x0)), Math.max(4, Math.min(60, y0)), hw, hd);
+    this.dispatch({ type: 'setPose', id, pose: { x, y, z, rotationRad: 0 }, support: 'bench' });
   }
 
   nudgeHeight(dz: number) {
@@ -723,6 +744,8 @@ export class OpticalController {
       h.x = p.x;
       h.y = p.y;
     }
+    // La columna del brazo no se atraviesa: la mano la rodea.
+    if (h.curZ < ARM.topZ) [h.x, h.y] = this.aroundArm(h.kind, h.x, h.y);
     // Sobre la platina o el área de montaje, la mano baja hasta apoyar.
     const tz = Math.max(h.z, this.floorAt(h.x, h.y));
     const k = Math.min(1, dt * 16);

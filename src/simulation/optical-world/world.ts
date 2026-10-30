@@ -559,6 +559,8 @@ function setPose(w: OpticalWorld, id: string, pose: Pose, support?: string): B01
         errB(w, 'E15', 'CLIP_CLOSED', 'WARN', { obj: id });
         return no('CLIP_CLOSED');
       }
+      // La lámina no cabe entre la platina y un objetivo demasiado cerca.
+      if (microscopeView(w).gapMm < w.params.microscope.gapSafeRemoveMm) return no('GAP_UNSAFE');
     }
     if (prev === 'stage') {
       if (w.microscope.clampedSlideId === id && !w.microscope.clipOpen) {

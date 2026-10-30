@@ -169,11 +169,11 @@ export function buildCompoundMicroscope(id: string, w0: OpticalWorld, mats: Mate
   // Carro X/Y con tope trasero, guía y pinza.
   const carriage = keep(new THREE.Group());
   carriage.add(part(new THREE.BoxGeometry(6.4, 0.4, 0.45), mats.darkMetal, -0.6, 0.2, DZ - 1.5));
-  carriage.add(part(new THREE.BoxGeometry(0.5, 0.42, 1.8), mats.darkMetal, -3.95, 0.21, DZ - 0.7));
+  carriage.add(part(new THREE.BoxGeometry(0.5, 0.42, 1.8), mats.darkMetal, -4.0, 0.21, DZ - 0.7));
   carriage.add(part(new THREE.BoxGeometry(9.5, 0.5, 1.0), black, 0.8, 0.25, DZ - 3.6));
   carriage.add(part(new THREE.BoxGeometry(1.0, 0.5, 6.4), black, 5.9, 0.25, DZ - 0.6));
   const clip = keep(new THREE.Group());
-  clip.position.set(-4.4, 0.32, DZ + 1.55);
+  clip.position.set(-4.4, 0.32, DZ + 1.41);
   clip.add(part(new THREE.CylinderGeometry(0.32, 0.32, 0.55, 14), mats.chrome));
   clip.add(part(new THREE.BoxGeometry(4.6, 0.2, 0.32), mats.chrome, 2.35, 0, 0));
   clip.add(part(new THREE.CylinderGeometry(0.3, 0.3, 0.7, 12), black, -0.75, 0.15, 0.25));

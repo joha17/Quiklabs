@@ -14,7 +14,7 @@ export const GEO_B01 = {
   scalpel: { length: 12 },
   paper: { w: 8, d: 6, h: 0.05 },
   microscope: { baseW: 20, baseD: 24, stageTopZ: 14, stageW: 14, stageD: 12, height: 38 },
-  slideCase: { w: 20, d: 9, h: 4, slots: 12, pitch: 1.5 },
+  slideCase: { w: 20, d: 9, h: 3.2, lidH: 1.2, wall: 0.45, rackZ: 1.2, slots: 12, pitch: 1.5 },
   stereo: { baseW: 18, baseD: 22, baseTopZ: 3, height: 34 },
   sampleTray: { w: 12, d: 7, h: 1 },
   bin: { r: 5, h: 14 },
@@ -40,6 +40,6 @@ export const COVER_BOX = { x: 160, y: 14, z: 1.2 } as const;
 export const caseSlotId = (i: number) => `s${String(i + 1).padStart(2, '0')}`;
 export const caseSlotIndex = (slot: string) => Number(slot.slice(1)) - 1;
 /** Posición de una ranura de la caja (lámina de canto). */
-export const caseSlotPos = (i: number) => ({ x: CASE_POS.x - ((GEO_B01.slideCase.slots - 1) / 2) * GEO_B01.slideCase.pitch + i * GEO_B01.slideCase.pitch, y: CASE_POS.y, z: 1.8 });
+export const caseSlotPos = (i: number) => ({ x: CASE_POS.x - ((GEO_B01.slideCase.slots - 1) / 2) * GEO_B01.slideCase.pitch + i * GEO_B01.slideCase.pitch, y: CASE_POS.y, z: GEO_B01.slideCase.rackZ });
 /** Altura de la cara superior de la platina sobre la mesada (cm) para una altura de platina dada (mm). */
 export const stageTopZCm = (stageZmm: number) => GEO_B01.microscope.stageTopZ + stageZmm / 10;
