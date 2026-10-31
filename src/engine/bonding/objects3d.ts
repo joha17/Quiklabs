@@ -192,6 +192,8 @@ export function createObjVisual07(o: P07Object, w0: P07World, q: QualityLevel, l
       const span = h - floor;
       const sc = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.14, r + 0.14, span, seg, 1, true, -Math.PI * 0.22, Math.PI * 0.44), own(new THREE.MeshBasicMaterial({ map: scaleTex, transparent: true, depthWrite: false })));
       sc.position.y = floor + span / 2;
+      // Las marcas no tapan el líquido: se dibujan encima, sin escribir profundidad.
+      sc.renderOrder = 4;
       tiltable.add(sc);
     }
     const cols = phaseColumns(r, seg, own);

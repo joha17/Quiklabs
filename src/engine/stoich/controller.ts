@@ -10,6 +10,8 @@
  * - Tubo en la mano: golpecitos laterales (moverlo de lado a lado) mezclan; con fuerza, sale polvo.
  * - Mechero: válvulas, encendedor y desplazamiento a lo largo del tubo con los mismos gestos de la Práctica 3.
  */
+import { clearSpotNear, TIP_TOOLS } from '../interaction/solidFloor';
+import { clampToBench } from '../interaction/viewport';
 import type { StoichHost } from './host';
 import type { StoichLab3D } from './StoichLab3D';
 import type { P5Command } from '../../simulation/stoich-world/commands';
@@ -28,6 +30,10 @@ export interface PickHit5 {
 
 export interface ViewAdapter5 {
   toBench(sx: number, sy: number, z: number): { x: number; y: number };
+  /** Altura mínima para que el cuerpo completo del objeto no entre en lo que descansa en la mesada. */
+  /** Saca (x, y) de lo que no se puede sobrevolar. */
+  solidPush?(id: string, cur: { x: number; y: number }, x: number, y: number, resting: readonly string[], grounded: boolean, point?: boolean): { x: number; y: number };
+  solidFloor?(id: string, cur: { x: number; y: number; z: number }, x: number, y: number, resting: readonly string[]): number;
   pick(sx: number, sy: number, excludeId?: string | null): PickHit5 | null;
   viewW(): number;
   setOrbitEnabled(on: boolean): void;
@@ -392,8 +398,9 @@ export class StoichController {
       if (key === 'e' || key === 'E' || key === 'PageDown') return this.onWheel(1), true;
       const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[key];
       if (d) {
-        h.x += d[0];
-        h.y += d[1];
+        const moved = clampToBench(h.x + d[0], h.y + d[1]);
+        h.x = moved.x;
+        h.y = moved.y;
         return true;
       }
       return false;
@@ -494,10 +501,12 @@ export class StoichController {
         }
         break;
       }
-      case 'burner':
-        this.sendPose(h.id, { x: p.x, y: p.y, z: 0, rotationRad: 0 }, 'bench');
+      case 'burner': {
+        const spot = clearSpotNear((x, y) => this.bodyFloor(h.id, x, y), p.x, p.y, 0);
+        this.sendPose(h.id, { x: spot.x, y: spot.y, z: 0, rotationRad: 0 }, 'bench');
         this.host.sound('metal');
         return;
+      }
       case 'lighter':
         this.layOnBench(h.id, p.x, p.y, 1.2);
         return;
@@ -616,8 +625,20 @@ export class StoichController {
     return { x, y: 4 };
   }
 
+  private restingIds(): string[] {
+    return [...Object.values(this.w.objects), ...Object.values(this.w.gas.objects)].filter((o) => o.support === 'bench').map((o) => o.id);
+  }
+
+  /** Altura mínima del cuerpo macizo de `id` en (x, y); 0 sin vista. */
+  private bodyFloor(id: string, x: number, y: number): number {
+    const body = this.obj(id);
+    if (!body || TIP_TOOLS.has(body.kind)) return 0;
+    return this.view?.solidFloor?.(id, body.pose, x, y, this.restingIds()) ?? 0;
+  }
+
   layOnBench(id: string, x0: number, y0: number, z: number) {
-    const spot = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), 1, id);
+    const free = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), 1, id);
+    const spot = clearSpotNear((x, y) => this.bodyFloor(id, x, y), free.x, free.y, z);
     this.sendPose(id, { x: spot.x, y: spot.y, z, rotationRad: 0 }, 'bench');
     this.host.sound('click');
   }
@@ -849,6 +870,14 @@ export class StoichController {
       const o = this.obj(h.id)!;
       let tx = h.x;
       let ty = h.y;
+      const onBench = clampToBench(tx, ty);
+      tx = onBench.x;
+      ty = onBench.y;
+      const pushed = this.view.solidPush?.(h.id, o.pose, tx, ty, this.restingIds(), h.kind === 'burner', TIP_TOOLS.has(h.kind));
+      if (pushed) {
+        tx = pushed.x;
+        ty = pushed.y;
+      }
       let tz = h.z;
       h.magnet = h.kind === 'spatula' ? this.spatulaMagnet(h, tx, ty) : null;
       if (h.magnet) {
@@ -864,6 +893,7 @@ export class StoichController {
       const r = h.kind === 'tube' ? 1 : 0.6;
       const floor = this.clearZ(tx, ty, r, h.id) + (h.kind === 'burner' ? 0 : 0.3);
       if (!h.magnet) tz = Math.max(tz, floor);
+      if (!h.magnet && h.kind !== 'burner') tz = Math.max(tz, this.bodyFloor(h.id, tx, ty));
       const k = Math.min(1, dt * (h.magnet ? 8 : 16));
       const nx = o.pose.x + (tx - o.pose.x) * k;
       const ny = o.pose.y + (ty - o.pose.y) * k;

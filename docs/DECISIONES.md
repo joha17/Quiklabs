@@ -377,3 +377,41 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **H3** Rapier (cinemático/dinámico temporal), arrastre por plano de la mesada con muelle, encaje, vuelco, vertido con chorro e impacto, rotura por golpe; pruebas e2e de gradilla, vertido, objetos sin atravesarse ni suspendidos.
 - **H4–H7** Partes A y B, libreta, evaluación y persistencia reutilizados sin cambios científicos; prueba 17.1-10 (balance idéntico con y sin escena).
 - **H8** Calidad Alta/Media/Baja con selección automática, presupuestos verificados por estación y calidad, pérdida de contexto, carga diferida, cámara accesible (botones y teclas), documentación (RENDIMIENTO.md).
+
+## B07 · Microbiología en evidencia
+
+- **B07-1. Códigos propios `MIC-NN`.** E01–E64 de la guía chocarían con los catálogos heredados. `params.codeMap` traduce lo que se conserva del microscopio y silencia lo demás; I01 sigue siendo una incidencia sin penalización.
+- **B07-2. Portaobjetos propios como láminas `fixed`.** El frotis no es un montaje húmedo: cada portaobjetos muestra el activo que corresponde a lo que le pasó (`smearAsset`), y las rutas de gotero y cubreobjetos quedan fuera.
+- **B07-3. Visor 2D para las placas.** Colonias como imagen determinista en un panel, con la misma textura sobre la placa 3D; nunca una malla por colonia.
+- **B07-4. La lectura se califica contra el activo.** «Indeterminada», «mixta» y «evidencia insuficiente» reciben crédito cuando la imagen lo justifica (S11, S21); ninguna respuesta exige una especie.
+- **B07-5. Índices sin equivalencia real.** Decoloración, secado virtual y trazado son adimensionales o geométricos (PMIC-07); la práctica no contiene recetas, tiempos, temperaturas ni parámetros de esterilización.
+- **B07-6. Sin escala no se penaliza.** S20 y las placas confluentes dejan el diámetro en revisión; solo inventar una escala (MIC-17) descuenta.
+- **B07-7. Altura libre barrida en la mano (compartido).** `OpticalController` detiene lo que se lleva en el borde de un equipo más alto hasta que sube, y no lo baja mientras siga encima. Antes, un arrastre rápido cruzaba el equipo porque la altura subía más lento que el avance. Vale para todos los laboratorios ópticos.
+- **B07-8. Punto libre con búsqueda en anillos (compartido).** `freeBenchSpot` busca el hueco más cercano cuando los equipos están tan juntos que salir de uno cae en otro.
+
+## B08 · Energía luminosa y pigmentos
+
+- **PFO-01. Ecuación del manual corregida.** Se separan balance neto y extendido.
+- **PFO-02. 20 min son 1/3 h.** Escribir 0,167 h se detecta como FOT-68.
+- **PFO-03. mm/h no es una tasa de O₂.** Pasar a moles exige radio certificado; sin él, S21 deja el ítem en revisión.
+- **PFO-04. La bruta es una estimación.** Se calcula con neta y oscuridad, y hay que declarar el supuesto (FOT-74).
+- **PFO-05. Polaridad de eluyentes.** Acetona polar, fase hidrocarbonada predominantemente no polar.
+- **PFO-06. El BTB no mide fotosíntesis.** Es evidencia indirecta de pH, con control sin planta.
+- **PFO-07. Solventes solo digitales.** Enclavamientos de gafas, campana y fuentes de calor, sin fuego animado.
+- **PFO-08. Valores sin validar.** Cinética, masas, Rf y viraje son perfil sintético rotulado.
+- **PFO-09. Sin fabricar imágenes.** S23 y S24 no evalúan movimiento ni escala que el recurso no tenga.
+- **PFO-10. Módulos comunes.** Mesada, choques, microscopio y panel de fotos se reutilizan por inyección.
+- **PFO-11. Gas ideal explícito.** `gasProfile` indica si el cálculo es simplificado; el realista exige corregir vapor.
+- **PFO-12. Secuencia propia.** Gases → CO₂/BTB → extracción → cromatografía → síntesis.
+- **B08-1. Códigos propios `FOT-NN`.** E01–E76 chocarían con los catálogos heredados; `params.codeMap` traduce y solo E68 (EPP) pasa a FOT-60.
+- **B08-2. Gafas fuera del EPP requerido.** Sin ellas se puede medir; abrir un solvente se rechaza y queda registrado.
+- **B08-3. Lámpara detrás del tubo.** Se coloca a mayor `y` para iluminar de frente sin tapar el montaje en la cámara.
+- **B08-4. Calibración al caso 8.3.** kC = 0,05 mmol/L deja saturado el carbono del medio, y la misma cinética permite el viraje del BTB al consumir el CO₂ añadido.
+
+## B09 · Arquitectura vegetal
+
+- **B09-1. Códigos propios `TV-NN`.** `params.codeMap` traduce los heredados (E*, CELnn, CEL-0NN); una entrada vacía indica que ese código no es un error aquí.
+- **B09-2. Corte en la mesa de trabajo.** Grosor, presión y plano son hechos del gesto que envía el panel; el dominio decide la sección resultante.
+- **B09-3. TV-40 y TV-53 son incidencias.** La guía los lista entre los errores, pero su detección es `asset:*` y su texto dice que no se penaliza: no descuentan.
+- **B09-4. Vidrio roto en residuo común.** Se registra TV-67 en la capa de B09, porque el código heredado solo reconocía lo que `div-world` marca como roto.
+- **TV-DEC-06. Índices didácticos.** La calidad del corte y los tiempos no salen de la guía ni están calibrados: llevan la marca `hypothetical`.

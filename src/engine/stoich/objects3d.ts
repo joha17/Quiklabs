@@ -426,6 +426,7 @@ export function createObjVisual5(o: P5Object, w0: P5World, q: QualityLevel, labe
       boss.add(at(hit(new THREE.SphereGeometry(2.6, 10, 8), id, 'jaws'), 0, 0, CLAMP_ARM));
       group.add(base, rod, boss);
       group.add(at(hit(new THREE.CylinderGeometry(1.4, 1.4, 62, 8), id, 'rod'), 0, 31, 0));
+      group.add(at(hit(new THREE.BoxGeometry(18, 1.4, 13), id), 0, 0.7, -1.5));
       update = (ctx) => {
         const c = ctx.world.clamp;
         // La pinza está a `heightCm` sobre la mesada; la varilla está en (stand.x, stand.y) → origen del grupo.

@@ -132,7 +132,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       const g = vesselGlass('BOTTLE', `bottle:${v?.reagent}`, { particles: 40 });
       const tex = reagentLabel(w, v?.reagent ?? null);
       disposables.push(tex);
-      const lab = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.02, 3.6, Math.PI * 0.9), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8 }));
+      const lab = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.02, 3.6, Math.PI * 0.9), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.8 }));
       lab.position.y = 4.3;
       const capM = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.4, 20), new THREE.MeshStandardMaterial({ color: 0x2b2f33, roughness: 0.6 })));
       capM.position.y = g.prof.rimY + 0.6;
@@ -151,7 +151,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       const g = vesselGlass('DROPPER_BOTTLE', `db:${v?.reagent}`, { mat: amber ? mats.amberGlass : mats.glass, particles: 30 });
       const tex = reagentLabel(w, v?.reagent ?? null);
       disposables.push(tex);
-      const lab = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.02, 2.8, Math.PI * 0.9), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8 }));
+      const lab = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.02, 2.8, Math.PI * 0.9), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.8 }));
       lab.position.y = 3.2;
       group.add(lab);
       group.add(at(hit(new THREE.CylinderGeometry(g.prof.outerR + 0.2, g.prof.outerR + 0.2, g.prof.rimY + 1, 12), id), 0, (g.prof.rimY + 1) / 2, 0));
@@ -209,7 +209,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       }
       const tex = graduationTexture(marks, '#123a63', { title: big ? '25 mL' : '10 mL', sub: big ? '±0,5 · 20 °C' : '±0,2 · 20 °C' });
       disposables.push(tex);
-      const grad = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.012, H, Math.PI * 0.5), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8 }));
+      const grad = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.012, H, Math.PI * 0.5), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.8 }));
       grad.position.y = y0 + H / 2;
       grad.renderOrder = 4;
       group.add(foot, grad);
@@ -227,7 +227,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       for (const ml of [10, 30, 50, 70, 90]) marks.push([(markHeight(sh, ml) - y0) / H, false]);
       const tex = graduationTexture(marks, '#ffffff', { title: '100 mL', sub: 'BORO 3.3' });
       disposables.push(tex);
-      const grad = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.012, H, Math.PI * 0.35), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8 }));
+      const grad = new THREE.Mesh(wrapGeometry(g.prof.outerR + 0.012, H, Math.PI * 0.35), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.8 }));
       grad.position.y = y0 + H / 2;
       grad.rotation.y = 0.5;
       grad.renderOrder = 4;
@@ -321,7 +321,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       const nozzle = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, prof.rimY + 1, 0), new THREE.Vector3(0, prof.rimY + 3.4, 0), new THREE.Vector3(WASH_NOZZLE.dx * 0.6, WASH_NOZZLE.z + 0.4, 0), new THREE.Vector3(WASH_NOZZLE.dx, WASH_NOZZLE.z, 0)]), 16, 0.18, 8), mats.plasticWhite);
       const tex = labelTexture(['H₂O', 'destilada'], { band: '#2f7fd1', w: 256, h: 128 });
       disposables.push(tex);
-      const lab = new THREE.Mesh(wrapGeometry(prof.outerR + 0.02, 4, Math.PI * 0.7), new THREE.MeshStandardMaterial({ map: tex, transparent: true }));
+      const lab = new THREE.Mesh(wrapGeometry(prof.outerR + 0.02, 4, Math.PI * 0.7), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false }));
       lab.position.y = 7;
       group.add(body, capM, nozzle, lab);
       group.add(at(hit(new THREE.CylinderGeometry(prof.outerR, prof.outerR, prof.rimY + 3, 12), id), 0, (prof.rimY + 3) / 2, 0));
@@ -337,7 +337,7 @@ export function createObjVisual4(o: P4Object, w: P4World, q: QualityLevel, label
       };
       const tex = labelTexture(lines[id] ?? ['RESIDUOS'], { band: `#${color.toString(16).padStart(6, '0')}`, w: 256, h: 128 });
       disposables.push(tex);
-      const lab = new THREE.Mesh(wrapGeometry(WASTE_PROFILE.outerR + 0.03, 4.2, Math.PI * 0.75), new THREE.MeshStandardMaterial({ map: tex, transparent: true }));
+      const lab = new THREE.Mesh(wrapGeometry(WASTE_PROFILE.outerR + 0.03, 4.2, Math.PI * 0.75), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false }));
       lab.position.y = 7.5;
       const fillMat = new THREE.MeshStandardMaterial({ color: 0x5d6d7e, roughness: 0.3, transparent: true, opacity: 0.85 });
       const fill = new THREE.Mesh(new THREE.CircleGeometry(WASTE_PROFILE.mouthR - 0.05, 24), fillMat);

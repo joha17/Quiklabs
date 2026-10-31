@@ -224,6 +224,18 @@ Benedict, observa gránulos de almidón de papa y calcula tasa inicial, PV = nRT
 Módulo ADH opcional (NADH a 340 nm). 101 errores con consecuencia física y demostración automática (`#b05`). Detalles:
 [docs/BIOLOGIA_B05.md](docs/BIOLOGIA_B05.md).
 
+## Biología B07 — Microbiología en evidencia (medios, colonias y tinción de Gram)
+
+Práctica estrictamente virtual sobre el microscopio compartido: fichas de medios, placas selladas con visor calibrado, trazado digital, frotis simulado, tinción por fases con controles, lectura prudente y demostración automática (`#b07`). Detalles: [docs/BIOLOGIA_B07.md](docs/BIOLOGIA_B07.md).
+
+## Biología B09 — Arquitectura vegetal (raíces, tallos, hojas y tejidos de sostén)
+
+Plántulas rotulables, corte a mano con grosor y presión, reacción de Wiesner con control sin teñir y láminas fijas comparadas. 72 errores `TV-NN`, 26 escenarios y demostración de 18 pasos. Imágenes ilustrativas y calibración hipotética, rotuladas. Detalle en `docs/BIOLOGIA_B09.md`; requiere la migración `0019_course_labs_b09.sql`.
+
+## Biología B08 — Energía luminosa y pigmentos (intercambio de gases, BTB y cromatografía)
+
+Par luz/oscuridad con capilar y menisco, serie BTB con tres controles, extracción en campana virtual y Rf desde el origen. 76 errores `FOT-NN`, 28 escenarios y demostración de 14 pasos. Valores sintéticos rotulados. Detalle en `docs/BIOLOGIA_B08.md`; requiere la migración `0018_course_labs_b08.sql`.
+
 ## Biología B06 — Atlas celular comparado (procariotas, protistas, plantas y sangre)
 
 Sexta práctica de Biología General, sobre el mismo equipo óptico: fichas fresca/permanente, epidermis de *Tradescantia*

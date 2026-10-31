@@ -5,6 +5,9 @@
  */
 import type { B01ObjKind, OpticalWorld } from '../../simulation/optical-world/types';
 import { microscopeView } from '../../simulation/optical-world/world';
+import { GEO_B07 } from '../../simulation/micro-world/geometry';
+import { GEO_B08 } from '../../simulation/photo-world/geometry';
+import { GEO_B09 } from '../../simulation/plant-world/geometry';
 import { BENCH_B01, CLEAN_TRAY, GEO_B01, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, caseSlotId, caseSlotPos, stageTopZCm } from '../../simulation/optical-world/geometry';
 
 export interface Spot {
@@ -71,6 +74,30 @@ const FOOTPRINT: Partial<Record<B01ObjKind, { w: number; d: number; top: number 
   sampleTray: { w: GEO_B01.sampleTray.w, d: GEO_B01.sampleTray.d, top: GEO_B01.sampleTray.h },
   cleanTray: { w: GEO_B01.tray.w, d: GEO_B01.tray.d, top: GEO_B01.tray.h },
   ppeTray: { w: GEO_B01.ppeTray.w, d: GEO_B01.ppeTray.d, top: GEO_B01.ppeTray.h },
+  mediaJar: { w: GEO_B07.jar.w, d: GEO_B07.jar.d, top: GEO_B07.jar.h },
+  brothTube: { w: GEO_B07.broth.r * 2, d: GEO_B07.broth.r * 2, top: GEO_B07.broth.h },
+  plateTray: { w: GEO_B07.tray.w, d: GEO_B07.tray.d, top: GEO_B07.tray.h },
+  plateViewer: { w: GEO_B07.viewer.w, d: GEO_B07.viewer.d, top: GEO_B07.viewer.h },
+  streakBoard: { w: GEO_B07.board.w, d: GEO_B07.board.d, top: GEO_B07.board.h },
+  smearPad: { w: GEO_B07.pad.w, d: GEO_B07.pad.d, top: GEO_B07.pad.h },
+  stainRack: { w: GEO_B07.rack.w, d: GEO_B07.rack.d, top: GEO_B07.rack.h },
+  autoclaveMock: { w: GEO_B07.mock.w, d: GEO_B07.mock.d, top: GEO_B07.mock.h },
+  burnerMock: { w: 6, d: 6, top: 9 },
+  plantSpecimen: { w: GEO_B09.plant.r * 2, d: GEO_B09.plant.r * 2, top: GEO_B09.plant.h },
+  woodyBranch: { w: GEO_B09.branch.w, d: GEO_B09.branch.d, top: GEO_B09.branch.h },
+  gasRack: { w: GEO_B08.rack.w, d: GEO_B08.rack.d, top: GEO_B08.rack.h },
+  btbRack: { w: GEO_B08.rack.w + 4, d: GEO_B08.rack.d, top: GEO_B08.rack.h },
+  thermalTank: { w: GEO_B08.tank.w, d: GEO_B08.tank.d, top: GEO_B08.tank.h },
+  co2Dispenser: { w: GEO_B08.dispenser.w, d: GEO_B08.dispenser.d, top: GEO_B08.dispenser.h },
+  leafBalance: { w: GEO_B08.balance.w, d: GEO_B08.balance.d, top: GEO_B08.balance.h },
+  mortar: { w: GEO_B08.mortar.r * 2, d: GEO_B08.mortar.r * 2, top: GEO_B08.mortar.h },
+  sepTube: { w: GEO_B08.sep.r * 2, d: GEO_B08.sep.r * 2, top: GEO_B08.sep.h },
+  devTube: { w: GEO_B08.devTube.r * 2, d: GEO_B08.devTube.r * 2, top: GEO_B08.devTube.h },
+  paperStand: { w: GEO_B08.stand.w, d: GEO_B08.stand.d, top: GEO_B08.stand.h },
+  organicWaste: { w: GEO_B08.waste.r * 2, d: GEO_B08.waste.r * 2, top: GEO_B08.waste.h },
+  drainSink: { w: GEO_B08.waste.r * 2, d: GEO_B08.waste.r * 2, top: 3 },
+  sprigTray: { w: GEO_B08.tray.w, d: GEO_B08.tray.d, top: GEO_B08.tray.h },
+  hypothesisBoard: { w: 26, d: 3, top: 16 },
 };
 
 export function solidsOf(w: OpticalWorld): Solid[] {
@@ -83,7 +110,7 @@ export function solidsOf(w: OpticalWorld): Solid[] {
 }
 
 /** Semiancho y semifondo de un objeto suelto en planta (cm). */
-export const halfExtents = (kind: B01ObjKind): [number, number] => (kind === 'slide' || kind === 'fixedSlide' ? [GEO_B01.slide.w / 2, GEO_B01.slide.d / 2] : [1, 1]);
+export const halfExtents = (kind: B01ObjKind): [number, number] => (kind === 'slide' || kind === 'fixedSlide' ? [GEO_B01.slide.w / 2, GEO_B01.slide.d / 2] : kind === 'petriPlate' ? [GEO_B07.plate.r, GEO_B07.plate.r] : [1, 1]);
 
 const CLEARANCE = 0.3;
 const BENCH_MARGIN = 4;
@@ -102,6 +129,16 @@ export function pushOutOf(s: Solid, x: number, y: number, hw: number, hd: number
 export function freeBenchSpot(w: OpticalWorld, x0: number, y0: number, hw: number, hd: number): [number, number] {
   const solids = solidsOf(w);
   let p: [number, number] = [x0, y0];
+  const blocked = ([x, y]: [number, number]) => solids.some((s) => Math.abs(x - s.x) < s.hw + hw && Math.abs(y - s.y) < s.hd + hd);
   for (let i = 0; i < 3; i++) for (const s of solids) p = pushOutOf(s, p[0], p[1], hw, hd);
+  // Entre equipos muy juntos, salir de uno cae en otro: se busca el hueco más cercano en anillos crecientes.
+  if (blocked(p)) {
+    for (let r = 4; r <= 80; r += 4) {
+      for (let a = 0; a < 16; a++) {
+        const q: [number, number] = [x0 + Math.cos((a * Math.PI) / 8) * r, y0 + Math.sin((a * Math.PI) / 8) * r];
+        if (q[0] >= BENCH_MARGIN && q[0] <= BENCH_B01.length - BENCH_MARGIN && q[1] >= BENCH_MARGIN && q[1] <= BENCH_B01.depth - BENCH_MARGIN && !blocked(q)) return q;
+      }
+    }
+  }
   return p;
 }

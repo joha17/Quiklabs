@@ -7,6 +7,8 @@
  *   al acercarla a la boca de un tubo, del HCl o del vaso de enjuague (entra sola; al alejarla, sale).
  * - Nada se teletransporta a la llama: el estudiante lleva cada instrumento con su propio gesto.
  */
+import { clearSpotNear, TIP_TOOLS } from '../interaction/solidFloor';
+import { clampToBench } from '../interaction/viewport';
 import type { FlameHost } from './host';
 import type { FlameLab3D } from './FlameLab3D';
 import type { Pose, Practice3Object } from '../../simulation/flame-world/types';
@@ -22,6 +24,10 @@ export interface PickHit3 {
 
 export interface ViewAdapter3 {
   toBench(sx: number, sy: number, z: number): { x: number; y: number };
+  /** Altura mínima para que el cuerpo completo del objeto no entre en lo que descansa en la mesada. */
+  /** Saca (x, y) de lo que no se puede sobrevolar. */
+  solidPush?(id: string, cur: { x: number; y: number }, x: number, y: number, resting: readonly string[], grounded: boolean, point?: boolean): { x: number; y: number };
+  solidFloor?(id: string, cur: { x: number; y: number; z: number }, x: number, y: number, resting: readonly string[]): number;
   pick(sx: number, sy: number, excludeId?: string | null): PickHit3 | null;
   viewW(): number;
   setOrbitEnabled(on: boolean): void;
@@ -48,6 +54,8 @@ interface Held {
 
 const MOUTH_Z = BURNER.mouthZ;
 /** Alturas de transporte por defecto (el estudiante las ajusta). */
+/** Tablero de fondo en planta y altura (cm), con el margen de paso de la mano. */
+const BACKDROP = { hx: 23.5, hy: 1.5, h: 42.5 } as const;
 const CARRY_Z: Partial<Record<Practice3Object['kind'], number>> = {
   loop: MOUTH_Z + 4,
   tongs: MOUTH_Z + 6.5,
@@ -235,8 +243,9 @@ export class FlameController {
       if (key === 'e' || key === 'E' || key === 'PageDown') return this.onWheel(1), true;
       const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[key];
       if (d) {
-        h.x += d[0];
-        h.y += d[1];
+        const moved = clampToBench(h.x + d[0], h.y + d[1]);
+        h.x = moved.x;
+        h.y = moved.y;
         return true;
       }
       return false;
@@ -358,7 +367,8 @@ export class FlameController {
     if (h.kind === 'soapBottle') this.soapIfNear();
     if (h.kind === 'lighter') this.dispatch({ type: 'spark', on: false });
     if (h.kind === 'burner') {
-      this.dispatch({ type: 'setPose', id: h.id, pose: { x: p.x, y: p.y, z: 0, rotationRad: 0 }, support: 'bench' });
+      const spot = clearSpotNear((x, y) => this.bodyFloor(h.id, x, y), p.x, p.y, 0);
+      this.dispatch({ type: 'setPose', id: h.id, pose: { x: spot.x, y: spot.y, z: 0, rotationRad: 0 }, support: 'bench' });
       this.host.sound('metal');
       return;
     }
@@ -406,8 +416,20 @@ export class FlameController {
     return { x, y: 4 };
   }
 
+  private restingIds(): string[] {
+    return Object.values(this.w.objects).filter((o) => o.support === 'bench').map((o) => o.id);
+  }
+
+  /** Altura mínima del cuerpo macizo de `id` en (x, y); 0 sin vista. */
+  private bodyFloor(id: string, x: number, y: number): number {
+    const body = this.w.objects[id];
+    if (!body || TIP_TOOLS.has(body.kind)) return 0;
+    return this.view?.solidFloor?.(id, body.pose, x, y, this.restingIds()) ?? 0;
+  }
+
   private layOnBench(id: string, x0: number, y0: number, z: number) {
-    const spot = this.freeSpot(Math.max(-8, Math.min(REF.mouth.x + 400, x0)), Math.max(3, Math.min(60, y0)), id);
+    const free = this.freeSpot(Math.max(-8, Math.min(REF.mouth.x + 400, x0)), Math.max(3, Math.min(60, y0)), id);
+    const spot = clearSpotNear((x, y) => this.bodyFloor(id, x, y), free.x, free.y, z);
     const cx = spot.x;
     const cy = spot.y;
     const base = this.platformZ(cx, cy, id);
@@ -453,6 +475,8 @@ export class FlameController {
       if (o.kind === 'tile' && dx < TILE.half && dy < TILE.half) z = Math.max(z, TILE.h);
       if (o.kind === 'rack' && dx < RACK.hx && dy < RACK.hy) z = Math.max(z, RACK.h);
       if (o.kind === 'loopHolder' && dx < HOLDER.hx && dy < HOLDER.hy) z = Math.max(z, HOLDER.h);
+      // El tablero de fondo se cruza por encima con la mano: el mechero, pegado a la mesada, sí choca con él.
+      if (o.kind === 'backdrop' && dx < BACKDROP.hx && dy < BACKDROP.hy) z = Math.max(z, BACKDROP.h);
       if (o.kind === 'burner' && Math.hypot(dx, dy) < BURNER.baseR) z = Math.max(z, Math.hypot(dx, dy) < BURNER.barrelR + 0.4 ? MOUTH_Z + 0.2 : BURNER.baseH);
     }
     return z;
@@ -575,6 +599,14 @@ export class FlameController {
       const o = w.objects[h.id];
       let tx = h.x + h.ox;
       let ty = h.y + h.oy;
+      const onBench = clampToBench(tx, ty);
+      tx = onBench.x;
+      ty = onBench.y;
+      const pushed = this.view.solidPush?.(h.id, o.pose, tx, ty, h.kind === 'burner' ? this.restingIds() : this.restingIds().filter((r) => this.w.objects[r]?.kind !== 'backdrop'), h.kind === 'burner', TIP_TOOLS.has(h.kind));
+      if (pushed) {
+        tx = pushed.x;
+        ty = pushed.y;
+      }
       let tz = h.z;
       // Al sacar un asa del soporte o un tubo de la gradilla, primero sube en vertical y después se desplaza:
       // así no roza a sus vecinos.
@@ -598,6 +630,7 @@ export class FlameController {
       }
       const floor = this.platformZ(tx, ty, h.id) + (h.kind === 'burner' ? 0 : 0.3);
       if (!h.magnet) tz = Math.max(tz, floor);
+      if (!h.magnet && h.kind !== 'burner') tz = Math.max(tz, this.bodyFloor(h.id, tx, ty));
       // Inercia moderada (§13.1): la pose sigue al puntero con suavizado.
       const k = Math.min(1, dt * (h.magnet ? 8 : 18));
       const nx = o.pose.x + (tx - o.pose.x) * k;

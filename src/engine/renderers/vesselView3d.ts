@@ -42,7 +42,7 @@ function selectionRing(): THREE.Mesh {
 }
 
 function labelPlane(tex: THREE.Texture, r: number, h: number, arc: number, y: number): THREE.Mesh {
-  const m = new THREE.Mesh(wrapGeometry(r, h, arc), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.8, side: THREE.FrontSide }));
+  const m = new THREE.Mesh(wrapGeometry(r, h, arc), new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.8, side: THREE.FrontSide }));
   m.position.y = y;
   return m;
 }

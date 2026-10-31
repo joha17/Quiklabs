@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, Physics, RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
+import { solidFloorOf, solidPushOf } from '../interaction/solidFloor';
 import { ReactionLabContext, useReactionLab } from './context';
 import type { ReactionLab3D } from './ReactionLab3D';
 import { bindShieldRect, createObjVisual4 } from './objects3d';
@@ -537,6 +538,12 @@ function Bridge() {
         if (!p) return { x: 0, y: 0 };
         const b = fromScene(p.x, p.y, p.z);
         return { x: b.x, y: b.y };
+      },
+      solidPush(id, cur, x, y, resting, grounded, point) {
+        return solidPushOf(lab.hitMeshes, id, cur, x, y, resting, grounded, point);
+      },
+      solidFloor(id, cur, x, y, resting) {
+        return solidFloorOf(lab.hitMeshes, id, cur, x, y, resting);
       },
       pick(sx, sy, exclude) {
         setRay(sx, sy);

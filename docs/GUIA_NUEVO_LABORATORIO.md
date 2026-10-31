@@ -262,6 +262,17 @@ El docente fija en la plataforma el modo exigido, la apertura y el cierre por cu
 
 ---
 
+### Choque con la mesada y los equipos (obligatorio)
+
+Todo motor con `src/engine/<lab>/controller.ts` debe, en el bucle de lo que se lleva en la mano (`src/tests/unit/lab-physics-contract.test.ts` lo verifica):
+
+- Limitar la **posición del objeto** con `clampToBench` (no el puntero: el agarre conserva su distancia a la mano).
+- Pasar el movimiento por `view.solidPush` (`solidPushOf`) o `sweepOnBench`: se detiene al tocar y se desliza, sin saltar al otro lado. La vista conecta `solidPushOf(lab.hitMeshes, ...)`.
+- Pasar por encima de lo bajo con `solidFloorOf` y buscar un sitio libre al soltar con `clearSpotNear`.
+- Dar a cada equipo mallas de selección (`hit`) con su forma real: son su cuerpo macizo. Un sólido nuevo de la sala va en `ROOM_SOLIDS`.
+
+Imanes y acoples son un destino explícito y no pasan por el choque.
+
 ## 10. Persistencia, cinta del intento y nota en el servidor
 
 - El intento (mundo, libreta, semilla, bitácora, estado del flujo) se guarda en `localStorage` cada 5 s y al ocultar

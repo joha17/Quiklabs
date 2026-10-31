@@ -71,6 +71,18 @@ vi.mock('../../simulation/div-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/div-world/world')>();
   return { ...m, dispatchDiv: wrap(m.dispatchDiv) };
 });
+vi.mock('../../simulation/photo-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/photo-world/world')>();
+  return { ...m, dispatchPhoto: wrap(m.dispatchPhoto) };
+});
+vi.mock('../../simulation/plant-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/plant-world/world')>();
+  return { ...m, dispatchPlant: wrap(m.dispatchPlant) };
+});
+vi.mock('../../simulation/micro-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/micro-world/world')>();
+  return { ...m, dispatchMicro: wrap(m.dispatchMicro) };
+});
 vi.mock('../../simulation/perm-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/perm-world/world')>();
   return { ...m, dispatchPerm: wrap(m.dispatchPerm) };
@@ -466,6 +478,24 @@ describe('repetición determinista — Biología B06', () => {
   }
 });
 
+describe('repetición determinista — Biología B07', () => {
+  for (const seed of [2607, 71]) {
+    it(`B07 semilla ${seed}: medios, placas, frotis y Gram, controles, medida y reanudación`, async () => {
+      const hb7 = await import('../helpersB07');
+      const { sanitizeOnResumeB07 } = await import('../../practices/practice-b07/resume');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b07', opts, () => hb7.worldB07(opts), (w, resume) => {
+        const out = hb7.idealRouteB07(w, resume);
+        nb = hb7.fillNotebookB07(out);
+        return out.w;
+      }, sanitizeOnResumeB07);
+      const { graded } = await verify('b07', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
 describe('calificación en el servidor', () => {
   const opts = { mode: 'PRACTICE' as const, seed: 601 };
   const base = record('p6', opts, () => h6.world6(opts), (w) => {
@@ -517,4 +547,43 @@ describe('calificación en el servidor', () => {
     expect(out.exactState).toBe(false);
     expect(out.status === 'MISMATCH' || out.status === 'OK').toBe(true);
   });
+});
+
+describe('repetición determinista — Biología B08', () => {
+  for (const seed of [2608, 83]) {
+    it(`B08 semilla ${seed}: par luz/oscuridad, BTB, extracción, cromatograma y reanudación`, async () => {
+      const hb8 = await import('../helpersB08');
+      const { sanitizeOnResumeB08 } = await import('../../practices/practice-b08/resume');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b08', opts, () => hb8.worldB08(opts), (w, resume) => {
+        const out = hb8.idealRouteB08(w, resume);
+        nb = hb8.fillNotebookB08(out);
+        return out.w;
+      }, sanitizeOnResumeB08);
+      const { graded } = await verify('b08', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Biología B09', () => {
+  for (const seed of [20261030, 909]) {
+    it(`B09 semilla ${seed}: órganos, cortes, Wiesner, láminas, medida y reanudación`, async () => {
+      const hb9 = await import('../helpersB09');
+      const { sanitizeOnResumeB09 } = await import('../../practices/practice-b09/resume');
+      const { emptyB09Notebook } = await import('../../practices/practice-b09/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b09', opts, () => hb9.worldB09(opts), (w, resume) => {
+        const out = hb9.idealRouteB09(w, resume);
+        const n = emptyB09Notebook('replay');
+        hb9.fillNotebookB09(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB09);
+      const { graded } = await verify('b09', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
 });

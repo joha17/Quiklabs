@@ -58,6 +58,8 @@ export interface CellState {
   extraAllowed?: Partial<Record<CellKind, StainId[]>>;
   /** Variantes de recurso del intento (B06; ausente en B02–B05). */
   variants?: { blurStomata: boolean; eugVisible: boolean; parFine: boolean };
+  /** Condiciones de recurso de B09 (ausente en las demás). */
+  plantAssets?: { wiesnerMinS: number; wiesnerMaxS: number; farStomata: boolean };
 }
 
 export interface CellWorld extends OpticalWorld {

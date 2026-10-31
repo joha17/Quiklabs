@@ -22,7 +22,12 @@ export type StructureId =
   // B06 — atlas celular comparado (§3.1): epidermis, protistas, procariotas y sangre.
   | 'stoma' | 'guardCells' | 'euglenaCell' | 'pellicle' | 'eyespot' | 'flagellum' | 'parameciumCell' | 'cilia' | 'oralGroove'
   | 'contractileVacuole' | 'foodVacuole' | 'macronucleus' | 'bacilli' | 'cellChain' | 'cyanoFilament' | 'heterocyst'
-  | 'erythrocyte' | 'leukocyte' | 'platelet' | 'neutrophil' | 'lymphocyte';
+  | 'erythrocyte' | 'leukocyte' | 'platelet' | 'neutrophil' | 'lymphocyte'
+  // B07 — frotis bacteriano (§3.2): campo teñido y formas celulares.
+  | 'stainedField' | 'cocci' | 'rods'
+  // B09 — tejidos y regiones vegetales (§3.1). `lignifiedWall`: pared teñida por Wiesner (es tinción, no un tejido).
+  | 'rootCap' | 'meristem' | 'elongationZone' | 'stele' | 'endodermis' | 'pericycle' | 'casparian' | 'pith' | 'parenchyma' | 'collenchyma' | 'sclerenchyma'
+  | 'cambium' | 'companionCell' | 'palisade' | 'spongy' | 'mesophyll' | 'cuticle' | 'growthRing' | 'bark' | 'lignifiedWall';
 
 /**
  * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
@@ -447,7 +452,290 @@ export const DIV_ASSETS: Record<string, ObservationAssetManifest> = {
   bloodWrightWeak: bloodSmear('bloodWrightWeak', 'Frotis con Wright sin tampón (contraste insuficiente)', 'inferred', 'inferred', false),
 };
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id] ?? DIV_ASSETS[id]);
+
+const DIDACTIC_B07 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía ni un resultado de laboratorio). Basada en la guía «Práctica 7. Medios de cultivo e identificación de bacterias».';
+const WHOLE = rect(0, 0, 1, 1);
+
+/** Aspecto de cada variante de frotis: forma visible, color y calidad. Lo dibuja `illustrationsMicro`. */
+export const GRAM_LOOK: Record<string, { cocci: string | null; rods: string | null; field: string; dense?: boolean; faint?: boolean; sparse?: boolean; stained: boolean; legend: string }> = {
+  smearBlank: { cocci: null, rods: null, field: '#f7f5ef', stained: false, legend: 'none' },
+  gramUnstained: { cocci: null, rods: null, field: '#f2efe6', stained: false, legend: 'none' },
+  gramPosV: { cocci: '#4b2a86', rods: null, field: '#efe9f4', stained: true, legend: 'violet' },
+  gramPosP: { cocci: '#d0507f', rods: null, field: '#f8ebf0', stained: true, legend: 'pink' },
+  gramNegP: { cocci: null, rods: '#d0507f', field: '#f8ebf0', stained: true, legend: 'pink' },
+  gramNegV: { cocci: null, rods: '#4b2a86', field: '#efe9f4', stained: true, legend: 'violet' },
+  gramMixed: { cocci: '#4b2a86', rods: '#d0507f', field: '#f4ebf2', stained: true, legend: 'mixed' },
+  gramIncompatible: { cocci: '#8a4a9a', rods: '#b05a90', field: '#f3ecf2', faint: true, stained: true, legend: 'ambiguous' },
+  gramThick: { cocci: null, rods: null, field: '#3d2a5e', dense: true, stained: true, legend: 'ambiguous' },
+  gramSparse: { cocci: null, rods: null, field: '#f6f1f4', sparse: true, stained: true, legend: 'ambiguous' },
+  gramNoPrimary: { cocci: '#e2a0ba', rods: '#e2a0ba', field: '#fbf2f5', faint: true, stained: true, legend: 'pink' },
+  gramNoMordant: { cocci: '#9f8cc4', rods: '#9f8cc4', field: '#f3f0f7', faint: true, stained: true, legend: 'ambiguous' },
+  gramNoCounter: { cocci: '#4b2a86', rods: '#d9d5cc', field: '#f4f2ec', faint: true, stained: true, legend: 'ambiguous' },
+  gramPrimaryOnly: { cocci: '#4b2a86', rods: '#4b2a86', field: '#ece6f3', stained: true, legend: 'violet' },
+  gramInvalid: { cocci: null, rods: null, field: '#c9b6d6', faint: true, stained: true, legend: 'ambiguous' },
+  gramDirty: { cocci: '#6a4a8e', rods: '#a85a8e', field: '#d9c4d6', faint: true, stained: true, legend: 'ambiguous' },
+};
+
+const gramManifest = (assetId: string, base: string, name: string, owner?: Parameters<typeof divManifest>[1]) => {
+  const look = GRAM_LOOK[base];
+  // Solo se puede rotular lo que la variante deja distinguir: sin células definidas no hay forma que evaluar.
+  const annotations: Annotation[] = look.stained ? [{ structureId: 'stainedField', polygonNormalized: WHOLE, observableAtObjectiveX: [4, 10, 40, 100] }] : [];
+  if (look.cocci && !look.faint) annotations.push({ structureId: 'cocci', polygonNormalized: WHOLE, observableAtObjectiveX: [40, 100] });
+  if (look.rods && !look.faint) annotations.push({ structureId: 'rods', polygonNormalized: WHOLE, observableAtObjectiveX: [40, 100] });
+  if (look.cocci && look.faint) annotations.push({ structureId: 'cocci', polygonNormalized: WHOLE, observableAtObjectiveX: [40, 100], evidence: 'inferred' });
+  if (look.rods && look.faint) annotations.push({ structureId: 'rods', polygonNormalized: WHOLE, observableAtObjectiveX: [40, 100], evidence: 'inferred' });
+  return divManifest({ assetId, name, sampleKind: 'fixed', extentMm: [0.8, 0.8], annotations }, owner ?? { role: 'admin', id: 'u_admin', version: 1, attribution: DIDACTIC_B07 });
+};
+
+export const MICRO_ASSETS: Record<string, ObservationAssetManifest> = {
+  smearBlank: gramManifest('smearBlank', 'smearBlank', 'Portaobjetos sin frotis'),
+  gramUnstained: gramManifest('gramUnstained', 'gramUnstained', 'Frotis virtual sin teñir'),
+  gramPosV: gramManifest('gramPosV', 'gramPosV', 'Cocos violeta (control positivo ilustrativo)'),
+  gramPosP: gramManifest('gramPosP', 'gramPosP', 'Cocos rosados por decoloración excesiva'),
+  gramNegP: gramManifest('gramNegP', 'gramNegP', 'Bacilos rosados (control negativo ilustrativo)'),
+  gramNegV: gramManifest('gramNegV', 'gramNegV', 'Bacilos violeta por decoloración insuficiente'),
+  gramMixed: gramManifest('gramMixed', 'gramMixed', 'Frotis mixto: dos formas y dos colores'),
+  gramIncompatible: gramManifest('gramIncompatible', 'gramIncompatible', 'Muestra incógnita con datos incompatibles'),
+  gramThick: gramManifest('gramThick', 'gramThick', 'Frotis demasiado espeso'),
+  gramSparse: gramManifest('gramSparse', 'gramSparse', 'Frotis con cobertura insuficiente'),
+  gramNoPrimary: gramManifest('gramNoPrimary', 'gramNoPrimary', 'Tinción sin colorante primario'),
+  gramNoMordant: gramManifest('gramNoMordant', 'gramNoMordant', 'Tinción sin mordiente'),
+  gramNoCounter: gramManifest('gramNoCounter', 'gramNoCounter', 'Tinción sin colorante de contraste'),
+  gramPrimaryOnly: gramManifest('gramPrimaryOnly', 'gramPrimaryOnly', 'Frotis con primario sin decolorar'),
+  gramInvalid: gramManifest('gramInvalid', 'gramInvalid', 'Tinción con fases invertidas'),
+  gramDirty: gramManifest('gramDirty', 'gramDirty', 'Tinción sin lavados: interferencia de color'),
+  gramPosVT2: gramManifest('gramPosVT2', 'gramPosV', 'Control positivo (activo docente v2)', { role: 'teacher', id: 'u_doc01', version: 2, attribution: 'Variante autorizada por el docente del curso (recurso ilustrativo).' }),
+  gramNegPT2: gramManifest('gramNegPT2', 'gramNegP', 'Control negativo (activo docente v2)', { role: 'teacher', id: 'u_doc01', version: 2, attribution: 'Variante autorizada por el docente del curso (recurso ilustrativo).' }),
+};
+
+// ─────────────── B09: arquitectura vegetal ───────────────
+
+const DIDACTIC_B09 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Las regiones anotadas fijan qué puede rotularse; el docente puede publicar fotos reales con las mismas estructuras.';
+const ST = (structureId: StructureId, polygonNormalized: number[][], observableAtObjectiveX: number[], evidence?: EvidenceStatus): Annotation => ({ structureId, polygonNormalized, observableAtObjectiveX, ...(evidence ? { evidence } : {}) });
+const ALL_X = [4, 10, 40];
+const MID_X = [10, 40];
+
+/** Anillo de `n` haces a radio `r` alrededor del centro (centros normalizados), con desfase de ángulo. */
+const ringOf = (n: number, r: number, a0 = 0): [number, number][] => Array.from({ length: n }, (_, i) => [0.5 + r * Math.cos(a0 + (2 * Math.PI * i) / n), 0.5 + r * Math.sin(a0 + (2 * Math.PI * i) / n)]);
+
+/** Posiciones (normalizadas) de las regiones de B09; la ilustración del ocular dibuja exactamente estas. */
+export const PLANT_LAYOUT = {
+  /** Tallo eudicotiledóneo: haces en anillo. */
+  ring: ringOf(8, 0.27),
+  /** Tallo monocotiledóneo: haces dispersos (posiciones fijas, sin azar). */
+  scattered: [[0.5, 0.5], [0.36, 0.38], [0.64, 0.36], [0.3, 0.58], [0.68, 0.6], [0.46, 0.72], [0.58, 0.24], [0.22, 0.42], [0.78, 0.46], [0.4, 0.2], [0.62, 0.78], [0.3, 0.76], [0.76, 0.7], [0.5, 0.34], [0.54, 0.62]] as [number, number][],
+  /** Raíz eudicotiledónea: brazos del xilema estrellado y floema entre ellos. */
+  rootArms: ringOf(4, 0.07, Math.PI / 4),
+  rootPhloem: ringOf(4, 0.09),
+  /** Raíz monocotiledónea: xilema y floema alternos en anillo alrededor de la médula. */
+  monoXylem: ringOf(10, 0.17),
+  monoPhloem: ringOf(10, 0.17, Math.PI / 10),
+  /** Estomas de la cara abaxial de la hoja (bajo la epidermis inferior). */
+  leafStomata: [[0.28, 0.73], [0.62, 0.73]] as [number, number][],
+  /** Epidermis fresca: estomas repartidos, o solo lejos del centro (S15). */
+  freshStomata: [[0.5, 0.52], [0.34, 0.36], [0.66, 0.42], [0.42, 0.7]] as [number, number][],
+  farStomata: [[0.86, 0.16], [0.14, 0.86]] as [number, number][],
+  /** Pera: grupos de esclereidas (células pétreas) en el parénquima. */
+  sclereidGroups: [[0.34, 0.36], [0.64, 0.44], [0.46, 0.68]] as [number, number][],
+} as const;
+
+const bundles = (centers: readonly (readonly [number, number])[], r: number, xylemAt: number, phloemAt: number, sclerenchyma = false): Annotation[] =>
+  centers.flatMap(([x, y]) => [
+    ST('vascularBundle', circle(x, y, r, 12), ALL_X),
+    // Xilema hacia el centro del órgano y floema hacia afuera (en la lámina se comprueba, no se supone).
+    ST('xylem', circle(x + (0.5 - x) * xylemAt, y + (0.5 - y) * xylemAt, r * 0.45, 10), MID_X),
+    ST('phloem', circle(x + (x - 0.5) * phloemAt, y + (y - 0.5) * phloemAt, r * 0.4, 10), MID_X),
+    ...(sclerenchyma ? [ST('sclerenchyma', band(circle(x, y, r * 1.2, 12), 0.82), MID_X)] : []),
+  ]);
+
+function plantManifest(
+  m: Omit<ObservationAssetManifest, 'contentHash' | 'ownerRole' | 'ownerId' | 'captureQuality' | 'fallbackPolicy' | 'sourceAttribution' | 'version' | 'views' | 'sampleKind'> & { sampleKind?: ObservationAssetManifest['sampleKind'] },
+  owner: { role: 'admin' | 'teacher'; id: string; version: number } = { role: 'admin', id: 'u_admin', version: 1 },
+): ObservationAssetManifest {
+  const base = {
+    ...m, sampleKind: m.sampleKind ?? ('fixed' as const), views: micViews(), version: owner.version, ownerRole: owner.role, ownerId: owner.id, captureQuality: 'illustrative' as const,
+    fallbackPolicy: 'admin-version' as const, sourceAttribution: DIDACTIC_B09,
+  };
+  return { ...base, contentHash: stableHash(base) };
+}
+
+const ORGAN = circle(0.5, 0.5, 0.46, 32);
+const skin = (k = 0.94) => ST('epidermis', band(ORGAN, k), ALL_X);
+
+const rootTip = (id: string, elongation: EvidenceStatus) => plantManifest({
+  assetId: id, name: 'Ápice de raíz de cebolla, corte longitudinal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [
+    ST('elongationZone', rect(0.32, 0.06, 0.68, 0.42), ALL_X, elongation),
+    ST('meristem', rect(0.3, 0.42, 0.7, 0.72), ALL_X),
+    ST('rootCap', [[0.3, 0.72], [0.7, 0.72], [0.62, 0.88], [0.5, 0.95], [0.38, 0.88]], ALL_X),
+    ST('nucleus', rect(0.3, 0.42, 0.7, 0.72), [40]),
+  ],
+});
+
+const rootEudicot = (id: string, endodermis: EvidenceStatus, casparian: EvidenceStatus = 'unavailable') => plantManifest({
+  assetId: id, name: 'Raíz primaria de eudicotiledónea, corte transversal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [
+    skin(),
+    ST('cortex', band(circle(0.5, 0.5, 0.42, 32), 0.45), ALL_X),
+    ST('parenchyma', band(circle(0.5, 0.5, 0.42, 32), 0.45), MID_X),
+    ST('stele', circle(0.5, 0.5, 0.17, 20), ALL_X),
+    ST('endodermis', band(circle(0.5, 0.5, 0.19, 24), 0.88), MID_X, endodermis),
+    ST('pericycle', band(circle(0.5, 0.5, 0.165, 24), 0.9), [40], 'inferred'),
+    ...PLANT_LAYOUT.rootArms.map(([x, y]) => ST('xylem', circle(x, y, 0.035, 10), MID_X)),
+    ...PLANT_LAYOUT.rootPhloem.map(([x, y]) => ST('phloem', circle(x, y, 0.025, 10), MID_X)),
+    ...(casparian === 'unavailable' ? [] : [ST('casparian', band(circle(0.5, 0.5, 0.19, 24), 0.88), [40], casparian)]),
+  ],
+});
+
+const rootMonocot = (id: string, pith: EvidenceStatus) => plantManifest({
+  assetId: id, name: 'Raíz primaria de monocotiledónea, corte transversal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [
+    skin(),
+    ST('cortex', band(circle(0.5, 0.5, 0.42, 32), 0.6), ALL_X),
+    ST('parenchyma', band(circle(0.5, 0.5, 0.42, 32), 0.6), MID_X),
+    ST('stele', circle(0.5, 0.5, 0.24, 24), ALL_X),
+    ST('endodermis', band(circle(0.5, 0.5, 0.255, 28), 0.92), MID_X),
+    ST('pith', circle(0.5, 0.5, 0.11, 18), ALL_X, pith),
+    ...PLANT_LAYOUT.monoXylem.map(([x, y]) => ST('xylem', circle(x, y, 0.024, 8), MID_X)),
+    ...PLANT_LAYOUT.monoPhloem.map(([x, y]) => ST('phloem', circle(x, y, 0.017, 8), MID_X)),
+  ],
+});
+
+const stemEudicot = (id: string, cambium: EvidenceStatus) => plantManifest({
+  assetId: id, name: 'Tallo herbáceo de eudicotiledónea, corte transversal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [
+    skin(),
+    ST('collenchyma', band(circle(0.5, 0.5, 0.43, 32), 0.92), MID_X),
+    ST('cortex', band(circle(0.5, 0.5, 0.395, 32), 0.85), ALL_X),
+    ST('pith', circle(0.5, 0.5, 0.16, 20), ALL_X),
+    ST('parenchyma', circle(0.5, 0.5, 0.16, 20), MID_X),
+    ...bundles(PLANT_LAYOUT.ring, 0.06, 0.22, 0.2),
+    ST('cambium', band(circle(0.5, 0.5, 0.28, 36), 0.97), [40], cambium),
+    ST('companionCell', circle(PLANT_LAYOUT.ring[0][0] + 0.02, PLANT_LAYOUT.ring[0][1], 0.012, 8), [40], 'unavailable'),
+  ],
+});
+
+const stemMonocot = (id: string) => plantManifest({
+  assetId: id, name: 'Tallo de monocotiledónea, corte transversal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [
+    skin(),
+    ST('parenchyma', circle(0.5, 0.5, 0.42, 32), MID_X),
+    ...bundles(PLANT_LAYOUT.scattered, 0.042, 0.18, 0.16, true),
+  ],
+});
+
+const wood = (id: string, name: string) => plantManifest({
+  assetId: id, name, extentMm: [4, 4],
+  annotations: [
+    ST('bark', band(ORGAN, 0.9), ALL_X),
+    ST('cambium', band(circle(0.5, 0.5, 0.415, 36), 0.97), [40], 'inferred'),
+    ST('phloem', band(circle(0.5, 0.5, 0.41, 36), 0.97), MID_X),
+    ST('xylem', circle(0.5, 0.5, 0.38, 32), ALL_X),
+    ...[0.12, 0.2, 0.28, 0.36].map((r) => ST('growthRing', band(circle(0.5, 0.5, r, 32), 0.96), ALL_X)),
+    ST('pith', circle(0.5, 0.5, 0.05, 14), ALL_X),
+  ],
+});
+
+const leafEudicot = (id: string, cuticle: EvidenceStatus) => plantManifest({
+  assetId: id, name: 'Hoja dorsiventral de eudicotiledónea, corte transversal (lámina fija)', extentMm: [1.6, 1.6],
+  annotations: [
+    ST('epidermis', rect(0.04, 0.24, 0.96, 0.28), ALL_X),
+    ST('cuticle', rect(0.04, 0.228, 0.96, 0.24), [40], cuticle),
+    ST('palisade', rect(0.04, 0.28, 0.96, 0.48), ALL_X),
+    ST('spongy', rect(0.04, 0.48, 0.96, 0.72), ALL_X),
+    ST('epidermis', rect(0.04, 0.72, 0.96, 0.76), ALL_X),
+    ST('vascularBundle', circle(0.46, 0.5, 0.075, 14), ALL_X),
+    // Orientación del haz en la hoja: xilema hacia la cara adaxial (arriba), floema hacia la abaxial; se confirma con el metadato del corte.
+    ST('xylem', circle(0.46, 0.47, 0.034, 10), MID_X),
+    ST('phloem', circle(0.46, 0.535, 0.03, 10), MID_X),
+    ...PLANT_LAYOUT.leafStomata.map(([x, y]) => ST('stoma', circle(x, y, 0.022, 10), MID_X)),
+    ...PLANT_LAYOUT.leafStomata.map(([x, y]) => ST('guardCells', band(circle(x, y, 0.03, 10), 0.5), [40])),
+  ],
+});
+
+const leafMonocot = (id: string) => plantManifest({
+  assetId: id, name: 'Hoja de monocotiledónea, corte transversal (lámina fija)', extentMm: [1.6, 1.6],
+  annotations: [
+    ST('epidermis', rect(0.04, 0.3, 0.96, 0.34), ALL_X),
+    ST('mesophyll', rect(0.04, 0.34, 0.96, 0.66), ALL_X),
+    ST('epidermis', rect(0.04, 0.66, 0.96, 0.7), ALL_X),
+    ...[0.2, 0.5, 0.8].flatMap((x) => [ST('vascularBundle', circle(x, 0.5, 0.075, 12), ALL_X), ST('xylem', circle(x, 0.47, 0.03, 10), MID_X), ST('phloem', circle(x, 0.535, 0.026, 10), MID_X)]),
+  ],
+});
+
+/** Sección fresca de pecíolo de apio; con Wiesner las paredes lignificadas se ven rojas (también fibras, no solo xilema). */
+const celery = (id: string, name: string, lignified: boolean, owner?: Parameters<typeof plantManifest>[1]) => plantManifest({
+  assetId: id, name, sampleKind: 'fresh', extentMm: [3.2, 3.2],
+  annotations: [
+    skin(),
+    ST('collenchyma', band(circle(0.5, 0.5, 0.43, 32), 0.9), MID_X),
+    ST('parenchyma', circle(0.5, 0.5, 0.385, 32), MID_X),
+    ...bundles(ringOf(5, 0.27, 0.3), 0.07, 0.22, 0.2),
+    ...(lignified ? ringOf(5, 0.27, 0.3).flatMap(([x, y]) => [ST('lignifiedWall', circle(x + (0.5 - x) * 0.22, y + (0.5 - y) * 0.22, 0.032, 10), ALL_X), ST('sclerenchyma', band(circle(x, y, 0.078, 12), 0.82), MID_X)]) : []),
+  ],
+}, owner);
+
+const pearPlant = (id: string, name: string, lignified: boolean) => plantManifest({
+  assetId: id, name, sampleKind: 'fresh', extentMm: [2.4, 2.4],
+  annotations: [
+    ST('parenchyma', TISSUE, ALL_X),
+    ...PLANT_LAYOUT.sclereidGroups.map(([x, y]) => ST('sclereids', circle(x, y, 0.07, 12), ALL_X)),
+    ...(lignified ? PLANT_LAYOUT.sclereidGroups.map(([x, y]) => ST('lignifiedWall', circle(x, y, 0.07, 12), ALL_X)) : []),
+  ],
+});
+
+const leafFresh = (id: string, name: string, plane: 'transverse' | 'epidermal', stomata: readonly (readonly [number, number])[]) => plantManifest({
+  assetId: id, name, sampleKind: 'fresh', extentMm: [1.6, 1.6],
+  annotations: plane === 'transverse'
+    ? [ST('epidermis', rect(0.04, 0.28, 0.96, 0.32), ALL_X), ST('mesophyll', rect(0.04, 0.32, 0.96, 0.68), ALL_X), ST('epidermis', rect(0.04, 0.68, 0.96, 0.72), ALL_X), ST('vascularBundle', circle(0.5, 0.5, 0.09, 12), ALL_X), ST('xylem', circle(0.5, 0.47, 0.035, 10), MID_X), ST('phloem', circle(0.5, 0.54, 0.03, 10), MID_X)]
+    : [
+        ST('epidermalCells', rect(0.02, 0.02, 0.98, 0.98), ALL_X),
+        ...stomata.map(([x, y]) => ST('stoma', circle(x, y, 0.024, 10), MID_X)),
+        ...stomata.map(([x, y]) => ST('guardCells', band(circle(x, y, 0.05, 12), 0.45), [40])),
+      ],
+});
+
+const leafStereo = (id: string, name: string) => ({
+  ...ASSETS.leaf,
+  assetId: id,
+  name,
+  contentHash: stableHash({ ...ASSETS.leaf, assetId: id, name }),
+});
+
+/** Manifiestos de B09. Lo que no se resuelve (Caspary, células acompañantes, cambium fino) nunca se valida salvo en el activo que lo anote visible. */
+export const PLANT_ASSETS: Record<string, ObservationAssetManifest> = {
+  onionRootTip: rootTip('onionRootTip', 'inferred'),
+  onionRootTipClear: rootTip('onionRootTipClear', 'visible'),
+  rootEudicot: rootEudicot('rootEudicot', 'inferred'),
+  rootEudicotClear: rootEudicot('rootEudicotClear', 'visible', 'inferred'),
+  rootMonocot: rootMonocot('rootMonocot', 'inferred'),
+  rootMonocotPith: rootMonocot('rootMonocotPith', 'visible'),
+  stemEudicot: stemEudicot('stemEudicot', 'inferred'),
+  stemEudicotCambium: stemEudicot('stemEudicotCambium', 'visible'),
+  stemMonocot: stemMonocot('stemMonocot'),
+  woodRings: wood('woodRings', 'Tallo leñoso con crecimiento secundario, corte transversal (lámina fija)'),
+  woodTropical: wood('woodTropical', 'Rama tropical con anillos no anuales documentados (lámina fija)'),
+  leafEudicot: leafEudicot('leafEudicot', 'inferred'),
+  leafEudicotFine: leafEudicot('leafEudicotFine', 'visible'),
+  leafMonocot: leafMonocot('leafMonocot'),
+  celery: celery('celery', 'Pecíolo de apio, sección fresca sin teñir', false),
+  celeryT2: celery('celeryT2', 'Pecíolo de apio (activo docente v2)', false, { role: 'teacher', id: 'u_doc01', version: 2 }),
+  celeryWiesner: celery('celeryWiesner', 'Pecíolo de apio con reacción de Wiesner', true),
+  pearSection: pearPlant('pearSection', 'Pulpa de pera, sección fresca sin teñir', false),
+  pearWiesner: pearPlant('pearWiesner', 'Pulpa de pera con reacción de Wiesner', true),
+  leafFreshT: leafFresh('leafFreshT', 'Hoja asignada, sección transversal fresca', 'transverse', []),
+  leafFreshE: leafFresh('leafFreshE', 'Hoja asignada, epidermis fresca', 'epidermal', PLANT_LAYOUT.freshStomata),
+  leafFreshFar: leafFresh('leafFreshFar', 'Hoja asignada, epidermis con estomas lejos del centro', 'epidermal', PLANT_LAYOUT.farStomata),
+  leafNet: leafStereo('leafNet', 'Hoja de venación reticulada (estereoscopio)'),
+  leafParallel: leafStereo('leafParallel', 'Hoja de venación paralela (estereoscopio)'),
+};
+
+/** Plano real de cada activo (metadato: el estudiante lo comprueba, no lo supone). */
+export const PLANT_ASSET_PLANE: Record<string, 'transverse' | 'longitudinal' | 'epidermal'> = {
+  onionRootTip: 'longitudinal', onionRootTipClear: 'longitudinal', leafFreshE: 'epidermal', leafFreshFar: 'epidermal',
+};
+
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id] ?? DIV_ASSETS[id] ?? MICRO_ASSETS[id] ?? PLANT_ASSETS[id]);
 
 /** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
 export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {

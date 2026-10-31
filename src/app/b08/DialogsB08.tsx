@@ -1,0 +1,201 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useB08 } from './store';
+import { Modal } from './ui';
+import { tList } from '../i18n';
+import { ExitLabPrompt } from '../common/ui';
+import type { QualitySetting } from '../../engine/quality';
+import { CoatIcon, HairIcon, ShoesIcon } from '../accessibility/PpeIcons';
+import { b08StageEvidence } from '../../practices/practice-b08/evidence';
+import type { PhotoWorld as OpticalWorld } from '../../simulation/photo-world/types';
+
+/** Manos limpias y guantes (iconos propios de la práctica). */
+function HandsIcon({ worn }: { worn: boolean }) {
+  return (
+    <svg viewBox="0 0 96 96" aria-hidden="true">
+      <circle cx="48" cy="48" r="46" className="ppe-backdrop" />
+      <path d="M34 80 V46 Q34 40 40 40 V24 Q40 20 44 20 Q48 20 48 24 V40 V20 Q48 16 52 16 Q56 16 56 20 V42 V26 Q56 22 60 22 Q64 22 64 26 V60 Q64 74 56 80 Z" fill={worn ? '#f5cba7' : '#dfe3e8'} stroke="#55636f" strokeWidth="2" strokeLinejoin="round" />
+      {worn && <path d="M24 30 q4 -6 8 0 M70 34 q4 -6 8 0" stroke="#4fc3f7" strokeWidth="3" fill="none" />}
+    </svg>
+  );
+}
+
+/** Requeridos: bata, calzado cerrado, cabello recogido, manos limpias. Gafas: las exige el dominio al abrir un solvente (§11). */
+const GogglesIcon = (_: { worn: boolean }) => (
+  <svg viewBox="0 0 96 96" aria-hidden="true">
+    <circle cx="48" cy="48" r="46" className="ppe-backdrop" />
+    <rect x="18" y="38" width="26" height="20" rx="8" fill="none" stroke="currentColor" strokeWidth="5" />
+    <rect x="52" y="38" width="26" height="20" rx="8" fill="none" stroke="currentColor" strokeWidth="5" />
+    <path d="M44 46h8" stroke="currentColor" strokeWidth="5" />
+  </svg>
+);
+
+const PPE_ITEMS = [
+  { key: 'coat', Icon: CoatIcon, required: true },
+  { key: 'shoes', Icon: ShoesIcon, required: true },
+  { key: 'hair', Icon: HairIcon, required: true },
+  { key: 'hands', Icon: HandsIcon, required: true },
+  { key: 'goggles', Icon: GogglesIcon, required: false },
+] as const;
+type PpeKey = (typeof PPE_ITEMS)[number]['key'];
+
+/** No se entrega con un cubreobjetos bajando, algo en la pinza, vidrio roto sin recoger o un bloqueo activo. */
+export function b08SubmissionBlockers(w: OpticalWorld): string[] {
+  const out: string[] = [];
+  if (w.forceps.holding) out.push('FORCEPS');
+  if (w.shards > 0) out.push('SHARDS');
+  if (w.safety.block) out.push('BLOCK');
+  return out;
+}
+
+/**
+ * Equipo de protección (§11.1): bata, calzado cerrado, cabello recogido y manos limpias; los guantes son opcionales
+ * (no se universalizan para un microscopio limpio). Empezar con algo requerido faltante se rechaza y queda registrado (E68).
+ */
+function PpeDialog() {
+  const { t } = useTranslation();
+  const confirm = useB08((s) => s.confirmPpe);
+  const [c, setC] = useState<Record<PpeKey, boolean>>({ coat: false, shoes: false, hair: false, hands: false, goggles: false });
+  const [refused, setRefused] = useState(false);
+  const count = Object.values(c).filter(Boolean).length;
+  const missing = PPE_ITEMS.filter(({ key, required }) => required && !c[key]).map(({ key }) => t(`b08.ppe.${key}`));
+  return (
+    <Modal title={t('ppe.title')}>
+      <p style={{ margin: 0 }}>{t('b08.ppe.lead')}</p>
+      <div className="ppe-grid">
+        {PPE_ITEMS.map(({ key, Icon }) => (
+          <button key={key} type="button" className="ppe-btn" aria-pressed={c[key]} aria-label={t(`b08.ppe.${key}`)} onClick={() => setC({ ...c, [key]: !c[key] })}>
+            <span className="ppe-check" aria-hidden="true">✓</span>
+            <Icon worn={c[key]} />
+            <span className="ppe-name">{t(`b08.ppe.${key}`)}</span>
+            <span className="ppe-state" aria-hidden="true">{c[key] ? t('ppe.on') : t('ppe.off')}</span>
+          </button>
+        ))}
+      </div>
+      <ul className="hint" style={{ margin: 0, paddingLeft: '1.1rem' }}>
+        {tList('b08.ppe.hazards').map((h) => <li key={h}>{h}</li>)}
+      </ul>
+      <span className="hint" aria-live="polite">{t('ppe.count', { n: count })}</span>
+      {refused && missing.length > 0 && <div className="toast critical" role="alert" style={{ display: 'block' }}>⛔ {t('b08.ppe.refused', { items: missing.join(', ') })}</div>}
+      <div className="foot">
+        <button className="btn primary" onClick={() => setRefused(!confirm(c))}>{t('ppe.confirm')}</button>
+      </div>
+    </Modal>
+  );
+}
+
+function SubmitDialog() {
+  const { t } = useTranslation();
+  const rt = useB08((s) => s.runtime)!;
+  const nb = useB08((s) => s.notebook);
+  const submit = useB08((s) => s.submit);
+  useB08((s) => s.version);
+  const close = () => useB08.getState().setModal(null);
+  const flags = b08StageEvidence(rt.world, nb);
+  const missing = Object.entries(flags).filter(([, v]) => !v).map(([k]) => k);
+  const blockers = b08SubmissionBlockers(rt.world);
+  return (
+    <Modal title={t('submit.title')} onClose={close}>
+      <p style={{ margin: 0 }}>{t('b08.submit.lead')}</p>
+      {blockers.length > 0 && (
+        <div className="toast alert" role="alert" style={{ display: 'block' }}>
+          <strong>{t('b08.submit.blocked')}</strong>
+          <ul style={{ margin: '0.3rem 0 0' }}>{blockers.map((b) => <li key={b}>{t(`b08.submit.b_${b}`)}</li>)}</ul>
+        </div>
+      )}
+      {missing.length > 0 && (
+        <div><strong>{t('submit.missing')}</strong><ul style={{ margin: '0.3rem 0 0' }}>{missing.map((m) => <li key={m}>{t(`b08.flag.${m}`)}</li>)}</ul></div>
+      )}
+      <div className="foot">
+        <button className="btn" onClick={close}>{t('submit.cancel')}</button>
+        <button className="btn primary" disabled={blockers.length > 0} onClick={submit}>{t('submit.confirm')}</button>
+      </div>
+    </Modal>
+  );
+}
+
+function SettingsDialog() {
+  const { t } = useTranslation();
+  const s = useB08((x) => x.settings);
+  const set = useB08((x) => x.setSettings);
+  const close = () => useB08.getState().setModal(null);
+  return (
+    <Modal title={t('settings.title')} onClose={close}>
+      <div className="field">
+        <label htmlFor="p9scale">{t('settings.scale')}</label>
+        <select id="p9scale" value={s.uiScale} onChange={(e) => set({ uiScale: Number(e.target.value) })}>
+          {[1, 1.25, 1.5].map((v) => <option key={v} value={v}>{Math.round(v * 100)} %</option>)}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="p9quality">{t('settings.quality')}</label>
+        <select id="p9quality" value={s.quality ?? 'AUTO'} onChange={(e) => set({ quality: e.target.value as QualitySetting })}>
+          {(['AUTO', 'HIGH', 'MEDIUM', 'LOW'] as const).map((q) => <option key={q} value={q}>{t(`settings.q${q}`)}</option>)}
+        </select>
+      </div>
+      <label className="check"><input type="checkbox" checked={s.reducedMotion} onChange={(e) => set({ reducedMotion: e.target.checked })} /> {t('p10.settings.reducedMotion')}</label>
+      <label className="check"><input type="checkbox" checked={s.captions} onChange={(e) => set({ captions: e.target.checked })} /> {t('settings.captions')}</label>
+      <label className="check"><input type="checkbox" checked={s.showNames !== false} onChange={(e) => set({ showNames: e.target.checked })} /> {t('settings.names')}</label>
+      <div className="field">
+        <label htmlFor="p9vol">{t('settings.volume')}</label>
+        <input id="p9vol" type="range" min={0} max={1} step={0.05} value={s.volume} onChange={(e) => set({ volume: Number(e.target.value) })} />
+      </div>
+      <div className="foot"><button className="btn primary" onClick={close}>{t('settings.close')}</button></div>
+    </Modal>
+  );
+}
+
+function HelpDialog() {
+  const { t } = useTranslation();
+  const close = () => useB08.getState().setModal(null);
+  const backToIntro = useB08((s) => s.backToIntro);
+  const discardAndExit = useB08((s) => s.discardAndExit);
+  const demo = useB08((s) => !!s.demo);
+  const [exiting, setExiting] = useState(false);
+  if (exiting) {
+    return (
+      <Modal key="exit" title={t('exit.title')} onClose={close}>
+        <ExitLabPrompt onSave={backToIntro} onDiscard={discardAndExit} onCancel={close} />
+      </Modal>
+    );
+  }
+  return (
+    <Modal title={t('intro.controls')} onClose={close}>
+      <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'grid', gap: '0.3rem' }}>
+        {tList('b08.intro.controlsList').map((c) => <li key={c}>{c}</li>)}
+      </ul>
+      <div className="foot">
+        <button className="btn ghost" onClick={demo ? backToIntro : () => setExiting(true)}>{t('review.back')}</button>
+        <button className="btn primary" onClick={close}>{t('common.close')}</button>
+      </div>
+    </Modal>
+  );
+}
+
+function RestoredDialog() {
+  const { t } = useTranslation();
+  const close = () => useB08.getState().setModal(null);
+  return (
+    <Modal title={t('p3.restored.title')} onClose={close}>
+      <p style={{ margin: 0 }}>{t('b08.restored.text')}</p>
+      <div className="foot"><button className="btn primary" onClick={close}>{t('common.close')}</button></div>
+    </Modal>
+  );
+}
+
+export function DialogsB08() {
+  const modal = useB08((s) => s.modal);
+  if (!modal) return null;
+  switch (modal.kind) {
+    case 'ppe':
+      return <PpeDialog />;
+    case 'submit':
+      return <SubmitDialog />;
+    case 'settings':
+      return <SettingsDialog />;
+    case 'help':
+      return <HelpDialog />;
+    case 'restored':
+      return <RestoredDialog />;
+  }
+}

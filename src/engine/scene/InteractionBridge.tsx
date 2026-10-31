@@ -3,6 +3,7 @@
  * selección sobre volúmenes simples, plano de arrastre) y enruta los eventos del puntero/rueda.
  * Si el puntero toca un objeto, el evento NO llega a la órbita de cámara; si toca el fondo, la cámara orbita.
  */
+import { solidPushOf } from '../interaction/solidFloor';
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -28,6 +29,9 @@ export function InteractionBridge() {
       return true;
     };
     const adapter: ViewAdapter = {
+      solidPush(id, cur, x, y, resting, grounded, point) {
+        return solidPushOf(lab.hitMeshes, id, cur, x, y, resting, grounded, point);
+      },
       toBench(sx, sy, z) {
         setRay(sx, sy);
         plane.constant = -z;

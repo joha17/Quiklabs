@@ -2,6 +2,7 @@
  * Capa de interacción (§7): traduce gestos (ratón, táctil, teclado) en COMANDOS del dominio.
  * Nunca modifica masas ni composición: solo poses (setPose) y comandos con significado.
  */
+import { clampToBench } from './viewport';
 import type { Pose, Vessel, World } from '../../simulation/entities/types';
 import type { Command } from '../../simulation/world/commands';
 import { liquidVolumeMl, particulateMassG } from '../../simulation/solutions/mixture';
@@ -127,6 +128,8 @@ const NULL_VIEW: ViewAdapter = {
   reveal: () => undefined,
   setOrbitEnabled: () => undefined,
 };
+/** Lo que está por encima de esta altura (cm) no descansa en la mesada: no estorba. */
+const RESTING_MAX_Z = 3;
 
 export class InteractionController {
   held: Held | null = null;
@@ -465,8 +468,9 @@ export class InteractionController {
       const h = this.held;
       // El puntero se proyecta siempre sobre el plano de la mesada: la sombra sigue al puntero.
       const b = this.view.toBench(sx, sy, 0);
-      h.tx = b.x + h.offX;
-      h.ty = b.y + h.offY;
+      const moved = clampToBench(b.x + h.offX, b.y + h.offY);
+      h.tx = moved.x;
+      h.ty = moved.y;
     } else if (!this.held && !pr) {
       this.hovered = this.pick(sx, sy);
     }
@@ -641,8 +645,11 @@ export class InteractionController {
   /** Seguimiento normal del objeto sostenido: muelle hacia el puntero, altura de transporte, agitación, vertido. */
   private followHeld(h: Held, pose: Pose, dt: number) {
     const w = this.w;
-    let tx = h.tx;
-    let ty = h.ty;
+    const onBench = (o: { pose: Pose }) => o.pose.z < RESTING_MAX_Z;
+    const resting = [...Object.values(w.vessels).filter(onBench), ...Object.values(w.props).filter(onBench)].map((o) => o.id);
+    const free = this.view?.solidPush?.(h.id, pose, h.tx, h.ty, resting, false, h.isProp) ?? { x: h.tx, y: h.ty };
+    let tx = free.x;
+    let ty = free.y;
     // Varilla dentro de un recipiente: restringida a su interior → agitación circular.
     if (h.id === 'rod' && w.devices.rod.vesselId) {
       const v = w.vessels[w.devices.rod.vesselId];
@@ -1880,8 +1887,9 @@ export class InteractionController {
         const dx = key === 'ArrowLeft' ? -step : key === 'ArrowRight' ? step : 0;
         const dy = key === 'ArrowUp' ? step : key === 'ArrowDown' ? -step : 0;
         if (h) {
-          h.tx += dx;
-          h.ty += dy;
+          const moved = clampToBench(h.tx + dx, h.ty + dy);
+          h.tx = moved.x;
+          h.ty = moved.y;
         } else this.selectNeighbor(dx, dy);
         return true;
       }

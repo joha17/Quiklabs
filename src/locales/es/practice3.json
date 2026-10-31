@@ -350,6 +350,15 @@
           "Alícuotas a 0, 120, 300 y 600 s reveladas por separado: Lugol mide el almidón que queda, Benedict los azúcares reductores; lo caliente, con pinza."
         ]
       },
+      "b07": {
+        "title": "Microbiología en evidencia",
+        "subtitle": "Medios de cultivo, colonias y tinción de Gram en recursos virtuales sellados: clasifica medios por su ficha, describe y mide colonias con escala, compara trazados digitales, tiñe un frotis simulado por fases y lee al microscopio contra sus controles.",
+        "points": [
+          "Sin cultivo real: placas selladas, sin incubación, sin llama; el autoclave y el mechero son maquetas.",
+          "Una colonia no es una célula, y el Gram no da la especie: una conclusión prudente vale más que un nombre inventado.",
+          "Diámetro en mm con incertidumbre solo si hay escala calibrada; la lectura del frotis siempre contra los controles positivo y negativo."
+        ]
+      },
       "b06": {
         "title": "Atlas celular comparado",
         "subtitle": "Diversidad celular por grandes grupos: bacterias en lámina permanente, Paramecium y Euglena vivos con su movilidad, estomas de Tradescantia, epitelio bucal, frotis sanguíneo preparado y Elodea, con marcas sobre capturas propias y medidas calibradas.",
@@ -357,6 +366,24 @@
           "Fichas del reto: cada muestra, fresca o permanente; las bacterias y la sangre se ven en láminas preparadas, sin cultivos abiertos ni punción.",
           "La movilidad se registra mirando la muestra viva y antes del Lugol; sin video con escala temporal no hay velocidad.",
           "Marcas solo donde tu captura muestra la estructura y longitudes con la escala del objetivo y su incertidumbre; una bacteria no tiene nucléolo."
+        ]
+      },
+      "b08": {
+        "title": "Energía luminosa y pigmentos",
+        "subtitle": "Del cromatograma al intercambio de gases: mide el menisco de un par luz/oscuridad, sigue el indicador BTB con sus controles, extrae pigmentos en campana y calcula Rf desde el origen.",
+        "points": [
+          "Virtual: los solventes solo se dosifican dentro de la campana digital, sin llama ni protocolo presencial.",
+          "Valores sintéticos rotulados: la bruta se estima asumiendo una respiración constante, y el BTB habla de pH, no de glucosa.",
+          "Rf desde el origen, con la regla; una banda compuesta o una quinta banda se registran, no se fuerzan."
+        ]
+      },
+      "b09": {
+        "title": "Arquitectura vegetal",
+        "subtitle": "Del órgano al tejido: rotula plántulas, corta y tiñe con Wiesner en zona ventilada y compara raíces, tallos y hojas con capturas y medidas propias.",
+        "points": [
+          "Virtual: el ácido y el bisturí no son un protocolo presencial; el ácido solo se usa en la zona digital ventilada.",
+          "Ilustraciones didácticas con grosores y contactos por calibrar; lo no resuelto no se puede afirmar.",
+          "El rojo indica pared lignificada, no xilema exclusivo ni un porcentaje de lignina."
         ]
       }
     },

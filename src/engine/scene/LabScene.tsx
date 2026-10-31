@@ -94,7 +94,7 @@ export function Lights({ q, hemi = 0.2, ambient = 0, sun = 1.9, shadowScale = 2,
         ref={light}
         intensity={sun}
         castShadow={p.shadows}
-        shadow-mapSize={[p.shadowMapSize * shadowScale, p.shadowMapSize * shadowScale]}
+        shadow-mapSize={[Math.min(2048, p.shadowMapSize * shadowScale), Math.min(2048, p.shadowMapSize * shadowScale)]}
         shadow-radius={shadowRadius}
         shadow-camera-left={-110}
         shadow-camera-right={110}

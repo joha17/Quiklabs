@@ -97,4 +97,20 @@ describe('B01: los equipos son macizos', () => {
     const r = c.dispatch({ type: 'setPose', id: slides[0], pose: { x: STAGE_SEAT.x, y: STAGE_SEAT.y, z: 14, rotationRad: 0 }, support: 'stage' });
     expect(r.ok).toBe(false);
   });
+
+  it('la mano choca con el brazo del microscopio: no lo cruza aunque el puntero ya esté detrás', () => {
+    const { w, c, slides } = rig();
+    const id = slides[0];
+    const arm = MIC_POS.y + 3.4;
+    c.dispatch({ type: 'setPose', id, pose: { x: MIC_POS.x, y: arm - 3, z: 5, rotationRad: 0 } });
+    c.beginDrag(id, true);
+    c.view = { setOrbitEnabled: () => {}, viewW: () => 800 } as unknown as typeof c.view;
+    const h = c.held!;
+    h.z = 5;
+    h.curZ = 5;
+    h.x = MIC_POS.x;
+    h.y = MIC_POS.y + 20;
+    for (let i = 0; i < 60; i++) c.frame(1 / 60);
+    expect(w.objects[id].pose.y).toBeLessThan(arm);
+  });
 });

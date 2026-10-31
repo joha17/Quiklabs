@@ -12,6 +12,7 @@
  * Alternativa accesible: clic para seleccionar el mando y Q/E (Mayús = paso grande) o la rueda. Nada se decide aquí:
  * el dominio calcula foco, burbujas, choques…
  */
+import { clampToBench, sweepOnBench, type BenchRect } from '../interaction/viewport';
 import type { B01Command, B01DispatchResult } from '../../simulation/optical-world/commands';
 import type { PermCommand as CellCommand } from '../../simulation/perm-world/commands';
 import type { B01ObjKind, OpticalWorld, Pose } from '../../simulation/optical-world/types';
@@ -19,7 +20,7 @@ import { microscopeView } from '../../simulation/optical-world/world';
 import { COVER_BOX, GEO_B01, MIC_POS, PREP_SPOT, SAMPLE_TRAY, STEREO_BASE, STEREO_POS } from '../../simulation/optical-world/geometry';
 import type { OpticalHost } from './host';
 import type { OpticalLab3D } from './OpticalLab3D';
-import { freeBenchSpot, halfExtents, pushOutOf, solidsOf, spotsFor, stageTop, type Solid, type Spot } from './layout';
+import { freeBenchSpot, halfExtents, solidsOf, spotsFor, stageTop, type Spot } from './layout';
 import { KIN, type PartGrip } from './parts';
 import type { GrabTracker } from './gestures';
 
@@ -84,6 +85,8 @@ const CARRY_Z: Partial<Record<B01ObjKind, number>> = {
 };
 /** Columna del brazo del microscopio respecto de su origen (cm) y altura hasta la que cierra el paso. */
 const ARM = { y0: 3.4, y1: 10.4, hw: 3, topZ: 32 } as const;
+/** Columna del estereoscopio respecto de su origen (cm). */
+const STEREO_PILLAR = { dy: 7.5, r: 2.2 } as const;
 /** Altura de paso sobre la platina: libra el tope, el carro y la pinza. */
 const STAGE_CLEARANCE = 0.6;
 const TOOL_KINDS = new Set<B01ObjKind>(['forceps', 'scalpel', 'dropperBottle', 'paper', 'lensPaper', 'towel', 'spatula', 'swab']);
@@ -475,8 +478,9 @@ export class OpticalController {
       const step = shift ? 5 : 1;
       const d = ({ ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] } as Record<string, number[]>)[key];
       if (d) {
-        h.x += d[0];
-        h.y += d[1];
+        const moved = clampToBench(h.x + d[0], h.y + d[1]);
+        h.x = moved.x;
+        h.y = moved.y;
         return true;
       }
       return false;
@@ -600,6 +604,17 @@ export class OpticalController {
   }
 
   /** Altura mínima de la mano sobre los apoyos (cm): baja hasta apoyar sobre la platina, el área de montaje… */
+  /** Primer punto del tramo cuya altura libre supera la de la mano (cada 0,5 cm: un paso largo no salta un equipo). */
+  private firstBlock(x0: number, y0: number, x1: number, y1: number, z: number): { x: number; y: number; floor: number } | null {
+    const from = this.floorAt(x0, y0);
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 0.5);
+    for (let i = 1; i <= n; i++) {
+      const floor = this.floorAt(x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n);
+      if (floor > z + 0.01 && floor > from + 0.01) return { x: x0 + ((x1 - x0) * (i - 1)) / n, y: y0 + ((y1 - y0) * (i - 1)) / n, floor };
+    }
+    return null;
+  }
+
   protected floorAt(x: number, y: number): number {
     let floor = 0;
     const [hw, hd] = this.held ? halfExtents(this.held.kind) : [0, 0];
@@ -613,12 +628,14 @@ export class OpticalController {
     return floor;
   }
 
-  private aroundArm(kind: B01ObjKind, x: number, y: number): [number, number] {
-    const mic = Object.values(this.w.objects).find((o) => o.kind === 'microscope')?.pose;
-    if (!mic) return [x, y];
-    const [hw, hd] = halfExtents(kind);
-    const arm: Solid = { kind: 'microscope', x: mic.x, y: mic.y + (ARM.y0 + ARM.y1) / 2, hw: ARM.hw, hd: (ARM.y1 - ARM.y0) / 2, top: ARM.topZ };
-    return pushOutOf(arm, x, y, hw, hd);
+  /** Lo macizo que sube por encima de la mesada: el brazo del microscopio y la columna del estereoscopio. */
+  private armObstacles(): BenchRect[] {
+    const out: BenchRect[] = [];
+    for (const o of Object.values(this.w.objects)) {
+      if (o.kind === 'microscope') out.push({ x0: o.pose.x - ARM.hw, x1: o.pose.x + ARM.hw, y0: o.pose.y + ARM.y0, y1: o.pose.y + ARM.y1 });
+      if (o.kind === 'stereo') out.push({ x0: o.pose.x - STEREO_PILLAR.r, x1: o.pose.x + STEREO_PILLAR.r, y0: o.pose.y + STEREO_PILLAR.dy - STEREO_PILLAR.r, y1: o.pose.y + STEREO_PILLAR.dy + STEREO_PILLAR.r });
+    }
+    return out;
   }
 
   layOnBench(id: string, x0: number, y0: number) {
@@ -741,16 +758,30 @@ export class OpticalController {
     if (!o) return;
     if (!h.keyboard && this.pointer) {
       const p = this.view.toBench(this.pointer.x, this.pointer.y, h.z);
-      h.x = p.x;
-      h.y = p.y;
+      const onBench = clampToBench(p.x, p.y);
+      h.x = onBench.x;
+      h.y = onBench.y;
     }
     // La columna del brazo no se atraviesa: la mano la rodea.
-    if (h.curZ < ARM.topZ) [h.x, h.y] = this.aroundArm(h.kind, h.x, h.y);
+    const [hw, hd] = halfExtents(h.kind);
+    const body = [{ x0: o.pose.x - hw, x1: o.pose.x + hw, y0: o.pose.y - hd, y1: o.pose.y + hd }];
+    const swept = sweepOnBench(o.pose, h.x, h.y, body, h.curZ < ARM.topZ ? this.armObstacles() : []);
+    h.x = swept.x;
+    h.y = swept.y;
     // Sobre la platina o el área de montaje, la mano baja hasta apoyar.
-    const tz = Math.max(h.z, this.floorAt(h.x, h.y));
+    let tz = Math.max(h.z, this.floorAt(h.x, h.y));
     const k = Math.min(1, dt * 16);
-    const nx = o.pose.x + (h.x - o.pose.x) * k;
-    const ny = o.pose.y + (h.y - o.pose.y) * k;
+    let nx = o.pose.x + (h.x - o.pose.x) * k;
+    let ny = o.pose.y + (h.y - o.pose.y) * k;
+    // Un equipo más alto que la mano la detiene en su borde hasta que sube: se pasa por encima, nunca a través.
+    const stop = this.firstBlock(o.pose.x, o.pose.y, nx, ny, h.curZ);
+    if (stop) {
+      nx = stop.x;
+      ny = stop.y;
+      tz = Math.max(tz, stop.floor);
+    }
+    // Mientras va por encima de un equipo no baja, aunque el puntero ya esté más allá.
+    tz = Math.max(tz, this.floorAt(nx, ny));
     h.curZ += (tz - h.curZ) * Math.min(1, dt * 10);
     if (Math.hypot(nx - o.pose.x, ny - o.pose.y, h.curZ - o.pose.z) > 0.004) this.dispatch({ type: 'setPose', id: h.id, pose: { x: nx, y: ny, z: h.curZ, rotationRad: 0 } });
     // Descenso del cubreobjetos: al tocar el portaobjetos se envía el hecho (ángulo y velocidad del gesto).

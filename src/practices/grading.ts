@@ -118,6 +118,27 @@ import { b06StageEvidence } from './practice-b06/evidence';
 import { evaluateB06 } from './practice-b06/rubric';
 import { sanitizeOnResumeB06 } from './practice-b06/resume';
 import type { B06Notebook } from './practice-b06/notebook';
+import { newPracticeB07World, type PracticeB07Options } from './practice-b07';
+import { b07StageEvidence } from './practice-b07/evidence';
+import { evaluateB07 } from './practice-b07/rubric';
+import { sanitizeOnResumeB07 } from './practice-b07/resume';
+import type { B07Notebook } from './practice-b07/notebook';
+import type { MicroWorld } from '../simulation/micro-world/types';
+import { conservedMicro, dispatchMicro, stepMicroWorld } from '../simulation/micro-world/world';
+import { newPracticeB08World, type PracticeB08Options } from './practice-b08';
+import { b08StageEvidence } from './practice-b08/evidence';
+import { evaluateB08 } from './practice-b08/rubric';
+import { sanitizeOnResumeB08 } from './practice-b08/resume';
+import type { B08Notebook } from './practice-b08/notebook';
+import { newPracticeB09World, type PracticeB09Options } from './practice-b09';
+import { b09StageEvidence } from './practice-b09/evidence';
+import { evaluateB09 } from './practice-b09/rubric';
+import { sanitizeOnResumeB09 } from './practice-b09/resume';
+import type { B09Notebook } from './practice-b09/notebook';
+import type { PlantWorld } from '../simulation/plant-world/types';
+import { conservedPlant, dispatchPlant, stepPlantWorld } from '../simulation/plant-world/world';
+import type { PhotoWorld } from '../simulation/photo-world/types';
+import { conservedPhoto, dispatchPhoto, stepPhotoWorld } from '../simulation/photo-world/world';
 import type { DivWorld } from '../simulation/div-world/types';
 import { conservedDiv, dispatchDiv, stepDivWorld } from '../simulation/div-world/world';
 import { conservedCell, dispatchCell, stepCellWorld } from '../simulation/cell-world/world';
@@ -125,7 +146,7 @@ import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09'];
 
 interface WorldBase {
   tick: number;
@@ -338,6 +359,45 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as DivWorld).scenarios, assignment: (w as DivWorld).assignment, cellAssignment: { assigned: (w as DivWorld).cell.assigned, assetOverride: (w as DivWorld).cell.assetOverride, missingAssets: (w as DivWorld).cell.missingAssets, variants: (w as DivWorld).cell.variants }, div: { immersion: (w as DivWorld).div.immersion, scale: (w as DivWorld).div.scale, brokenSlides: (w as DivWorld).div.brokenSlides, brokenFixed: (w as DivWorld).div.brokenFixed, ledger: { oil: (w as DivWorld).div.ledger.oil.initialMl, wri: (w as DivWorld).div.ledger.wri.initialMl, buf: (w as DivWorld).div.ledger.buf.initialMl } } }),
     conserved: (w) => conservedDiv(w as DivWorld),
     mode: (o) => opt<PracticeB06Options>(o).mode,
+  },
+  b07: {
+    create: (o) => newPracticeB07World(opt<PracticeB07Options>(o)),
+    dispatch: (w, c) => void dispatchMicro(w as MicroWorld, c as never),
+    step: (w) => stepMicroWorld(w as MicroWorld),
+    sanitize: (w) => sanitizeOnResumeB07(w as MicroWorld),
+    latch: (w, nb) => void b07StageEvidence(w as MicroWorld, nb as B07Notebook),
+    evaluate: (w, s) => evaluateB07(w as MicroWorld, s.notebook as B07Notebook),
+    // Además de lo de B06: disposición de placas, disponibilidad de escala, inventario de tinción y recursos autorizados.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as MicroWorld).scenarios, assignment: (w as MicroWorld).assignment, immersion: (w as MicroWorld).div.immersion, micro: { plates: (w as MicroWorld).micro.plates, scaleAvailable: (w as MicroWorld).micro.scaleAvailable, assetScope: (w as MicroWorld).micro.assetScope, ledger: Object.fromEntries(Object.entries((w as MicroWorld).micro.ledger).map(([k, v]) => [k, v.initialMl])) } }),
+    conserved: (w) => conservedMicro(w as MicroWorld),
+    mode: (o) => opt<PracticeB07Options>(o).mode,
+  },
+  b08: {
+    create: (o) => newPracticeB08World(opt<PracticeB08Options>(o)),
+    dispatch: (w, c) => void dispatchPhoto(w as PhotoWorld, c as never),
+    step: (w) => stepPhotoWorld(w as PhotoWorld),
+    sanitize: (w) => sanitizeOnResumeB08(w as PhotoWorld),
+    latch: (w, nb) => void b08StageEvidence(w as PhotoWorld, nb as B08Notebook),
+    evaluate: (w, s) => evaluateB08(w as PhotoWorld, s.notebook as B08Notebook),
+    // Además de lo de B06: módulos asignados, ramas, cinética y radio certificado.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as PhotoWorld).scenarios, assignment: (w as PhotoWorld).assignment, photo: { modules: (w as PhotoWorld).photo.modules, sprigs: (w as PhotoWorld).photo.sprigs, rateFactor: (w as PhotoWorld).photo.rateFactor, radiusCertified: (w as PhotoWorld).photo.radiusCertified, assetScope: (w as PhotoWorld).photo.assetScope } }),
+    conserved: (w) => conservedPhoto(w as PhotoWorld),
+    mode: (o) => opt<PracticeB08Options>(o).mode,
+  },
+  b09: {
+    create: (o) => newPracticeB09World(opt<PracticeB09Options>(o)),
+    dispatch: (w, c) => void dispatchPlant(w as PlantWorld, c as never),
+    step: (w) => stepPlantWorld(w as PlantWorld),
+    sanitize: (w) => sanitizeOnResumeB09(w as PlantWorld),
+    latch: (w, nb) => void b09StageEvidence(w as PlantWorld, nb as B09Notebook),
+    evaluate: (w, s) => evaluateB09(w as PlantWorld, s.notebook as B09Notebook),
+    // Lo inmutable del intento: rutas, láminas exigidas y escala (cortes, rótulos y áreas cambian con el trabajo).
+    fixed: (w) => {
+      const p = w as PlantWorld;
+      return { seed: w.seed, params: w.params, scenarios: p.scenarios, assignment: p.assignment, plant: { wiesnerAssigned: p.plant.wiesnerAssigned, stereoRequired: p.plant.stereoRequired, requiredSlides: p.plant.requiredSlides, mislabeled: p.plant.mislabeled, assetScope: p.plant.assetScope }, scale: p.div.scale };
+    },
+    conserved: (w) => conservedPlant(w as PlantWorld),
+    mode: (o) => opt<PracticeB09Options>(o).mode,
   },
 };
 

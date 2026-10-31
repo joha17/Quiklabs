@@ -60,6 +60,7 @@ export function assetChoice(w: CellWorld): AssetChoice {
     denseElodea: scC(w, SC.DENSE_ELODEA), similarFruits: scC(w, SC.SIMILAR_FRUITS), clearSclereids: scC(w, SC.CLEAR_SCLEREIDS),
     override: w.cell.assetOverride, missing: w.cell.missingAssets,
     ...(w.cell.variants ? { div: w.cell.variants } : {}),
+    ...(w.cell.plantAssets ? { plant: w.cell.plantAssets } : {}),
   };
 }
 
@@ -692,6 +693,8 @@ export interface CellWorldExtras {
   extraAllowed?: Partial<Record<CellKind, StainId[]>>;
   /** Variantes de recurso de B06. */
   variants?: CellWorld['cell']['variants'];
+  /** Condiciones de recurso de B09. */
+  plantAssets?: CellWorld['cell']['plantAssets'];
 }
 
 /** Medios con balance en este mundo, en el orden en que se crearon. */
@@ -729,6 +732,7 @@ export function createCellWorld(spec: OpticalWorldSpec, x: CellWorldExtras): Cel
   };
   if (x.extraAllowed) w.cell.extraAllowed = structuredClone(x.extraAllowed);
   if (x.variants) w.cell.variants = { ...x.variants };
+  if (x.plantAssets) w.cell.plantAssets = { ...x.plantAssets };
   for (const m of Object.values(w.mounts)) refreshAssets(w, m);
   return w;
 }

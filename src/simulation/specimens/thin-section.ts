@@ -8,12 +8,13 @@
 import { clamp } from '../core/math';
 import type { StructureId } from './assets';
 
-export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal' | 'tradescantia' | 'euglena' | 'paramecium';
+export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal' | 'tradescantia' | 'euglena' | 'paramecium' | 'celery' | 'plantLeaf';
 /**
  * Medios de montaje: el agua, los colorantes de B02, las soluciones de NaCl de B03 (medio de Elodea) y los de B06
- * (metilcelulosa, que solo aumenta la viscosidad, y nigrosina, contraste negativo que no fija).
+ * (metilcelulosa, que solo aumenta la viscosidad, y nigrosina, contraste negativo que no fija). B09: floroglucinol y
+ * ácido clorhídrico de la reacción de Wiesner, exclusivamente virtual.
  */
-export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5' | 'methylcellulose' | 'nigrosin';
+export type StainId = 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5' | 'methylcellulose' | 'nigrosin' | 'phloroglucinol' | 'hcl';
 /** `peel`: epidermis separada con pinza (B06); `drop`: gota de un cultivo vivo (B06). */
 export type PrepKind = 'leaf' | 'cut' | 'scrape' | 'smear' | 'peel' | 'drop';
 
@@ -24,7 +25,10 @@ export const SALINES: Exclude<StainId, 'water'>[] = ['nacl-0.9', 'nacl-5'];
 /** Muestras frescas de B06 (las de B02 conservan su lista) y sus medios con balance propio. */
 export const DIV_KINDS: CellKind[] = ['tradescantia', 'euglena', 'paramecium'];
 export const DIV_MEDIA: Exclude<StainId, 'water'>[] = ['methylene-blue', 'lugol', 'methylcellulose', 'nigrosin'];
-const ALL_KINDS: CellKind[] = [...CELL_KINDS, ...DIV_KINDS];
+/** Tejidos frescos de B09 y los reactivos de Wiesner con balance propio. */
+export const PLANT_KINDS: CellKind[] = ['celery', 'plantLeaf'];
+export const PLANT_MEDIA: Exclude<StainId, 'water'>[] = ['phloroglucinol', 'hcl'];
+const ALL_KINDS: CellKind[] = [...CELL_KINDS, ...DIV_KINDS, ...PLANT_KINDS];
 
 /** Parámetros de preparación (§7.1): valores de software `pending`, no medidas de un tejido real. */
 export interface CellPrepParams {
@@ -91,6 +95,8 @@ export interface CellZone {
   tear01: number;
   massMg: number;
   premade?: boolean;
+  /** Plano del corte de B09 (decide el activo de la hoja fresca). */
+  plane?: 'transverse' | 'longitudinal' | 'epidermal';
 }
 
 /** Datos celulares de un montaje B02 (ausente en los montajes de B01). */

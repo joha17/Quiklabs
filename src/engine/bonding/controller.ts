@@ -13,6 +13,8 @@
  *   geometría); la sonda: la profundidad de inmersión y el contacto con el fondo salen de su altura.
  * - No hay botón «Disolver» ni «Conduce»: el dominio decide (§14.1).
  */
+import { clearSpotNear, TIP_TOOLS } from '../interaction/solidFloor';
+import { clampToBench } from '../interaction/viewport';
 import type { BondingHost } from './host';
 import type { BondingLab3D } from './BondingLab3D';
 import type { P07Command } from '../../simulation/bonding-world/commands';
@@ -30,6 +32,10 @@ export interface PickHit07 {
 
 export interface ViewAdapter07 {
   toBench(sx: number, sy: number, z: number): { x: number; y: number };
+  /** Altura mínima para que el cuerpo completo del objeto no entre en lo que descansa en la mesada. */
+  /** Saca (x, y) de lo que no se puede sobrevolar. */
+  solidPush?(id: string, cur: { x: number; y: number }, x: number, y: number, resting: readonly string[], grounded: boolean, point?: boolean): { x: number; y: number };
+  solidFloor?(id: string, cur: { x: number; y: number; z: number }, x: number, y: number, resting: readonly string[]): number;
   pick(sx: number, sy: number, excludeId?: string | null): PickHit07 | null;
   viewW(): number;
   setOrbitEnabled(on: boolean): void;
@@ -316,8 +322,9 @@ export class BondingController {
       if (k === 'e' || key === 'PageDown') return this.nudgeHeight(-1), true;
       const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[key];
       if (d) {
-        h.x += d[0];
-        h.y += d[1];
+        const moved = clampToBench(h.x + d[0], h.y + d[1]);
+        h.x = moved.x;
+        h.y = moved.y;
         return true;
       }
       if (k === '+') return this.nudgeHeight(1), true;
@@ -510,10 +517,22 @@ export class BondingController {
     return { x, y: 4 };
   }
 
+  private restingIds(): string[] {
+    return Object.values(this.w.objects).filter((o) => o.support === 'bench').map((o) => o.id);
+  }
+
+  /** Altura mínima del cuerpo macizo de `id` en (x, y); 0 sin vista. */
+  private bodyFloor(id: string, x: number, y: number): number {
+    const body = this.obj(id);
+    if (!body || TIP_TOOLS.has(body.kind)) return 0;
+    return this.view?.solidFloor?.(id, body.pose, x, y, this.restingIds()) ?? 0;
+  }
+
   layOnBench(id: string, x0: number, y0: number, z: number) {
     const o = this.obj(id);
     const r = FOOT[o?.kind ?? 'tip'] ?? 1;
-    const spot = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), r, id);
+    const free = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), r, id);
+    const spot = clearSpotNear((x, y) => this.bodyFloor(id, x, y), free.x, free.y, z);
     this.sendPose(id, { x: spot.x, y: spot.y, z, rotationRad: 0 }, 'bench');
     this.host.sound('click');
   }
@@ -798,6 +817,14 @@ export class BondingController {
       const o = this.obj(h.id)!;
       let tx = h.x;
       let ty = h.y;
+      const onBench = clampToBench(tx, ty);
+      tx = onBench.x;
+      ty = onBench.y;
+      const pushed = this.view.solidPush?.(h.id, o.pose, tx, ty, this.restingIds(), false, TIP_TOOLS.has(h.kind));
+      if (pushed) {
+        tx = pushed.x;
+        ty = pushed.y;
+      }
       let tz = h.z;
       const dock = this.pourDock(h);
       if (dock) {
@@ -816,6 +843,7 @@ export class BondingController {
         if (Math.hypot(tx - pad.x, ty - pad.y) < pad.r) floor = pad.z;
       }
       tz = Math.max(tz, floor);
+      if (!dock && !dipping && h.kind !== 'tip') tz = Math.max(tz, this.bodyFloor(h.id, tx, ty));
       const k = Math.min(1, dt * (dock ? 8 : 16));
       const nx = o.pose.x + (tx - o.pose.x) * k;
       const ny = o.pose.y + (ty - o.pose.y) * k;

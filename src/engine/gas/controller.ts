@@ -13,6 +13,8 @@
  * - Jeringa: arrastrar el émbolo lo lleva a una marca y la mano lo sostiene; al soltar, la presión puede moverlo.
  * - Lecturas (V, T, H, B, R): con la cámara a la altura del ojo no hay paralaje (doble clic sobre el instrumento).
  */
+import { clearSpotNear, TIP_TOOLS } from '../interaction/solidFloor';
+import { clampToBench } from '../interaction/viewport';
 import type { GasHost } from './host';
 import { pourDockPose } from '../interaction/pourDock';
 import type { GasLab3D } from './GasLab3D';
@@ -28,6 +30,10 @@ export interface PickHit10 {
 
 export interface ViewAdapter10 {
   toBench(sx: number, sy: number, z: number): { x: number; y: number };
+  /** Altura mínima para que el cuerpo completo del objeto no entre en lo que descansa en la mesada. */
+  /** Saca (x, y) de lo que no se puede sobrevolar. */
+  solidPush?(id: string, cur: { x: number; y: number }, x: number, y: number, resting: readonly string[], grounded: boolean, point?: boolean): { x: number; y: number };
+  solidFloor?(id: string, cur: { x: number; y: number; z: number }, x: number, y: number, resting: readonly string[]): number;
   pick(sx: number, sy: number, excludeId?: string | null): PickHit10 | null;
   viewW(): number;
   setOrbitEnabled(on: boolean): void;
@@ -344,8 +350,9 @@ export class GasController {
       if (k === 'e' || key === 'PageDown') return this.onWheel(1), true;
       const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[key];
       if (d) {
-        h.x += d[0];
-        h.y += d[1];
+        const moved = clampToBench(h.x + d[0], h.y + d[1]);
+        h.x = moved.x;
+        h.y = moved.y;
         return true;
       }
       return false;
@@ -563,10 +570,22 @@ export class GasController {
     return { x, y: 4 };
   }
 
+  private restingIds(): string[] {
+    return Object.values(this.w.objects).filter((o) => o.support === 'bench').map((o) => o.id);
+  }
+
+  /** Altura mínima del cuerpo macizo de `id` en (x, y); 0 sin vista. */
+  private bodyFloor(id: string, x: number, y: number): number {
+    const body = this.obj(id);
+    if (!body || TIP_TOOLS.has(body.kind)) return 0;
+    return this.view?.solidFloor?.(id, body.pose, x, y, this.restingIds()) ?? 0;
+  }
+
   layOnBench(id: string, x0: number, y0: number, z: number) {
     const o = this.obj(id);
     const r = FOOT[o?.kind ?? 'spatula'] ?? 1;
-    const spot = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), r, id);
+    const free = this.freeSpot(Math.max(-8, Math.min(600, x0)), Math.max(3, Math.min(60, y0)), r, id);
+    const spot = clearSpotNear((x, y) => this.bodyFloor(id, x, y), free.x, free.y, z);
     this.sendPose(id, { x: spot.x, y: spot.y, z, rotationRad: o?.kind === 'burette' ? Math.PI / 2 : 0 }, 'bench');
     this.host.sound('click');
   }
@@ -848,6 +867,14 @@ export class GasController {
       const o = this.obj(h.id)!;
       let tx = h.x;
       let ty = h.y;
+      const onBench = clampToBench(tx, ty);
+      tx = onBench.x;
+      ty = onBench.y;
+      const pushed = this.view.solidPush?.(h.id, o.pose, tx, ty, this.restingIds(), false, TIP_TOOLS.has(h.kind));
+      if (pushed) {
+        tx = pushed.x;
+        ty = pushed.y;
+      }
       let tz = h.z;
       h.magnet = h.kind === 'spatula' ? this.spatulaMagnet(tx, ty) : null;
       if (h.magnet) {
@@ -864,6 +891,7 @@ export class GasController {
       }
       const floor = this.clearZ(tx, ty, FOOT[h.kind] ?? 1, h.id) + 0.3;
       if (!h.magnet) tz = Math.max(tz, floor);
+      if (!h.magnet && !dock) tz = Math.max(tz, this.bodyFloor(h.id, tx, ty));
       const k = Math.min(1, dt * (h.magnet || dock ? 8 : 16));
       const nx = o.pose.x + (tx - o.pose.x) * k;
       const ny = o.pose.y + (ty - o.pose.y) * k;

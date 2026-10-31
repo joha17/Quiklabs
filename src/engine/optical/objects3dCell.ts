@@ -16,10 +16,10 @@ import { hitMesh } from './parts';
 /** Color de cada muestra (pulpa) y de cada colorante. */
 export const KIND_COLOR: Record<CellKind, number> = {
   elodea: 0x4f9a3a, potato: 0xeee2b8, tomato: 0xd8402a, pepper: 0xe8b218, carrot: 0xec7a12, pear: 0xeee8c8, guava: 0xf0b8a8, apple: 0xf3eccb, buccal: 0xe8dcd4,
-  tradescantia: 0x8a5a9a, euglena: 0x6aa84a, paramecium: 0xd8d0b8,
+  tradescantia: 0x8a5a9a, euglena: 0x6aa84a, paramecium: 0xd8d0b8, celery: 0x9cc06a, plantLeaf: 0x4f8f3a,
 };
-export const STAIN_COLOR: Record<StainId, number> = { water: 0x9cc8ea, lugol: 0x8a4a1e, 'methylene-blue': 0x2a5fb8, 'eosin-1pct': 0xe0507a, 'nacl-0.9': 0xc4dcef, 'nacl-5': 0xd6e4ee, methylcellulose: 0xe4ecf0, nigrosin: 0x2a2a2e };
-const SKIN: Partial<Record<CellKind, number>> = { potato: 0x9c7a4c, tomato: 0xc0281a, pepper: 0xe0a800, carrot: 0xe06a10, pear: 0xb8c050, guava: 0x9cbc5c, apple: 0xc8382a };
+export const STAIN_COLOR: Record<StainId, number> = { water: 0x9cc8ea, lugol: 0x8a4a1e, 'methylene-blue': 0x2a5fb8, 'eosin-1pct': 0xe0507a, 'nacl-0.9': 0xc4dcef, 'nacl-5': 0xd6e4ee, methylcellulose: 0xe4ecf0, nigrosin: 0x2a2a2e, phloroglucinol: 0xe9e1c4, hcl: 0xd9e8c8 };
+const SKIN: Partial<Record<CellKind, number>> = { potato: 0x9c7a4c, tomato: 0xc0281a, pepper: 0xe0a800, carrot: 0xe06a10, pear: 0xb8c050, guava: 0x9cbc5c, apple: 0xc8382a, celery: 0x7ea84e, plantLeaf: 0x3f7f2e };
 
 type Own = <T extends THREE.Material | THREE.Texture>(m: T) => T;
 
@@ -38,6 +38,8 @@ export function buildCellObject(o: OpticalObject, w0: OpticalWorld, group: THREE
   switch (o.kind) {
     case 'tissueSource': {
       const kind = w0.cell?.sources[id]?.kind ?? 'apple';
+      // El apio y la hoja de B09 no son medio fruto: los dibuja `objects3dPlant`.
+      if (kind === 'celery' || kind === 'plantLeaf') return null;
       const S = GEO_B02.source;
       const dish = cyl(S.r + 1.2, 0.3, mats.porcelain, seg);
       dish.position.y = 0.15;

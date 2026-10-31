@@ -1,0 +1,57 @@
+/* Práctica 9: piezas propias (mismos tokens de color y tipografía que las demás prácticas). */
+.canvas-wrap.p9 .guide { right: auto; left: 0.6rem; top: 2.7rem; }
+.instruments-bar .instr.unstable strong { color: #f0c36e; }
+.nb-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.nb-table th, .nb-table td { border-bottom: 1px solid var(--line, #d5dbe1); padding: 0.25rem 0.3rem; text-align: left; vertical-align: middle; }
+.nb-table input { width: 100%; min-width: 3.2rem; }
+.nb-table td.eq { white-space: nowrap; }
+.nb-table td.eq input { width: 2.6rem; min-width: 2.6rem; }
+.nb-fieldset { border: 1px solid var(--line, #d5dbe1); border-radius: 10px; padding: 0.4rem 0.6rem; display: grid; gap: 0.4rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.graph-list { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.3rem; }
+.graph-list .row { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+/* Aviso permanente: la llama y el vidrio de reloj son una representación virtual. */
+.virtual-note { margin: 0; padding: 0.3rem 0.5rem; border-radius: 8px; background: #fdecea; color: #8a1c13; font-weight: 600; font-size: 0.82rem; }
+/* Vista espectral: debajo del panel de seguridad, a la derecha. */
+.spectrum-panel {
+  position: absolute; right: 0.6rem; bottom: 3.6rem; z-index: 13; width: min(290px, calc(100% - 1.2rem)); max-height: 42%; overflow: auto;
+  background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); padding: 0.5rem 0.7rem; font-size: 0.84rem; display: grid; gap: 0.35rem;
+  border-left: 4px solid var(--accent);
+}
+.spectrum-panel svg { border-radius: 6px; color: var(--ink-2); }
+.spectrum-table td { font-variant-numeric: tabular-nums; }
+.seg { border: 0; padding: 0; margin: 0; display: inline-flex; gap: 0.25rem; align-items: center; }
+.seg legend { float: left; margin-right: 0.35rem; font-size: 0.85rem; color: var(--ink-2); }
+@media (max-width: 760px) {
+  .spectrum-panel { bottom: auto; top: 0.6rem; max-height: 30%; }
+}
+@media print {
+  .hud, .actions, .zoom-ctrl, .instruments-bar, .canvas-wrap { display: none !important; }
+  .drawer { position: static !important; width: auto !important; max-height: none !important; }
+}
+/* Ocular: vista ilustrada derivada del estado, con su estado operativo en texto. */
+.eyepiece-panel {
+  position: absolute; left: 3.4rem; bottom: 3.6rem; z-index: 13; width: min(330px, calc(100% - 4rem));
+  background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); padding: 0.5rem 0.7rem; font-size: 0.84rem; display: grid; gap: 0.35rem;
+  border-left: 4px solid var(--accent);
+}
+.eyepiece-figure { margin: 0; display: grid; gap: 0.25rem; justify-items: center; }
+.eyepiece-canvas { width: 100%; max-width: 300px; height: auto; border-radius: 50%; background: #000; }
+.eyepiece-note { font-size: 0.76rem; color: var(--ink-2); text-align: center; }
+.eyepiece-status { margin: 0; color: var(--ink); }
+.chips .check.small { font-size: 0.8rem; margin-right: 0.4rem; }
+@media (max-width: 760px) { .eyepiece-panel { bottom: auto; top: 0.6rem; } }
+/* En B07 el ocular ocupa abajo a la izquierda: el panel docente va a la derecha, bajo el de seguridad. */
+.canvas-wrap.b07 .debug { left: auto; right: 0.6rem; top: 16.5rem; bottom: auto; max-height: 38%; width: min(540px, 46%); overflow: auto; }
+/* B07: rótulo de la pieza bajo el puntero (nombre y gesto), sin tapar el equipo. */
+.part-tip {
+  position: absolute; left: 0; top: 0; z-index: 12; pointer-events: none; max-width: 260px;
+  background: var(--panel); color: var(--ink); border-radius: 8px; box-shadow: var(--shadow); padding: 0.2rem 0.5rem;
+  font-size: 0.8rem; line-height: 1.3; border-left: 3px solid var(--accent);
+}
+.part-tip[hidden] { display: none; }
+
+/* Tablas anchas de la libreta (A–G): desplazan dentro de su caja, sin empujar la escena 3D. */
+.lab-b07 .lab-main > .notebook { min-width: 0; max-width: min(46rem, 50vw); overflow: auto; }
+.lab-b07 .notebook .table-scroll { max-width: 100%; overflow-x: auto; }
+.lab-b07 .notebook .nb-table select, .lab-b07 .notebook .nb-table input[type='text'] { min-width: 6.5rem; }

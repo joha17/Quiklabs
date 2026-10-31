@@ -120,6 +120,8 @@ export function createStoichWorld(spec: StoichWorldSpec, seed: number, params: P
     seed,
     spec.gasParams,
   );
+  // Aquí el mechero es solo la fuente de calor: el puesto llega con la manguera acoplada (conectarla se practica en P3 y P4).
+  gas.burner.hoseConnected = true;
   const amb = params.ambientC;
   const sc = (s: string) => spec.scenarios.includes(s);
   const balance: BalanceState = {

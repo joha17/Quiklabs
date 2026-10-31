@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
+import { solidFloorOf, solidPushOf } from '../interaction/solidFloor';
 import { BondingLabContext, useBondingLab } from './context';
 import type { BondingLab3D } from './BondingLab3D';
 import { createObjVisual07 } from './objects3d';
@@ -319,6 +320,12 @@ function Bridge() {
         if (!p) return { x: 0, y: 0 };
         const b = fromScene(p.x, p.y, p.z);
         return { x: b.x, y: b.y };
+      },
+      solidPush(id, cur, x, y, resting, grounded, point) {
+        return solidPushOf(lab.hitMeshes, id, cur, x, y, resting, grounded, point);
+      },
+      solidFloor(id, cur, x, y, resting) {
+        return solidFloorOf(lab.hitMeshes, id, cur, x, y, resting);
       },
       pick(sx, sy, exclude) {
         setRay(sx, sy);

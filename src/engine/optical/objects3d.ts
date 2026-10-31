@@ -22,6 +22,9 @@ import { buildPermObject } from './objects3dPerm';
 import { buildBioObject } from './objects3dBio';
 import { buildEnzObject } from './objects3dEnz';
 import { buildDivObject } from './objects3dDiv';
+import { buildMicroObject } from './objects3dMicro';
+import { buildPhotoObject } from './objects3dPhoto';
+import { buildPlantObject } from './objects3dPlant';
 
 export interface ObjHandleB01 {
   group: THREE.Group;
@@ -498,7 +501,7 @@ export function createObjVisualB01(o: OpticalObject, w0: OpticalWorld, q: Qualit
     default: {
       // Objetos propios de B02 (fuentes de tejido, tabla, espátula, hisopos…) y de B03 (membranas, cámaras, frascos…).
       const lbl = (lines: string[], w: number, h: number, band: string) => labelPlane(lines, w, h, own, band);
-      const cv = buildCellObject(o, w0, group, mats, own, lbl, seg) ?? buildPermObject(o, w0, group, mats, own, lbl, seg) ?? buildBioObject(o, w0, group, mats, own, lbl, seg) ?? buildEnzObject(o, w0, group, mats, own, lbl, seg) ?? buildDivObject(o, w0, group, mats, own, lbl, seg);
+      const cv = buildCellObject(o, w0, group, mats, own, lbl, seg) ?? buildPermObject(o, w0, group, mats, own, lbl, seg) ?? buildBioObject(o, w0, group, mats, own, lbl, seg) ?? buildEnzObject(o, w0, group, mats, own, lbl, seg) ?? buildDivObject(o, w0, group, mats, own, lbl, seg) ?? buildMicroObject(o, w0, group, mats, own, lbl, seg) ?? buildPhotoObject(o, w0, group, mats, own, lbl, seg) ?? buildPlantObject(o, w0, group, mats, own, lbl, seg);
       if (cv) {
         ring = selRing(cv.ringR);
         group.add(ring);

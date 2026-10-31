@@ -8,6 +8,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, Physics, RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
+import { solidFloorOf, solidPushOf } from '../interaction/solidFloor';
 import { FlameLabContext, useFlameLab } from './context';
 import type { BurnerViewSource, FlameLab3D } from './FlameLab3D';
 import { huePair } from './FlameLab3D';
@@ -19,6 +20,7 @@ import { GRAVITY, fromScene, poseToScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture, softDotTexture } from '../renderers/textures';
 import { gasFlows, hosePoints, isLit, mouthPos } from '../../simulation/flame-world/world';
+import { HOSE_R, routeHose, type HoseObstacle } from './hoseRoute';
 import type { Practice3Object } from '../../simulation/flame-world/types';
 import { BURNER, CAPSULE, HOLDER, RACK, TILE, TUBE } from '../../practices/practice-03/instruments';
 
@@ -198,6 +200,16 @@ function Objects() {
 
 // ─────────────────────────── Manguera ───────────────────────────
 
+/** Boquilla de la llave respecto de su origen (`gasTap` en objects3d): hacia el alumno y bajo el cuerpo. */
+const TAP_NOZZLE_TIP = 4.1;
+const TAP_NOZZLE_Z = -0.6;
+/** Tramo que la manguera cubre sobre la boquilla o la espiga, y tramo recto al salir de ellas (cm). */
+const HOSE_GRIP = 1.3;
+const HOSE_STRAIGHT = 1.8;
+const OBSTACLE_REFRESH_FRAMES = 15;
+const BARREL_CLEARANCE = 1.6;
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+
 /** Manguera de gas (también la usa la Práctica 4 con su sub-mundo del mechero). */
 export function HoseView({ src }: { src?: BurnerViewSource }) {
   const ctxLab = useContext(FlameLabContext);
@@ -225,6 +237,12 @@ export function HoseView({ src }: { src?: BurnerViewSource }) {
     }
     return g;
   }, []);
+  const clampMat = useMemo(() => new THREE.MeshStandardMaterial({ color: 0xc4ccd3, metalness: 0.9, roughness: 0.3 }), []);
+  const tapClamp = useMemo(() => new THREE.Mesh(new THREE.TorusGeometry(HOSE_R + 0.03, 0.09, 8, 20), clampMat), [clampMat]);
+  const burnerClamp = useMemo(() => new THREE.Mesh(new THREE.TorusGeometry(HOSE_R + 0.03, 0.09, 8, 20), clampMat), [clampMat]);
+  const obstacles = useRef<HoseObstacle[]>([]);
+  const frame = useRef(0);
+  const hitBox = useMemo(() => new THREE.Box3(), []);
   const key = useRef('');
   useEffect(() => {
     lab.hitMeshes.add(mesh);
@@ -236,24 +254,47 @@ export function HoseView({ src }: { src?: BurnerViewSource }) {
   }, [lab, mesh, midHit]);
   useFrame(() => {
     const w = lab.runtime.world;
-    const pts = hosePoints(w, lab.runtime.ctx, 24);
-    if (!pts.length) return;
-    if (!w.burner.hoseConnected) {
-      // Desconectada: el extremo cuelga junto a la espiga, sin encajar.
-      const last = pts[pts.length - 1];
-      for (let i = pts.length - 4; i < pts.length; i++) {
-        const u = (i - (pts.length - 4)) / 3;
-        pts[i] = { x: pts[i].x + 2.5 * u, y: pts[i].y + 3 * u, z: Math.max(0.4, pts[i].z - (last.z - 0.4) * u) };
+    const raw = hosePoints(w, lab.runtime.ctx, 24);
+    if (!raw.length) return;
+    const tap = w.objects.gas_tap.pose;
+    const bp = w.objects.burner.pose;
+    const inlet = lab.runtime.ctx.geo.burner.inlet;
+    const il = Math.hypot(inlet.dx, inlet.dy) || 1;
+    const ux = inlet.dx / il;
+    const uy = inlet.dy / il;
+    const spigot = (d: number, side = 0) => ({ x: bp.x + ux * d - uy * side, y: bp.y + uy * d + ux * side, z: bp.z + inlet.z });
+    const nozzle = (d: number) => ({ x: tap.x, y: tap.y - TAP_NOZZLE_TIP + d, z: tap.z + TAP_NOZZLE_Z });
+    const start = [nozzle(HOSE_GRIP), nozzle(0), nozzle(-HOSE_STRAIGHT)];
+    // Conectada: entra recta en la espiga, cubriendo sus dientes. Suelta: queda apoyada en la mesada junto a ella.
+    const end = w.burner.hoseConnected
+      ? [spigot(il + HOSE_STRAIGHT), spigot(il), spigot(il - HOSE_GRIP)]
+      : [{ ...spigot(il + 4.5, 3.5), z: HOSE_R }, { ...spigot(il + 2.2, 2.8), z: HOSE_R }];
+    if (frame.current++ % OBSTACLE_REFRESH_FRAMES === 0) {
+      obstacles.current = [];
+      for (const hm of lab.hitMeshes) {
+        const oid = hm.userData.objId as string;
+        if (oid === 'hose' || oid === 'gas_tap' || oid === 'burner') continue;
+        hitBox.setFromObject(hm);
+        obstacles.current.push({ x0: hitBox.min.x, x1: hitBox.max.x, y0: -hitBox.max.z, y1: -hitBox.min.z, z0: hitBox.min.y, z1: hitBox.max.y });
       }
+      // El propio cañón del mechero: la manguera lo rodea para llegar a la espiga si viene del otro lado.
+      obstacles.current.push({ x0: bp.x - BARREL_CLEARANCE, x1: bp.x + BARREL_CLEARANCE, y0: bp.y - BARREL_CLEARANCE, y1: bp.y + BARREL_CLEARANCE, z0: 0, z1: lab.runtime.ctx.geo.burner.mouthZ });
     }
+    const pts = routeHose({ start, end }, raw.slice(3, w.burner.hoseConnected ? -3 : -6), obstacles.current);
     const k = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}`).join('|');
     if (k !== key.current) {
       key.current = k;
-      const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...toScene(p.x, p.y, p.z))));
+      const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...toScene(p.x, p.y, p.z))), false, 'centripetal');
       mesh.geometry.dispose();
-      mesh.geometry = new THREE.TubeGeometry(curve, 48, 0.55, 10, false);
+      mesh.geometry = new THREE.TubeGeometry(curve, 64, HOSE_R, 12, false);
     }
-    const m = w.hose.mid;
+    // Abrazaderas: una fija en la llave y otra en la espiga solo cuando la manguera está acoplada.
+    tapClamp.position.set(...toScene(tap.x, tap.y - TAP_NOZZLE_TIP + HOSE_GRIP * 0.5, tap.z + TAP_NOZZLE_Z));
+    burnerClamp.visible = w.burner.hoseConnected;
+    burnerClamp.position.set(...toScene(bp.x + ux * (il - HOSE_GRIP * 0.5), bp.y + uy * (il - HOSE_GRIP * 0.5), bp.z + inlet.z));
+    burnerClamp.quaternion.setFromUnitVectors(Z_AXIS, new THREE.Vector3(...toScene(ux, uy, 0)).normalize());
+    // El punto para arrastrar y la grieta siguen a la manguera dibujada.
+    const m = pts[Math.floor(pts.length / 2)];
     midHit.position.set(...toScene(m.x, m.y, m.z));
     crack.visible = w.hose.crackFound;
     crack.position.set(...toScene(m.x, m.y, m.z + 0.3));
@@ -272,6 +313,8 @@ export function HoseView({ src }: { src?: BurnerViewSource }) {
     <>
       <primitive object={mesh} />
       <primitive object={midHit} />
+      <primitive object={tapClamp} />
+      <primitive object={burnerClamp} />
       <primitive object={crack} />
       <primitive object={bubbles} />
     </>
@@ -657,6 +700,12 @@ function Bridge() {
         if (!p) return { x: 0, y: 0 };
         const b = fromScene(p.x, p.y, p.z);
         return { x: b.x, y: b.y };
+      },
+      solidPush(id, cur, x, y, resting, grounded, point) {
+        return solidPushOf(lab.hitMeshes, id, cur, x, y, resting, grounded, point);
+      },
+      solidFloor(id, cur, x, y, resting) {
+        return solidFloorOf(lab.hitMeshes, id, cur, x, y, resting);
       },
       pick(sx, sy, exclude) {
         setRay(sx, sy);

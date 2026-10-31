@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BENCH } from '../../practices/practice-02/definition';
+import { HOOD } from '../interaction/viewport';
 import type { QualityLevel } from '../quality';
 import { QUALITY } from '../quality';
 import { clockTexture, epoxyTexture, floorTexture, labelTexture, posterTexture, tileTexture } from '../renderers/textures';
@@ -250,8 +251,8 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
   g.add(clock, rim);
 
   // ── Campana de extracción (estaciones D–E) ──
-  const h0 = 352;
-  const h1 = 552;
+  const h0 = HOOD.x0;
+  const h1 = HOOD.x1;
   const hoodMat = new THREE.MeshStandardMaterial({ color: 0xe6eaed, roughness: 0.5 });
   const inner = new THREE.MeshStandardMaterial({ color: 0xd5dbe0, roughness: 0.6, metalness: 0.2 });
   const back = new THREE.Mesh(new THREE.PlaneGeometry(h1 - h0, 118), inner);
@@ -259,8 +260,8 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
   back.receiveShadow = true;
   g.add(back);
   g.add(box(h1 - h0 + 8, 32, 30, hoodMat, (h0 + h1) / 2, 134, WALL_Z + 15));
-  g.add(box(4, 150, 14, hoodMat, h0 - 2, 75, WALL_Z + 7));
-  g.add(box(4, 150, 14, hoodMat, h1 + 2, 75, WALL_Z + 7));
+  g.add(box(HOOD.sideW, 150, HOOD.sideD, hoodMat, h0 - HOOD.sideW / 2, 75, WALL_Z + HOOD.sideD / 2));
+  g.add(box(HOOD.sideW, 150, HOOD.sideD, hoodMat, h1 + HOOD.sideW / 2, 75, WALL_Z + HOOD.sideD / 2));
   // Luz bajo la campana y guillotina levantada
   const lightStrip = new THREE.Mesh(new THREE.PlaneGeometry(h1 - h0 - 30, 4), new THREE.MeshBasicMaterial({ color: 0xfff8e1 }));
   lightStrip.rotation.x = Math.PI / 2;

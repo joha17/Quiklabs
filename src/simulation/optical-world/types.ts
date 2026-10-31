@@ -17,10 +17,20 @@ import type { PermParams } from '../perm-world/types';
 import type { BioParams } from '../bio-world/types';
 import type { EnzParams } from '../enz-world/types';
 import type { DivParams } from '../div-world/types';
+import type { MicroParams } from '../micro-world/types';
+import type { PhotoParams } from '../photo-world/types';
+import type { PlantParams } from '../plant-world/types';
+import type { StainId } from '../specimens/thin-section';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
 
 export type B01ObjKind =
+  // B07: medios, placas, visor, trazado, asa, área de frotis, rejilla, frascos de tinción y maquetas.
+  | 'mediaJar' | 'brothTube' | 'petriPlate' | 'plateTray' | 'plateViewer' | 'streakBoard' | 'transferLoop' | 'smearPad' | 'stainRack' | 'stainBottle' | 'autoclaveMock' | 'burnerMock'
+  // B08: gases, indicador, campana, extracción y cromatografía.
+  | 'hypothesisBoard' | 'gasTube' | 'gasRack' | 'sprigTray' | 'elodeaSprig' | 'thermalTank' | 'plantLamp' | 'darkCover' | 'btbTube' | 'btbRack' | 'btbDropper' | 'co2Dispenser' | 'fumeHood' | 'solventBottle' | 'leafBalance' | 'mortar' | 'spinachLeaf' | 'sepTube' | 'extractVial' | 'chromPaper' | 'paperStand' | 'devTube' | 'organicWaste' | 'drainSink'
+  // B09: plántulas y rama leñosa (las fuentes de tejido y los goteros son los de B02).
+  | 'plantSpecimen' | 'woodyBranch'
   | 'ppeTray' | 'prepBoard' | 'elodeaDish' | 'dropperBottle' | 'slide' | 'fixedSlide' | 'coverslip' | 'coverBox' | 'forceps' | 'scalpel'
   | 'paper' | 'lensPaper' | 'towel' | 'microscope' | 'slideCase' | 'stereo' | 'sampleTray' | 'leafSample' | 'insectSample'
   | 'glassBin' | 'bioWaste' | 'cleanTray'
@@ -85,7 +95,7 @@ export interface ForcepsState {
 
 export interface DispenserState {
   ml: number;
-  reagent: 'water' | 'lugol' | 'methylene-blue' | 'eosin-1pct' | 'nacl-0.9' | 'nacl-5' | 'methylcellulose' | 'nigrosin';
+  reagent: StainId;
 }
 
 export interface StereoSample {
@@ -175,6 +185,12 @@ export interface B01Params {
   enz?: EnzParams;
   /** Protistas vivos, aceite de inmersión, morfometría y tinción de Wright (B06). */
   div?: DivParams;
+  /** Tinción por fases, frotis, trazado y visor calibrado (B07). */
+  micro?: MicroParams;
+  /** Intercambio gaseoso, BTB, extracción y cromatografía (B08). */
+  photo?: PhotoParams;
+  /** Cortes, reacción de Wiesner y morfometría (B09). */
+  plant?: PlantParams;
 }
 
 export interface OpticalWorld {

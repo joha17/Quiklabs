@@ -31,6 +31,9 @@ export const CELL_RECIPES: Record<CellKind, CellRecipe> = {
   tradescantia: { kind: 'tradescantia', preps: ['peel'], reagents: ['water'], required: null, tools: ['fc'] },
   euglena: { kind: 'euglena', preps: ['drop'], reagents: ['water', 'methylcellulose', 'lugol', 'nigrosin'], required: null, tools: ['pipette'] },
   paramecium: { kind: 'paramecium', preps: ['drop'], reagents: ['water', 'methylcellulose', 'lugol', 'nigrosin'], required: null, tools: ['pipette'] },
+  // B09: secciones a bisturí; agua o reacción de Wiesner (floroglucinol + HCl) solo si la asignación la incluye.
+  celery: { kind: 'celery', preps: ['cut'], reagents: ['water', 'phloroglucinol', 'hcl'], required: null, tools: ['sc'] },
+  plantLeaf: { kind: 'plantLeaf', preps: ['cut'], reagents: ['water', 'phloroglucinol', 'hcl'], required: null, tools: ['sc'] },
 };
 
 export const stainVolume = (info: CellMountInfo, s: StainId) => info.stainMl[s] ?? 0;
@@ -58,7 +61,15 @@ export interface AssetChoice {
   missing: string[];
   /** Variantes de B06 (ausentes en B02–B05). */
   div?: { blurStomata: boolean; eugVisible: boolean; parFine: boolean };
+  /** Ventana de contacto de Wiesner con recurso aprobado y epidermis con estomas lejanos (B09). */
+  plant?: { wiesnerMinS: number; wiesnerMaxS: number; farStomata: boolean };
 }
+
+/** Reacción de Wiesner dentro de la condición fotografiada: floroglucinol, ácido y contacto en la ventana del recurso. */
+export const wiesnerDeveloped = (info: CellMountInfo, p: { wiesnerMinS: number; wiesnerMaxS: number }) => {
+  const s = info.contactS.hcl ?? 0;
+  return hasStain(info, 'phloroglucinol') && hasStain(info, 'hcl') && s >= p.wiesnerMinS && s <= p.wiesnerMaxS;
+};
 
 /** Recurso base de la condición de una zona. */
 export function baseAssetFor(z: CellZone, info: CellMountInfo, c: AssetChoice, minContactS: number): string {
@@ -68,13 +79,17 @@ export function baseAssetFor(z: CellZone, info: CellMountInfo, c: AssetChoice, m
     case 'tomato': return 'tomato';
     case 'pepper': return c.similarFruits ? 'pepperRed' : 'pepper';
     case 'carrot': return 'carrot';
-    case 'pear': return hasStain(info, 'eosin-1pct') ? 'pearEosin' : c.clearSclereids ? 'pearClear' : 'pear';
+    case 'pear':
+      if (c.plant) return wiesnerDeveloped(info, c.plant) ? 'pearWiesner' : c.clearSclereids ? 'pearClear' : 'pearSection';
+      return hasStain(info, 'eosin-1pct') ? 'pearEosin' : c.clearSclereids ? 'pearClear' : 'pear';
     case 'guava': return 'guava';
     case 'apple': return 'missing:apple';
     case 'buccal': return hasStain(info, 'methylene-blue') ? 'buccalMB' : hasStain(info, 'eosin-1pct') ? 'buccalEosin' : 'buccalPlain';
     case 'tradescantia': return c.div?.blurStomata ? 'tradescantiaBlur' : 'tradescantia';
     // Lugol sobre un protista vivo: lo inmoviliza (recurso de la condición, no prueba de una reserva).
     case 'euglena': return hasStain(info, 'lugol') ? 'euglenaLugol' : c.div?.eugVisible ? 'euglenaVisible' : 'euglena';
+    case 'celery': return c.plant && wiesnerDeveloped(info, c.plant) ? 'celeryWiesner' : 'celery';
+    case 'plantLeaf': return z.plane === 'epidermal' ? (c.plant?.farStomata ? 'leafFreshFar' : 'leafFreshE') : 'leafFreshT';
     case 'paramecium': return hasStain(info, 'lugol') ? 'parameciumLugol' : hasStain(info, 'nigrosin') ? 'parameciumNigrosin' : c.div?.parFine ? 'parameciumFine' : 'paramecium';
   }
 }

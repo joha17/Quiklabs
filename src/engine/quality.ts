@@ -24,9 +24,12 @@ export const QUALITY: Record<QualityLevel, QualityProfile> = {
   LOW: { shadows: false, shadowMapSize: 512, maxDpr: 1.25, antialias: false, particles: 0.3, richGlass: false, roomDetail: false, latheSegments: 20 },
 };
 
-/** Selección automática por una prueba breve de rendimiento (fps medidos durante ~3 s). */
+/**
+ * Selección automática por una prueba breve de rendimiento (fps medidos durante ~3 s): solo baja de nivel. Cambiar de
+ * nivel recrea el lienzo y deja la pantalla oscura un instante, y subir solo a HIGH podía hacerlo oscilar; HIGH se
+ * elige a mano en Ajustes.
+ */
 export function pickQuality(fps: number, current: QualityLevel): QualityLevel {
   if (fps < 28) return current === 'HIGH' ? 'MEDIUM' : 'LOW';
-  if (fps > 55 && current === 'MEDIUM') return 'HIGH';
   return current;
 }
