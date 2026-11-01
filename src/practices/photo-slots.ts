@@ -1,12 +1,12 @@
 /**
- * Fotografías reales del ocular (fase 2 de B01, también B02, B03, B04, B05, B06, B07, B08 y B09): qué muestras de cada práctica admiten una foto por
+ * Fotografías reales del ocular (fase 2 de B01, también B02, B03, B04, B05, B06, B07, B08, B09 y B10): qué muestras de cada práctica admiten una foto por
  * objetivo. Lo comparten el servidor (valida la carga) y el cliente (panel del docente y ocular).
  *
  * Las fotos son SOLO PRESENTACIÓN: el ocular las dibuja en lugar de la ilustración cuando hay una para la muestra y el
  * objetivo enclavado, pero la evidencia (estructuras visibles, capturas válidas, nota) la siguen decidiendo los
  * manifiestos anotados del dominio, cuyo hash queda congelado en cada intento. Cambiar una foto no altera ninguna cinta.
  */
-export const PHOTO_LABS = ['b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09'] as const;
+export const PHOTO_LABS = ['b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10'] as const;
 export type PhotoLab = (typeof PHOTO_LABS)[number];
 
 export const PHOTO_OBJECTIVES = [4, 10, 40, 100] as const;
@@ -49,6 +49,12 @@ export const PHOTO_SLOTS: Record<PhotoLab, PhotoSlot[]> = {
   b09: [
     { assetId: 'onionRootTip' }, { assetId: 'rootEudicot' }, { assetId: 'rootMonocot' }, { assetId: 'stemEudicot' }, { assetId: 'stemMonocot' }, { assetId: 'leafEudicot' }, { assetId: 'leafMonocot' },
     { assetId: 'celery' }, { assetId: 'celeryWiesner' }, { assetId: 'pearWiesner' }, { assetId: 'woodRings', scenario: true }, { assetId: 'woodTropical', scenario: true },
+  ],
+  // B10: láminas de tejidos e invertebrados; lo que entra por escenario queda marcado.
+  b10: [
+    { assetId: 'muscleSkeletal' }, { assetId: 'muscleCardiac' }, { assetId: 'muscleCardiacDiscs', scenario: true }, { assetId: 'muscleSmooth', scenario: true }, { assetId: 'epithelium' }, { assetId: 'connective' }, { assetId: 'nervous' },
+    { assetId: 'sponge' }, { assetId: 'coral', scenario: true }, { assetId: 'medusa' }, { assetId: 'planariaWM' }, { assetId: 'flukeWM' }, { assetId: 'nematodeTS' }, { assetId: 'cestodeWM' }, { assetId: 'earthwormTS', scenario: true },
+    { assetId: 'daphniaWM' }, { assetId: 'louseWM' }, { assetId: 'medusaStages', scenario: true }, { assetId: 'louseStages', scenario: true },
   ],
 };
 

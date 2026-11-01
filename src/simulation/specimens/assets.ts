@@ -27,7 +27,12 @@ export type StructureId =
   | 'stainedField' | 'cocci' | 'rods'
   // B09 — tejidos y regiones vegetales (§3.1). `lignifiedWall`: pared teñida por Wiesner (es tinción, no un tejido).
   | 'rootCap' | 'meristem' | 'elongationZone' | 'stele' | 'endodermis' | 'pericycle' | 'casparian' | 'pith' | 'parenchyma' | 'collenchyma' | 'sclerenchyma'
-  | 'cambium' | 'companionCell' | 'palisade' | 'spongy' | 'mesophyll' | 'cuticle' | 'growthRing' | 'bark' | 'lignifiedWall';
+  | 'cambium' | 'companionCell' | 'palisade' | 'spongy' | 'mesophyll' | 'cuticle' | 'growthRing' | 'bark' | 'lignifiedWall'
+  // B10 — tejidos y organismos animales (§3.1–§3.3).
+  | 'skeletalFiber' | 'cardiacFiber' | 'intercalatedDisc' | 'smoothFiber' | 'striations' | 'simpleEpithelium' | 'stratifiedEpithelium' | 'basalLamina' | 'collagenFibers' | 'fibroblast' | 'neuronBody' | 'axon'
+  | 'spicule' | 'choanocyte' | 'osculum' | 'mesoglea' | 'gastrodermis' | 'animalEpidermis' | 'cnidocyte' | 'tentacle' | 'manubrium' | 'polyp' | 'ephyra' | 'strobila'
+  | 'auricleS' | 'ocellusS' | 'pharynxS' | 'gutBranch' | 'oralSuckerS' | 'ventralSuckerS' | 'nematodeCuticle' | 'nematodeGut' | 'scolexS' | 'hooks' | 'proglottidS' | 'wormEpidermis' | 'wormMuscle' | 'wormGut' | 'setae' | 'typhlosole'
+  | 'carapace' | 'broodPouch' | 'bodyAppendage' | 'nit' | 'nymph';
 
 /**
  * Estado de la evidencia de una estructura en un activo (B02, §2): `visible` puede exigirse sobre la imagen; `inferred`
@@ -730,12 +735,61 @@ export const PLANT_ASSETS: Record<string, ObservationAssetManifest> = {
   leafParallel: leafStereo('leafParallel', 'Hoja de venación paralela (estereoscopio)'),
 };
 
+// ─────────────── B10: tejidos animales y organismos ───────────────
+
+const DIDACTIC_B10 = 'Ilustración didáctica generada por Quiklabs (no es una microfotografía). Las regiones anotadas fijan qué puede rotularse; el docente puede publicar fotos reales con las mismas estructuras.';
+
+function animalManifest(
+  m: Pick<ObservationAssetManifest, 'assetId' | 'name' | 'extentMm' | 'annotations'> & { sampleKind?: ObservationAssetManifest['sampleKind'] },
+  owner: { role: 'admin' | 'teacher'; id: string; version: number } = { role: 'admin', id: 'u_admin', version: 1 },
+): ObservationAssetManifest {
+  const base = {
+    ...m, sampleKind: m.sampleKind ?? ('fixed' as const), views: micViews(), version: owner.version, ownerRole: owner.role, ownerId: owner.id, captureQuality: 'illustrative' as const,
+    fallbackPolicy: 'admin-version' as const, sourceAttribution: DIDACTIC_B10,
+  };
+  return { ...base, contentHash: stableHash(base) };
+}
+
+/** Lo diagnóstico se ve solo al aumento donde de verdad se resuelve: los discos intercalares, a 40X y si el activo los anota visibles. */
+const skeletal = (id: string) => animalManifest({
+  assetId: id, name: 'Músculo esquelético, corte longitudinal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [ST('skeletalFiber', rect(0.06, 0.1, 0.94, 0.9), ALL_X), ST('striations', rect(0.06, 0.1, 0.94, 0.9), [40]), ST('nucleus', rect(0.06, 0.1, 0.94, 0.9), MID_X)],
+});
+const cardiac = (id: string, discs: EvidenceStatus) => animalManifest({
+  assetId: id, name: 'Músculo cardíaco, corte longitudinal (lámina fija)', extentMm: [2.4, 2.4],
+  annotations: [ST('cardiacFiber', rect(0.06, 0.1, 0.94, 0.9), ALL_X), ST('striations', rect(0.06, 0.1, 0.94, 0.9), [40]), ST('nucleus', rect(0.06, 0.1, 0.94, 0.9), MID_X), ST('intercalatedDisc', rect(0.06, 0.1, 0.94, 0.9), [40], discs)],
+});
+
+/** Manifiestos de B10 (§4.4). Las regiones siguen la silueta real de cada organismo; `muscleFresh` es el único montaje fresco. */
+export const ANIMAL_ASSETS: Record<string, ObservationAssetManifest> = {
+  muscleSkeletal: skeletal('muscleSkeletal'),
+  muscleCardiac: cardiac('muscleCardiac', 'inferred'),
+  muscleCardiacDiscs: cardiac('muscleCardiacDiscs', 'visible'),
+  muscleSmooth: animalManifest({ assetId: 'muscleSmooth', name: 'Músculo liso, corte longitudinal (lámina fija)', extentMm: [2.4, 2.4], annotations: [ST('smoothFiber', rect(0.06, 0.1, 0.94, 0.9), ALL_X), ST('nucleus', rect(0.06, 0.1, 0.94, 0.9), MID_X)] }),
+  muscleFresh: animalManifest({ assetId: 'muscleFresh', name: 'Fibras de músculo crudo separadas, montaje fresco', sampleKind: 'fresh', extentMm: [2.4, 2.4], annotations: [ST('skeletalFiber', rect(0.1, 0.25, 0.9, 0.75), ALL_X), ST('striations', rect(0.1, 0.25, 0.9, 0.75), [40])] }),
+  epithelium: animalManifest({ assetId: 'epithelium', name: 'Epitelio estratificado plano sobre conjuntivo (lámina fija)', extentMm: [2.4, 2.4], annotations: [ST('stratifiedEpithelium', rect(0.04, 0.08, 0.96, 0.46), ALL_X), ST('basalLamina', rect(0.04, 0.46, 0.96, 0.5), [40]), ST('collagenFibers', rect(0.04, 0.5, 0.96, 0.94), MID_X), ST('nucleus', rect(0.04, 0.08, 0.96, 0.46), MID_X)] }),
+  connective: animalManifest({ assetId: 'connective', name: 'Tejido conjuntivo laxo (lámina fija)', extentMm: [2.4, 2.4], annotations: [ST('collagenFibers', rect(0.05, 0.05, 0.95, 0.95), ALL_X), ST('fibroblast', rect(0.05, 0.05, 0.95, 0.95), [40])] }),
+  nervous: animalManifest({ assetId: 'nervous', name: 'Tejido nervioso, frotis de médula (lámina fija)', extentMm: [2.4, 2.4], annotations: [ST('axon', rect(0.05, 0.05, 0.95, 0.95), MID_X), ST('neuronBody', circle(0.36, 0.42, 0.09, 16), ALL_X), ST('neuronBody', circle(0.68, 0.6, 0.08, 16), ALL_X), ST('nucleus', circle(0.36, 0.42, 0.03, 12), [40])] }),
+  sponge: animalManifest({ assetId: 'sponge', name: 'Esponja calcárea, corte longitudinal (lámina fija)', extentMm: [4, 4], annotations: [ST('spicule', rect(0.2, 0.1, 0.8, 0.92), MID_X), ST('choanocyte', band(circle(0.5, 0.52, 0.2, 18), 0.8), [40]), ST('osculum', rect(0.42, 0.04, 0.58, 0.14), ALL_X)] }),
+  coral: animalManifest({ assetId: 'coral', name: 'Colonia de coral, pólipos en corte (lámina fija)', extentMm: [4, 4], annotations: [ST('polyp', circle(0.28, 0.4, 0.14, 16), ALL_X), ST('polyp', circle(0.68, 0.36, 0.14, 16), ALL_X), ST('polyp', circle(0.46, 0.72, 0.14, 16), ALL_X), ST('tentacle', band(circle(0.28, 0.4, 0.14, 16), 0.72), MID_X)] }),
+  medusa: animalManifest({ assetId: 'medusa', name: 'Medusa, corte de la umbrela (lámina fija)', extentMm: [4, 4], annotations: [ST('mesoglea', [[0.14, 0.5], [0.3, 0.26], [0.5, 0.18], [0.7, 0.26], [0.86, 0.5], [0.7, 0.42], [0.5, 0.38], [0.3, 0.42]], ALL_X), ST('animalEpidermis', band([[0.14, 0.5], [0.3, 0.26], [0.5, 0.18], [0.7, 0.26], [0.86, 0.5], [0.5, 0.3]], 0.9), MID_X), ST('gastrodermis', rect(0.34, 0.42, 0.66, 0.5), MID_X), ST('manubrium', rect(0.44, 0.5, 0.56, 0.72), ALL_X), ST('tentacle', rect(0.16, 0.5, 0.2, 0.86), ALL_X), ST('tentacle', rect(0.8, 0.5, 0.84, 0.86), ALL_X), ST('cnidocyte', rect(0.16, 0.5, 0.2, 0.86), [40], 'inferred')] }),
+  planariaWM: animalManifest({ assetId: 'planariaWM', name: 'Planaria, montaje total (lámina fija)', extentMm: [8, 8], annotations: [ST('auricleS', circle(0.36, 0.14, 0.05, 12), ALL_X), ST('auricleS', circle(0.64, 0.14, 0.05, 12), ALL_X), ST('ocellusS', circle(0.45, 0.17, 0.018, 10), MID_X), ST('ocellusS', circle(0.55, 0.17, 0.018, 10), MID_X), ST('pharynxS', rect(0.46, 0.5, 0.54, 0.72), ALL_X), ST('gutBranch', rect(0.32, 0.22, 0.68, 0.9), MID_X)] }),
+  flukeWM: animalManifest({ assetId: 'flukeWM', name: 'Duela hepática, montaje total (lámina fija)', extentMm: [12, 12], annotations: [ST('oralSuckerS', circle(0.5, 0.14, 0.03, 12), ALL_X), ST('ventralSuckerS', circle(0.5, 0.26, 0.05, 12), ALL_X), ST('gutBranch', rect(0.32, 0.3, 0.68, 0.88), MID_X)] }),
+  nematodeTS: animalManifest({ assetId: 'nematodeTS', name: 'Nematodo, corte transversal (lámina fija)', extentMm: [2.4, 2.4], annotations: [ST('nematodeCuticle', band(circle(0.5, 0.5, 0.4, 28), 0.92), ALL_X), ST('wormMuscle', band(circle(0.5, 0.5, 0.36, 28), 0.72), MID_X), ST('nematodeGut', circle(0.5, 0.5, 0.1, 18), ALL_X)] }),
+  cestodeWM: animalManifest({ assetId: 'cestodeWM', name: 'Cestodo: escólex y proglótides, montaje total (lámina fija)', extentMm: [6, 6], annotations: [ST('scolexS', circle(0.5, 0.12, 0.07, 14), ALL_X), ST('hooks', circle(0.5, 0.07, 0.03, 10), [10, 40]), ST('proglottidS', rect(0.36, 0.3, 0.64, 0.92), ALL_X)] }),
+  earthwormTS: animalManifest({ assetId: 'earthwormTS', name: 'Lombriz, corte transversal (lámina fija)', extentMm: [4, 4], annotations: [ST('wormEpidermis', band(circle(0.5, 0.5, 0.42, 28), 0.94), MID_X), ST('wormMuscle', band(circle(0.5, 0.5, 0.39, 28), 0.76), ALL_X), ST('wormGut', circle(0.5, 0.5, 0.16, 20), ALL_X), ST('typhlosole', circle(0.5, 0.4, 0.05, 12), MID_X), ST('setae', circle(0.2, 0.68, 0.025, 10), [10, 40])] }),
+  daphniaWM: animalManifest({ assetId: 'daphniaWM', name: 'Daphnia, montaje total', extentMm: [3, 3], annotations: [ST('carapace', circle(0.5, 0.52, 0.32, 22), ALL_X), ST('compoundEye', circle(0.5, 0.2, 0.05, 12), ALL_X), ST('antenna', rect(0.13, 0.19, 0.42, 0.31), ALL_X), ST('broodPouch', circle(0.5, 0.42, 0.11, 14), MID_X), ST('bodyAppendage', rect(0.42, 0.56, 0.58, 0.74), MID_X)] }),
+  louseWM: animalManifest({ assetId: 'louseWM', name: 'Piojo, montaje total', extentMm: [4, 4], annotations: [ST('head', circle(0.5, 0.2, 0.08, 14), ALL_X), ST('thorax', rect(0.4, 0.28, 0.6, 0.44), ALL_X), ST('abdomen', circle(0.5, 0.64, 0.18, 18), ALL_X), ST('antenna', rect(0.36, 0.13, 0.44, 0.18), MID_X), ST('antenna', rect(0.56, 0.13, 0.64, 0.18), MID_X), ST('leg', rect(0.2, 0.26, 0.44, 0.48), ALL_X), ST('leg', rect(0.56, 0.26, 0.8, 0.48), ALL_X)] }),
+  medusaStages: animalManifest({ assetId: 'medusaStages', name: 'Estadios de escifozoo: pólipo, estróbila y éfira (lámina fija)', extentMm: [6, 6], annotations: [ST('polyp', circle(0.2, 0.5, 0.11, 14), ALL_X), ST('strobila', rect(0.44, 0.26, 0.56, 0.74), ALL_X), ST('ephyra', circle(0.8, 0.5, 0.11, 14), ALL_X)] }),
+  louseStages: animalManifest({ assetId: 'louseStages', name: 'Estadios de piojo: liendre y ninfa (lámina fija)', extentMm: [4, 4], annotations: [ST('nit', circle(0.28, 0.5, 0.1, 14), ALL_X), ST('nymph', circle(0.7, 0.5, 0.16, 16), ALL_X)] }),
+};
+
 /** Plano real de cada activo (metadato: el estudiante lo comprueba, no lo supone). */
 export const PLANT_ASSET_PLANE: Record<string, 'transverse' | 'longitudinal' | 'epidermal'> = {
   onionRootTip: 'longitudinal', onionRootTipClear: 'longitudinal', leafFreshE: 'epidermal', leafFreshFar: 'epidermal',
 };
 
-export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id] ?? DIV_ASSETS[id] ?? MICRO_ASSETS[id] ?? PLANT_ASSETS[id]);
+export const assetById = (id: string): ObservationAssetManifest | undefined => (id === REFLECTIVE_INSECT.assetId ? REFLECTIVE_INSECT : ASSETS[id] ?? CELL_ASSETS[id] ?? PERM_ASSETS[id] ?? FEULGEN_ASSETS[id] ?? DIV_ASSETS[id] ?? MICRO_ASSETS[id] ?? PLANT_ASSETS[id] ?? ANIMAL_ASSETS[id]);
 
 /** Estado de la evidencia de una estructura en un activo (`unavailable` si el activo no la anota). */
 export function structureStatus(a: ObservationAssetManifest, s: StructureId): EvidenceStatus {

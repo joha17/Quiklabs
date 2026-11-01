@@ -8,6 +8,7 @@ import { microscopeView } from '../../simulation/optical-world/world';
 import { GEO_B07 } from '../../simulation/micro-world/geometry';
 import { GEO_B08 } from '../../simulation/photo-world/geometry';
 import { GEO_B09 } from '../../simulation/plant-world/geometry';
+import { GEO_B10 } from '../../simulation/animal-world/geometry';
 import { BENCH_B01, CLEAN_TRAY, GEO_B01, PREP_SPOT, SAMPLE_TRAY, STAGE_SEAT, STEREO_BASE, caseSlotId, caseSlotPos, stageTopZCm } from '../../simulation/optical-world/geometry';
 
 export interface Spot {
@@ -85,6 +86,9 @@ const FOOTPRINT: Partial<Record<B01ObjKind, { w: number; d: number; top: number 
   burnerMock: { w: 6, d: 6, top: 9 },
   plantSpecimen: { w: GEO_B09.plant.r * 2, d: GEO_B09.plant.r * 2, top: GEO_B09.plant.h },
   woodyBranch: { w: GEO_B09.branch.w, d: GEO_B09.branch.d, top: GEO_B09.branch.h },
+  orientationBoard: { w: GEO_B10.board.w, d: GEO_B10.board.d, top: GEO_B10.board.h },
+  modelShelf: { w: GEO_B10.shelf.w, d: GEO_B10.shelf.d, top: GEO_B10.shelf.h },
+  trackTray: { w: GEO_B10.trackTray.w, d: GEO_B10.trackTray.d, top: GEO_B10.trackTray.h },
   gasRack: { w: GEO_B08.rack.w, d: GEO_B08.rack.d, top: GEO_B08.rack.h },
   btbRack: { w: GEO_B08.rack.w + 4, d: GEO_B08.rack.d, top: GEO_B08.rack.h },
   thermalTank: { w: GEO_B08.tank.w, d: GEO_B08.tank.d, top: GEO_B08.tank.h },

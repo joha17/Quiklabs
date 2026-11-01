@@ -10,6 +10,7 @@ import { drawCellAsset } from './illustrationsCell';
 import { drawMicroAsset } from './illustrationsMicro';
 import { drawDivAsset } from './illustrationsDiv';
 import { drawPlantAsset } from './illustrationsPlant';
+import { drawAnimalAsset } from './illustrationsAnimal';
 
 export interface ViewSpec {
   assetId: string;
@@ -390,6 +391,6 @@ export function drawAsset(ctx: CanvasRenderingContext2D, v: ViewSpec) {
     case 'insect': return drawInsect(ctx, a, v, false);
     case 'insectShiny': return drawInsect(ctx, a, v, true);
     case 'leafNet': return drawLeafStereo(ctx, a, v);
-    default: if (!drawPlantAsset(ctx, a, v, baseAssetId(a.assetId)) && !drawMicroAsset(ctx, a, v, baseAssetId(a.assetId)) && !drawDivAsset(ctx, a, v, baseAssetId(a.assetId))) drawCellAsset(ctx, a, v, baseAssetId(a.assetId));
+    default: if (!drawAnimalAsset(ctx, a, v, baseAssetId(a.assetId)) && !drawPlantAsset(ctx, a, v, baseAssetId(a.assetId)) && !drawMicroAsset(ctx, a, v, baseAssetId(a.assetId)) && !drawDivAsset(ctx, a, v, baseAssetId(a.assetId))) drawCellAsset(ctx, a, v, baseAssetId(a.assetId));
   }
 }

@@ -135,6 +135,13 @@ import { b09StageEvidence } from './practice-b09/evidence';
 import { evaluateB09 } from './practice-b09/rubric';
 import { sanitizeOnResumeB09 } from './practice-b09/resume';
 import type { B09Notebook } from './practice-b09/notebook';
+import { newPracticeB10World, type PracticeB10Options } from './practice-b10';
+import { b10StageEvidence } from './practice-b10/evidence';
+import { evaluateB10 } from './practice-b10/rubric';
+import { sanitizeOnResumeB10 } from './practice-b10/resume';
+import type { B10Notebook } from './practice-b10/notebook';
+import type { AnimalWorld } from '../simulation/animal-world/types';
+import { conservedAnimal, dispatchAnimal, stepAnimalWorld } from '../simulation/animal-world/world';
 import type { PlantWorld } from '../simulation/plant-world/types';
 import { conservedPlant, dispatchPlant, stepPlantWorld } from '../simulation/plant-world/world';
 import type { PhotoWorld } from '../simulation/photo-world/types';
@@ -146,7 +153,7 @@ import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10'];
 
 interface WorldBase {
   tick: number;
@@ -402,6 +409,21 @@ export const ADAPTERS: Record<GradedLab, Adapter> = {
     },
     conserved: (w) => conservedPlant(w as PlantWorld),
     mode: (o) => opt<PracticeB09Options>(o).mode,
+  },
+  b10: {
+    create: (o) => newPracticeB10World(opt<PracticeB10Options>(o)),
+    dispatch: (w, c) => void dispatchAnimal(w as AnimalWorld, c as never),
+    step: (w) => stepAnimalWorld(w as AnimalWorld),
+    sanitize: (w) => sanitizeOnResumeB10(w as AnimalWorld),
+    latch: (w, nb) => void b10StageEvidence(w as AnimalWorld, nb as B10Notebook),
+    evaluate: (w, s) => evaluateB10(w as AnimalWorld, s.notebook as B10Notebook),
+    // Lo inmutable del intento: rutas, láminas exigidas y escala (cortes, rótulos y áreas cambian con el trabajo).
+    fixed: (w) => {
+      const p = w as AnimalWorld;
+      return { seed: w.seed, params: w.params, scenarios: p.scenarios, assignment: p.assignment, animal: { modules: p.animal.modules, requiredSlides: p.animal.requiredSlides, requiredModels: p.animal.requiredModels, requiredTracks: p.animal.requiredTracks, stereoRequired: p.animal.stereoRequired, faultyModel: p.animal.faultyModel, assetScope: p.animal.assetScope, neutralNames: p.animal.neutralNames }, scale: p.div.scale };
+    },
+    conserved: (w) => conservedAnimal(w as AnimalWorld),
+    mode: (o) => opt<PracticeB10Options>(o).mode,
   },
 };
 

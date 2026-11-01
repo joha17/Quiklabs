@@ -34,6 +34,8 @@ export const CELL_RECIPES: Record<CellKind, CellRecipe> = {
   // B09: secciones a bisturí; agua o reacción de Wiesner (floroglucinol + HCl) solo si la asignación la incluye.
   celery: { kind: 'celery', preps: ['cut'], reagents: ['water', 'phloroglucinol', 'hcl'], required: null, tools: ['sc'] },
   plantLeaf: { kind: 'plantLeaf', preps: ['cut'], reagents: ['water', 'phloroglucinol', 'hcl'], required: null, tools: ['sc'] },
+  // B10: fibras separadas con bisturí en medio acuoso; el montaje fresco solo existe si el docente lo activa (S29).
+  muscleFresh: { kind: 'muscleFresh', preps: ['cut'], reagents: ['water'], required: null, tools: ['sc'] },
 };
 
 export const stainVolume = (info: CellMountInfo, s: StainId) => info.stainMl[s] ?? 0;
@@ -89,6 +91,7 @@ export function baseAssetFor(z: CellZone, info: CellMountInfo, c: AssetChoice, m
     // Lugol sobre un protista vivo: lo inmoviliza (recurso de la condición, no prueba de una reserva).
     case 'euglena': return hasStain(info, 'lugol') ? 'euglenaLugol' : c.div?.eugVisible ? 'euglenaVisible' : 'euglena';
     case 'celery': return c.plant && wiesnerDeveloped(info, c.plant) ? 'celeryWiesner' : 'celery';
+    case 'muscleFresh': return 'muscleFresh';
     case 'plantLeaf': return z.plane === 'epidermal' ? (c.plant?.farStomata ? 'leafFreshFar' : 'leafFreshE') : 'leafFreshT';
     case 'paramecium': return hasStain(info, 'lugol') ? 'parameciumLugol' : hasStain(info, 'nigrosin') ? 'parameciumNigrosin' : c.div?.parFine ? 'parameciumFine' : 'paramecium';
   }

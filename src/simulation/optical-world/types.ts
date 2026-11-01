@@ -20,6 +20,7 @@ import type { DivParams } from '../div-world/types';
 import type { MicroParams } from '../micro-world/types';
 import type { PhotoParams } from '../photo-world/types';
 import type { PlantParams } from '../plant-world/types';
+import type { AnimalParams } from '../animal-world/types';
 import type { StainId } from '../specimens/thin-section';
 
 export type { Pose, Severity, SimEvent, ObjectiveX, StructureId };
@@ -31,6 +32,8 @@ export type B01ObjKind =
   | 'hypothesisBoard' | 'gasTube' | 'gasRack' | 'sprigTray' | 'elodeaSprig' | 'thermalTank' | 'plantLamp' | 'darkCover' | 'btbTube' | 'btbRack' | 'btbDropper' | 'co2Dispenser' | 'fumeHood' | 'solventBottle' | 'leafBalance' | 'mortar' | 'spinachLeaf' | 'sepTube' | 'extractVial' | 'chromPaper' | 'paperStand' | 'devTube' | 'organicWaste' | 'drainSink'
   // B09: plántulas y rama leñosa (las fuentes de tejido y los goteros son los de B02).
   | 'plantSpecimen' | 'woodyBranch'
+  // B10: mesa de orientación, estantes de modelos 3D y bandeja de huellas.
+  | 'orientationBoard' | 'modelShelf' | 'trackTray'
   | 'ppeTray' | 'prepBoard' | 'elodeaDish' | 'dropperBottle' | 'slide' | 'fixedSlide' | 'coverslip' | 'coverBox' | 'forceps' | 'scalpel'
   | 'paper' | 'lensPaper' | 'towel' | 'microscope' | 'slideCase' | 'stereo' | 'sampleTray' | 'leafSample' | 'insectSample'
   | 'glassBin' | 'bioWaste' | 'cleanTray'
@@ -191,6 +194,8 @@ export interface B01Params {
   photo?: PhotoParams;
   /** Cortes, reacción de Wiesner y morfometría (B09). */
   plant?: PlantParams;
+  /** Visor de modelos, huellas y clasificación inicial (B10). */
+  animal?: AnimalParams;
 }
 
 export interface OpticalWorld {

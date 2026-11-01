@@ -416,6 +416,25 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **B09-4. Vidrio roto en residuo común.** Se registra TV-67 en la capa de B09, porque el código heredado solo reconocía lo que `div-world` marca como roto.
 - **TV-DEC-06. Índices didácticos.** La calidad del corte y los tiempos no salen de la guía ni están calibrados: llevan la marca `hypothetical`.
 
+## B10 · Tejidos animales y anatomía comparada
+
+- **B10-1. Códigos propios `TA-NN`.** 98 errores (la guía repetía siete pares, que se fusionaron), `TA-ASSET-01..06` para incidencias y escenarios `TA-S01..35`. `params.codeMap` traduce los heredados.
+- **B10-2. Caja física de 12 ranuras.** El catálogo tiene 18 láminas, pero cada asignación monta solo las que usa; se aparta de la «capacidad base 18» de la guía para no tocar la caja compartida.
+- **B10-3. Nombres neutros.** El visor muestra «Modelo N», «Ave N», «Cráneo N» y «Huella N»: el nombre real delataría la respuesta. Los nombres de estudio se bloquean en Evaluación y lo rotulado con ellos queda marcado.
+- **B10-4. Aves por función.** Se evalúan pico y pata, nunca la especie; el ave sin rasgo claro no pregunta dieta.
+- **B10-5. Módulos no asignados desaparecen.** La rúbrica los quita del total (`gated`); `null` queda solo para respuestas que revisa el docente. Comparar exige al menos dos modelos.
+- **B10-6. Discos intercalares.** Son `inferred` en la lámina base; solo el activo docente `muscleCardiacDiscs` los resuelve. Marcarlos en otra lámina deja el error y no acredita.
+- **B10-7. Parámetros y dentición.** Los umbrales didácticos llevan `hypothetical` y la dentición queda `pending` de revisión docente.
+
+- **PTA-1.** Microscopía, estereoscopía, zoología comparada, cráneos, dentición y huellas 3D conviven en una sola práctica por módulos.
+- **PTA-2. Pendiente en parte.** La guía pide activos reales del docente. Las láminas admiten fotos docentes por `photo-slots`; sin ellas se usan ilustraciones didácticas declaradas como tales. Los modelos 3D son procedurales: **todavía no se pueden subir GLB/GLTF**.
+- **PTA-3.** Los modelos se evalúan rotulando regiones; lo que está de espaldas se rechaza y hay que girar el modelo.
+- **PTA-4.** Las huellas son un módulo propio, con luz rasante que el estudiante mueve.
+- **PTA-5.** Las incidencias del activo no descuentan ni dejan `err:*`.
+- **PTA-6.** El montaje fresco es opcional y solo aparece con su escenario (TA-S29).
+- **PTA-7.** Los cráneos de caballo y vaca están en el banco base: la vaca lleva rodete dentario sin incisivos superiores, y ambos tienen diastema.
+- **PTA-8.** Un grupo nuevo se agrega con una entrada de catálogo y su constructor en `engine/anatomy/`, sin tocar el motor. Una prueba exige que cada región del catálogo tenga geometría.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

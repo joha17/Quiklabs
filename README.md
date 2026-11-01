@@ -232,6 +232,10 @@ Práctica estrictamente virtual sobre el microscopio compartido: fichas de medio
 
 Plántulas rotulables, corte a mano con grosor y presión, reacción de Wiesner con control sin teñir y láminas fijas comparadas. 72 errores `TV-NN`, 26 escenarios y demostración de 18 pasos. Imágenes ilustrativas y calibración hipotética, rotuladas. Detalle en `docs/BIOLOGIA_B09.md`; requiere la migración `0019_course_labs_b09.sql`.
 
+## Biología B10 — Tejidos animales y anatomía comparada
+
+Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
+
 ## Biología B08 — Energía luminosa y pigmentos (intercambio de gases, BTB y cromatografía)
 
 Par luz/oscuridad con capilar y menisco, serie BTB con tres controles, extracción en campana virtual y Rf desde el origen. 76 errores `FOT-NN`, 28 escenarios y demostración de 14 pasos. Valores sintéticos rotulados. Detalle en `docs/BIOLOGIA_B08.md`; requiere la migración `0018_course_labs_b08.sql`.

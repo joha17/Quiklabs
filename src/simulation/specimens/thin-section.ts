@@ -8,7 +8,7 @@
 import { clamp } from '../core/math';
 import type { StructureId } from './assets';
 
-export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal' | 'tradescantia' | 'euglena' | 'paramecium' | 'celery' | 'plantLeaf';
+export type CellKind = 'elodea' | 'potato' | 'tomato' | 'pepper' | 'carrot' | 'pear' | 'guava' | 'apple' | 'buccal' | 'tradescantia' | 'euglena' | 'paramecium' | 'celery' | 'plantLeaf' | 'muscleFresh';
 /**
  * Medios de montaje: el agua, los colorantes de B02, las soluciones de NaCl de B03 (medio de Elodea) y los de B06
  * (metilcelulosa, que solo aumenta la viscosidad, y nigrosina, contraste negativo que no fija). B09: floroglucinol y
@@ -28,7 +28,9 @@ export const DIV_MEDIA: Exclude<StainId, 'water'>[] = ['methylene-blue', 'lugol'
 /** Tejidos frescos de B09 y los reactivos de Wiesner con balance propio. */
 export const PLANT_KINDS: CellKind[] = ['celery', 'plantLeaf'];
 export const PLANT_MEDIA: Exclude<StainId, 'water'>[] = ['phloroglucinol', 'hcl'];
-const ALL_KINDS: CellKind[] = [...CELL_KINDS, ...DIV_KINDS, ...PLANT_KINDS];
+/** Tejido fresco opcional de B10 (fibras separadas de músculo crudo, S29). */
+export const ANIMAL_KINDS: CellKind[] = ['muscleFresh'];
+const ALL_KINDS: CellKind[] = [...CELL_KINDS, ...DIV_KINDS, ...PLANT_KINDS, ...ANIMAL_KINDS];
 
 /** Parámetros de preparación (§7.1): valores de software `pending`, no medidas de un tejido real. */
 export interface CellPrepParams {

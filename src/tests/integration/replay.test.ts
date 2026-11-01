@@ -80,6 +80,10 @@ vi.mock('../../simulation/plant-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/plant-world/world')>();
   return { ...m, dispatchPlant: wrap(m.dispatchPlant) };
 });
+vi.mock('../../simulation/animal-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/animal-world/world')>();
+  return { ...m, dispatchAnimal: wrap(m.dispatchAnimal) };
+});
 vi.mock('../../simulation/micro-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/micro-world/world')>();
   return { ...m, dispatchMicro: wrap(m.dispatchMicro) };
@@ -591,6 +595,120 @@ describe('repetición determinista — Biología B09', () => {
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }
+});
+
+describe('repetición determinista — Biología B10', () => {
+  for (const seed of [20261031, 1010]) {
+    it(`B10 semilla ${seed}: láminas, estereoscopio, modelos, huellas y reanudación`, async () => {
+      const hb10 = await import('../helpersB10');
+      const { sanitizeOnResumeB10 } = await import('../../practices/practice-b10/resume');
+      const { emptyB10Notebook } = await import('../../practices/practice-b10/notebook');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('b10', opts, () => hb10.worldB10(opts), (w, resume) => {
+        const out = hb10.idealRouteB10(w, resume);
+        const n = emptyB10Notebook('replay');
+        hb10.fillNotebookB10(out.w, n, out.res);
+        nb = n;
+        return out.w;
+      }, sanitizeOnResumeB10);
+      const { graded } = await verify('b10', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+
+  const session = async () => {
+    const hb10 = await import('../helpersB10');
+    const { sanitizeOnResumeB10 } = await import('../../practices/practice-b10/resume');
+    const { emptyB10Notebook } = await import('../../practices/practice-b10/notebook');
+    const opts = { mode: 'PRACTICE' as const, seed: 1010, scenarios: [] };
+    let nb: unknown = null;
+    const r = record('b10', opts, () => hb10.worldB10(opts), (w, resume) => {
+      const out = hb10.idealRouteB10(w, resume);
+      const n = emptyB10Notebook('replay');
+      hb10.fillNotebookB10(out.w, n, out.res);
+      nb = n;
+      return out.w;
+    }, sanitizeOnResumeB10);
+    const snap = snapshotOf(r.w, nb);
+    const graded = gradeSnapshot('b10', structuredClone(snap), { attemptId: r.tape.attemptId, options: r.tape.options });
+    return { r, snap, graded, tape: JSON.parse(JSON.stringify(r.tape)) as AttemptTape };
+  };
+
+  it('B10: inflar el mundo entregado no pasa la repetición, aunque la nota calculada suba', async () => {
+    const { snap, graded, tape } = await session();
+    const forged = [
+      (w: any) => { for (const k of Object.keys(w.evidence)) if (k.startsWith('err:')) delete w.evidence[k]; w.evidence.forged = 1; },
+      (w: any) => { for (const l of w.animal.labels) l.ok = true; w.animal.labels.push({ ...w.animal.labels[0], regionId: 'zz' }); },
+      (w: any) => { for (const o of Object.values<any>(w.observations)) o.isObservationValid = true; delete w.observations[Object.keys(w.observations)[0]]; },
+      (w: any) => { w.animal.identified.forged = { ok: true, guess: 'x' }; },
+    ];
+    for (const f of forged) {
+      const s = structuredClone(snap) as AttemptSnapshot;
+      f(s.world);
+      // El servidor recalcula la nota del mundo entregado; la repetición lo contrasta con lo que de verdad pasó.
+      let regraded;
+      try {
+        regraded = gradeSnapshot('b10', structuredClone(s), { attemptId: tape.attemptId, options: tape.options });
+      } catch (e) {
+        // Un mundo que la rúbrica ni siquiera puede leer se rechaza en la entrega.
+        expect((e as Error).message).toBe('INVALID_NOTEBOOK');
+        continue;
+      }
+      const out = await replayTape(tape, s, regraded.evaluation, { yieldEvery: 1e9 });
+      expect(out.exactState).toBe(false);
+    }
+    // Una entrega honesta sigue validando, para que lo anterior no sea un falso positivo.
+    const honest = await replayTape(tape, structuredClone(snap), graded.evaluation, { yieldEvery: 1e9 });
+    expect(honest.exactState).toBe(true);
+    expect(honest.status).toBe('OK');
+  }, 300000);
+
+  it('B10: una cinta recortada, alterada o de otro laboratorio no valida la entrega', async () => {
+    const { snap, graded, tape } = await session();
+    const run = (t: unknown) => replayTape(t as AttemptTape, structuredClone(snap), graded.evaluation, { yieldEvery: 1e9 });
+    const cut = structuredClone(tape);
+    cut.entries = cut.entries.slice(0, Math.floor(cut.entries.length / 2));
+    expect((await run(cut)).exactState).toBe(false);
+    const other = structuredClone(tape);
+    (other.options as { seed: number }).seed = 7;
+    expect((await run(other)).exactState).toBe(false);
+    const lab = structuredClone(tape);
+    lab.labId = 'b09';
+    expect((await run(lab)).exactState).toBe(false);
+    const junk = structuredClone(tape);
+    junk.entries.splice(3, 0, [junk.entries[3][0], { type: 'labelRegion', modelId: '__proto__', regionId: 'constructor', part: 'x' }] as never);
+    expect(await run(junk)).toMatchObject({ status: 'FAILED', error: 'BAD_TAPE' });
+  }, 300000);
+
+  it('B10: sesión desordenada con comandos rechazados: la cinta reproduce exactamente', async () => {
+    const hb10 = await import('../helpersB10');
+    const { sanitizeOnResumeB10 } = await import('../../practices/practice-b10/resume');
+    const { emptyB10Notebook } = await import('../../practices/practice-b10/notebook');
+    const { ANATOMY_MODELS } = await import('../../simulation/animal-world/catalog');
+    const { dispatchAnimal } = await import('../../simulation/animal-world/world');
+    const opts = { mode: 'PRACTICE' as const, seed: 5150, scenarios: [] };
+    let s = 12345;
+    const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const r = record('b10', opts, () => hb10.worldB10(opts), (w, resume) => {
+      hb10.ppeB10(w);
+      for (let i = 0; i < 400; i++) {
+        const m = ANATOMY_MODELS[Math.floor(rnd() * ANATOMY_MODELS.length)];
+        const reg = m.regions[Math.floor(rnd() * m.regions.length)];
+        const cmds: any[] = [
+          { type: 'openModel', modelId: m.id }, { type: 'orientModel', modelId: m.id, yawDeg: rnd() * 720 - 360, pitchDeg: rnd() * 120 - 60, zoom: 1 + rnd() },
+          { type: 'labelRegion', modelId: m.id, regionId: reg?.id ?? 'a', part: reg?.part ?? 'x' }, { type: 'turnCoarse', deltaTurns: rnd() - 0.5 },
+          { type: 'setPower', device: 'microscope', on: rnd() < 0.5 }, { type: 'selectObjective', objectiveX: [4, 10, 40][Math.floor(rnd() * 3)] },
+          { type: 'identifyModel', modelId: m.id, guess: m.taxon }, { type: 'wipe', targetId: 'nope', toolId: 'lp' }, { type: 'captureObservation', instrument: 'compound' },
+        ];
+        dispatchAnimal(w, cmds[Math.floor(rnd() * cmds.length)]);
+        if (i === 200) w = resume(w);
+        if (i % 7 === 0) hb10.runA(w, rnd() * 2);
+      }
+      return w;
+    }, sanitizeOnResumeB10);
+    await verify('b10', r, emptyB10Notebook('replay'));
+  }, 300000);
 });
 
 describe('agente al azar en todas las prácticas', () => {

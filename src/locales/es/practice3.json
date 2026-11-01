@@ -385,6 +385,15 @@
           "Ilustraciones didácticas con grosores y contactos por calibrar; lo no resuelto no se puede afirmar.",
           "El rojo indica pared lignificada, no xilema exclusivo ni un porcentaje de lignina."
         ]
+      },
+      "b10": {
+        "title": "Tejidos animales y anatomía comparada",
+        "subtitle": "Del tejido al organismo: reconoce músculos y epitelios, compara invertebrados y vertebrados en 3D, y lee picos, cráneos, dientes y huellas con luz rasante.",
+        "points": [
+          "Virtual: las láminas son ilustraciones didácticas y los modelos 3D los genera la plataforma; no reemplazan el material real.",
+          "Cada modelo se gira: lo que está de espaldas no se puede rotular.",
+          "Las aves se identifican por su forma funcional, nunca por su especie."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",
