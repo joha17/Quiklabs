@@ -158,6 +158,8 @@ interface WorldBase {
 }
 
 interface Adapter {
+  /** Holgura de conservación si el mundo redondea cantidades a 1e-6: cada redondeo pierde hasta 5e-7, y una sesión larga los acumula. */
+  conservedTol?: number;
   create(options: unknown): WorldBase;
   dispatch(w: WorldBase, cmd: unknown): void;
   step(w: WorldBase): void;
@@ -175,7 +177,7 @@ interface Adapter {
 
 const opt = <T>(o: unknown) => o as T;
 
-const ADAPTERS: Record<GradedLab, Adapter> = {
+export const ADAPTERS: Record<GradedLab, Adapter> = {
   p01: {
     create: (o) => newPractice01World(opt<Practice01Options>(o)),
     dispatch: (w, c) => void dispatchP01(w as P01World, c as never),
@@ -313,6 +315,7 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     mode: (o) => opt<PracticeB02Options>(o).mode,
   },
   b03: {
+    conservedTol: 1e-3,
     create: (o) => newPracticeB03World(opt<PracticeB03Options>(o)),
     dispatch: (w, c) => void dispatchPerm(w as PermWorld, c as never),
     step: (w) => stepPermWorld(w as PermWorld),
@@ -325,6 +328,7 @@ const ADAPTERS: Record<GradedLab, Adapter> = {
     mode: (o) => opt<PracticeB03Options>(o).mode,
   },
   b04: {
+    conservedTol: 1e-3,
     create: (o) => newPracticeB04World(opt<PracticeB04Options>(o)),
     dispatch: (w, c) => void dispatchBio(w as BioWorld, c as never),
     step: (w) => stepBioWorld(w as BioWorld),
@@ -464,7 +468,7 @@ export function gradeSnapshot(
     const c0 = a.conserved(initial);
     const c1 = a.conserved(w);
     for (const k of Object.keys(c0)) {
-      if (Math.abs((c1[k] ?? 0) - c0[k]) > 1e-9 * Math.max(1, Math.abs(c0[k]))) {
+      if (Math.abs((c1[k] ?? 0) - c0[k]) > (a.conservedTol ?? 1e-9) * Math.max(1, Math.abs(c0[k]))) {
         issues.push('NOT_CONSERVED');
         break;
       }
@@ -493,6 +497,12 @@ export interface ReplayResult {
   diffs: Array<{ key: string; replay: number; submitted: number }>;
   steps: number;
   error?: string;
+}
+
+function touchesPrototype(v: unknown): boolean {
+  if (typeof v === 'string') return v in Object.prototype;
+  if (!v || typeof v !== 'object') return false;
+  return Object.entries(v).some(([k, x]) => k in Object.prototype || touchesPrototype(x));
 }
 
 /** Estado comparable: sin eventos ni banderas de etapa (dependen del ritmo de la interfaz, no de la física). */
@@ -525,6 +535,8 @@ export async function replayTape(
   } catch {
     return fail('BAD_OPTIONS');
   }
+  // La cinta la escribe el navegador del estudiante y se repite en el del docente: un id como `__proto__` escribiría en Object.prototype.
+  if (tape.entries.some(([, cmd]) => cmd !== RESUME && touchesPrototype(cmd))) return fail('BAD_TAPE');
   const total = target.tick;
   const latchEvery = Math.max(1, Math.round(LATCH_EVERY_S / w.params.dtS));
   const yieldEvery = opts.yieldEvery ?? 4000;
@@ -544,8 +556,11 @@ export async function replayTape(
       if (tick < w.tick) return fail('TAPE_OUT_OF_ORDER', steps);
       if (tick > total) return fail('TAPE_PAST_END', steps);
       await advanceTo(tick);
-      if (cmd === RESUME) a.sanitize(w);
-      else {
+      if (cmd === RESUME) {
+        // Reanudar carga el intento desde JSON: claves `undefined`, su orden y -0 cambian, y con ellos el redondeo de lo que se suma después.
+        w = JSON.parse(JSON.stringify(w)) as WorldBase;
+        a.sanitize(w);
+      } else {
         a.dispatch(w, cmd);
         a.latch(w, snap.notebook);
       }
@@ -556,9 +571,11 @@ export async function replayTape(
   }
   a.latch(w, snap.notebook);
   await opts.onProgress?.(total, total);
-  const exactState = sameValue(comparable(w), comparable(target), 0);
+  // La entrega viajó como JSON: una lectura fuera de rango (NaN) llega como null, y se compara igual para no acusar a quien no hizo nada.
+  const replayed = JSON.parse(JSON.stringify(w)) as WorldBase;
+  const exactState = sameValue(comparable(replayed), comparable(target), 0);
   // Se evalúa la repetición con la libreta entregada; solo cambia el mundo.
-  const ev = a.evaluate(w, { ...snap, world: w });
+  const ev = a.evaluate(replayed, { ...snap, world: replayed });
   const diffs = submitted.components
     .map((c) => ({ key: c.id, submitted: c.score, replay: ev.components.find((x) => x.id === c.id)?.score ?? 0 }))
     .filter((d) => Math.abs(d.replay - d.submitted) > 0.005);

@@ -238,6 +238,7 @@ export function dispatchCalor(w: P6World, cmd: P6Command): P6DispatchResult {
     case 'inspect':
       return inspect(w, cmd.target);
     case 'setRider': {
+      if (![0, 1, 2].includes(cmd.beam)) return { ok: false, code: 'BAD_BEAM' };
       w.balance.riders[cmd.beam] = riderValue(cmd.beam, cmd.valueG);
       w.balance.disturbedAt = w.timeS;
       return { ok: true, value: w.balance.riders[cmd.beam] };

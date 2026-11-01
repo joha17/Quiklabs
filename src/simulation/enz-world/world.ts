@@ -340,6 +340,7 @@ function transferSolid(w: EnzWorld, fromId: string, toId: string): EnzDispatchRe
   if (fromId === 'sp2') {
     const load = { ...w.enz.spatula };
     if (!Object.values(load).some((g) => g > 1e-9)) return no('NOTHING');
+    if (toId === 'wb' && w.objects.wb?.support !== 'bal') return no('BOAT_OFF_BALANCE');
     // Un poco de polvo queda en la espátula (se arrastra al siguiente uso si no se limpia).
     const keep = 0.01;
     for (const k of Object.keys(load)) {
@@ -347,7 +348,6 @@ function transferSolid(w: EnzWorld, fromId: string, toId: string): EnzDispatchRe
       load[k] = r6(load[k] * (1 - keep));
     }
     if (toId === 'wb') {
-      if (w.objects.wb?.support !== 'bal') return no('BOAT_OFF_BALANCE');
       for (const [k, g] of Object.entries(load)) w.enz.boat[k] = r6((w.enz.boat[k] ?? 0) + g);
       return ok();
     }

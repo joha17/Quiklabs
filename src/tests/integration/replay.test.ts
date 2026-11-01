@@ -5,6 +5,7 @@
  * Las funciones `dispatch*` del dominio se envuelven para grabar la cinta igual que la graba el runtime de la app:
  * `[tic, comando]` de cada comando de primer nivel sobre el mundo del intento.
  */
+import { appendFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import type { AttemptSnapshot, AttemptTape, GradedLab, TapeEntry } from '../../practices/grading';
 
@@ -100,7 +101,7 @@ vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
 });
 
-const { RESUME, gradeSnapshot, replayTape } = await import('../../practices/grading');
+const { ADAPTERS, GRADED_LABS, RESUME, gradeSnapshot, replayTape } = await import('../../practices/grading');
 const { newPracticeWorld } = await import('../../practices/practice-02');
 const { emptyNotebook } = await import('../../practices/practice-02/notebook');
 const { sanitizeOnResume2 } = await import('../../practices/practice-02/resume');
@@ -151,10 +152,14 @@ function snapshotOf(w: unknown, notebook: unknown): AttemptSnapshot {
   return { world, notebook, ppe: true, mode: 'PRACTICE' };
 }
 
+/** Cintas reales de cada práctica: el punto de partida del agente al azar del final de este archivo. */
+const corpus = new Map<GradedLab, { tape: AttemptTape; notebook: unknown; mode: unknown }>();
+
 async function verify(labId: GradedLab, r: { w: W; tape: AttemptTape }, notebook: unknown) {
   const snap = snapshotOf(r.w, notebook);
   const graded = gradeSnapshot(labId, structuredClone(snap), { attemptId: r.tape.attemptId, options: r.tape.options });
   expect(graded.issues).toEqual([]);
+  corpus.set(labId, { tape: JSON.parse(JSON.stringify(r.tape)), notebook, mode: snap.mode });
   // La cinta viaja como JSON (igual que en la entrega).
   const tape = JSON.parse(JSON.stringify(r.tape)) as AttemptTape;
   const out = await replayTape(tape, structuredClone(snap), graded.evaluation, { yieldEvery: 1e9 });
@@ -587,3 +592,200 @@ describe('repetición determinista — Biología B09', () => {
     }, 300000);
   }
 });
+
+describe('agente al azar en todas las prácticas', () => {
+  const SESSIONS = Number(process.env.FUZZ_SESSIONS ?? 3);
+  const failures: Record<string, Set<string>> = {};
+  const note = (lab: string, what: string) => void (failures[lab] ??= new Set()).add(what.slice(0, 220));
+
+  for (const labId of GRADED_LABS) {
+    it(`${labId}: una sesión desordenada no revienta, no deja NaN y se repite idéntica`, async () => {
+      const src = corpus.get(labId);
+      if (!src) return; // Filtrado con -t: sin cinta de partida no hay nada que mutar.
+      for (let s = 0; s < SESSIONS; s++) {
+        for (const problem of await messySession(labId, src, 7000 + s)) note(labId, problem);
+      }
+      if (process.env.FUZZ_REPORT) appendFileSync(process.env.FUZZ_REPORT, `${labId}\t${[...(failures[labId] ?? [])].join('\n\t')}\n`);
+      expect([...(failures[labId] ?? [])]).toEqual([]);
+    }, 120000 * SESSIONS + 60000);
+
+    it(`${labId}: una cinta con basura termina en un resultado, nunca en un cuelgue`, async () => {
+      const src = corpus.get(labId);
+      if (!src) return;
+      for (let s = 0; s < SESSIONS; s++) {
+        const r = lcg(9000 + s);
+        const tape = structuredClone(src.tape);
+        tape.entries = tape.entries.map(([t, c]) => [t, c === RESUME || r() > 0.2 ? c : mutateCommand(c, src.tape, r, true, s % 2 === 0)] as TapeEntry);
+        const before = JSON.stringify(Object.prototype);
+        const a = ADAPTERS[labId];
+        const world = JSON.parse(JSON.stringify(a.create(tape.options))) as AttemptSnapshot['world'];
+        const out = await replayTape(tape, { world, notebook: src.notebook, ppe: true, mode: src.mode } as AttemptSnapshot, { total: 0, needsTeacherReview: [], components: [] }, { yieldEvery: 1e9 });
+        expect(['OK', 'MISMATCH', 'FAILED']).toContain(out.status);
+        expect(JSON.stringify(Object.prototype)).toBe(before);
+        expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+      }
+    }, 600000);
+  }
+});
+
+function lcg(seed: number) {
+  let s = seed >>> 0;
+  return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
+}
+
+/** Valores que el corpus usa en cada campo: cambiar un id por otro válido llega más lejos que inventarlo. */
+function fieldValues(tape: AttemptTape) {
+  const by = new Map<string, unknown[]>();
+  for (const [, c] of tape.entries) {
+    if (c === RESUME || typeof c !== 'object' || !c) continue;
+    for (const [k, v] of Object.entries(c)) {
+      if (k !== 'type' && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) by.set(k, [...(by.get(k) ?? []), v]);
+    }
+  }
+  return by;
+}
+
+const NASTY: unknown[] = [NaN, Infinity, -Infinity, null, undefined, -1, 1e9, '', 'nope', '__proto__', 'constructor', [], {}];
+
+function mutateCommand(cmd: unknown, tape: AttemptTape, r: () => number, garbage: boolean, proto = false): unknown {
+  const c = structuredClone(cmd) as Record<string, unknown>;
+  const keys = Object.keys(c).filter((k) => k !== 'type');
+  if (!keys.length) return garbage && r() < 0.3 ? { ...c, type: 'nope' } : c;
+  const k = keys[Math.floor(r() * keys.length)];
+  if (garbage) {
+    if (r() < 0.1) delete c[k];
+    else {
+      // Con `__proto__` la cinta se rechaza entera: las demás sesiones prueban hasta dónde aguanta el resto de la basura.
+      const pool = proto ? NASTY : NASTY.filter((x) => x !== '__proto__' && x !== 'constructor');
+      c[k] = pool[Math.floor(r() * pool.length)];
+    }
+    return c;
+  }
+  const pool = fieldValues(tape).get(k);
+  if (typeof c[k] === 'number' && r() < 0.6) c[k] = (c[k] as number) * (r() * 3 - 0.5) + (r() - 0.5);
+  else if (pool?.length) c[k] = pool[Math.floor(r() * pool.length)];
+  return c;
+}
+
+function firstDiff(a: unknown, b: unknown, path = '', out: string[] = []): string[] {
+  if (out.length > 5 || path === '.events' || path.includes('stage:')) return out;
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) firstDiff((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], `${path}.${k}`, out);
+  } else if (a !== b && !(a == null && b == null)) out.push(`${path}: ${JSON.stringify(a)?.slice(0, 40)} ≠ ${JSON.stringify(b)?.slice(0, 40)}`);
+  return out;
+}
+
+function badNumbers(o: unknown, path = '', out: string[] = [], seen = new Set<unknown>()): string[] {
+  if (typeof o === 'number') {
+    if (!Number.isFinite(o)) out.push(path);
+  } else if (o && typeof o === 'object' && !seen.has(o)) {
+    seen.add(o);
+    for (const [k, v] of Object.entries(o)) badNumbers(v, `${path}.${k}`, out, seen);
+  }
+  return out;
+}
+
+/** Una lectura marcada inválida puede no tener valor (fuera de rango, balanza inestable): es su forma de decirlo. El resto no admite NaN. */
+function unexpectedNaN(w: unknown) {
+  return badNumbers(w).filter((path) => {
+    const m = /^\.readings\.([^.]+)\.value$/.exec(path);
+    return !(m && (w as { readings: Record<string, { valid?: boolean }> }).readings[m[1]].valid === false);
+  });
+}
+
+/**
+ * Parte de la cinta real, la desordena, borra, repite y altera con valores razonables (lo que podría hacer un estudiante torpe), y la ejecuta
+ * como el runtime. Devuelve los problemas: excepciones, NaN, nota fuera de rango, sospechas falsas de manipulación o repetición distinta.
+ */
+async function messySession(labId: GradedLab, src: { tape: AttemptTape; notebook: unknown; mode: unknown }, seed: number): Promise<string[]> {
+  const problems: string[] = [];
+  const a = ADAPTERS[labId];
+  const r = lcg(seed);
+  const options = src.tape.options;
+  let w = a.create(options) as { tick: number; seed: number; params: { dtS: number } };
+  const entries: TapeEntry[] = [];
+  const list = src.tape.entries.filter(([, c]) => c !== RESUME);
+  // Se aprovecha el orden real con perturbaciones locales: mantiene la práctica avanzando en vez de morir en los primeros rechazos.
+  const script: Array<[number, unknown]> = [];
+  for (let i = 0; i < list.length; i++) {
+    const roll = r();
+    const j = Math.min(list.length - 1, Math.max(0, i + Math.floor((r() - 0.5) * 12)));
+    if (roll < 0.08) continue;
+    script.push([list[i][0], roll < 0.2 ? list[j][1] : roll < 0.32 ? mutateCommand(list[i][1], src.tape, r, false) : list[i][1]]);
+    if (roll > 0.95) script.push([list[i][0], list[i][1]]);
+  }
+  const latchEvery = Math.max(1, Math.round(1 / w.params.dtS));
+  const c0 = a.conserved(w as never);
+  let drift = '';
+  let idx = 0;
+  let last = 0;
+  const started = Date.now();
+  try {
+    for (const [tick, cmd] of script) {
+      if (Date.now() - started > 60000) break;
+      const delta = Math.min(Math.max(0, tick - last), 600);
+      last = tick;
+      for (let i = 0; i < delta; i++) {
+        a.step(w as never);
+        if (w.tick % latchEvery === 0) a.latch(w as never, src.notebook);
+      }
+      idx++;
+      entries.push([w.tick, JSON.parse(JSON.stringify(cmd))]);
+      a.dispatch(w as never, cmd);
+      a.latch(w as never, src.notebook);
+      if (!drift) {
+        const now = a.conserved(w as never);
+        const k = Object.keys(c0).find((x) => Math.abs((now[x] ?? 0) - c0[x]) > 1e-9 * Math.max(1, Math.abs(c0[x])));
+        if (k) drift = `${k}: ${c0[k]} → ${now[k]} tras ${JSON.stringify(cmd).slice(0, 110)}`;
+      }
+      if (idx % 150 === 0) {
+        const back = JSON.parse(JSON.stringify(w));
+        a.sanitize(back);
+        entries.push([back.tick, RESUME]);
+        w = back;
+      }
+      if (idx % 40 === 0) {
+        const bad = unexpectedNaN(w);
+        if (bad.length) {
+          problems.push(`NaN en ${bad[0]} tras ${JSON.stringify(cmd).slice(0, 110)}`);
+          return problems;
+        }
+      }
+    }
+  } catch (e) {
+    problems.push(`excepción: ${(e as Error).message} en ${JSON.stringify(entries[entries.length - 1]?.[1]).slice(0, 120)}`);
+    return problems;
+  }
+  const bad = unexpectedNaN(w);
+  if (bad.length) problems.push(`NaN al final en ${bad[0]}`);
+  const attemptId = `${labId}-${w.seed.toString(36)}-fuzz`;
+  const snap = snapshotOf(w, src.notebook);
+  (snap as { mode: unknown }).mode = src.mode;
+  let graded;
+  try {
+    graded = gradeSnapshot(labId, structuredClone(snap), { attemptId, options });
+  } catch (e) {
+    problems.push(`calificación: ${(e as Error).message}`);
+    return problems;
+  }
+  if (!(graded.evaluation.total >= 0 && graded.evaluation.total <= 1)) problems.push(`nota fuera de rango: ${graded.evaluation.total}`);
+  // Un estudiante torpe no es un tramposo: ninguna de estas marcas debe saltar con una sesión honesta.
+  const falseFlags = graded.issues.filter((x) => x !== 'CLIENT_SCORE_MISMATCH');
+  if (falseFlags.length) problems.push(`sospecha falsa: ${falseFlags.join(',')} ${drift}`);
+  const out = await replayTape({ v: 1, labId, attemptId, options, entries } as AttemptTape, structuredClone(snap), graded.evaluation, { yieldEvery: 1e9 });
+  if (out.error) problems.push(`repetición: ${out.error}`);
+  else if (!out.exactState) {
+    // Se repite aquí para señalar la primera diferencia: sin ella, el fallo no dice nada.
+    let v = a.create(options) as { tick: number };
+    for (const [tick, cmd] of entries) {
+      while (v.tick < tick) { a.step(v as never); if (v.tick % latchEvery === 0) a.latch(v as never, src.notebook); }
+      if (cmd === RESUME) { v = JSON.parse(JSON.stringify(v)); a.sanitize(v as never); }
+      else { a.dispatch(v as never, cmd); a.latch(v as never, src.notebook); }
+    }
+    while (v.tick < w.tick) { a.step(v as never); if (v.tick % latchEvery === 0) a.latch(v as never, src.notebook); }
+    a.latch(v as never, src.notebook);
+    problems.push(`la repetición no llega al mismo estado: ${firstDiff(v, snap.world).slice(0, 4).join(' | ')}`);
+  }
+  else if (out.status !== 'OK') problems.push(`la repetición da otra nota: ${out.replayScore} vs ${graded.evaluation.total}`);
+  return problems;
+}

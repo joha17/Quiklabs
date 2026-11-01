@@ -405,6 +405,7 @@ export function dispatchStoich(w: P5World, cmd: P5Command, ctx: StoichContext): 
     // ── Balanza ──
     case 'setRider': {
       const b = w.balance;
+      if (![0, 1, 2].includes(cmd.beam)) return { ok: false, code: 'BAD_BEAM' };
       const v = cmd.beam === 0 ? clamp(Math.round(cmd.valueG / 100) * 100, 0, 500)
         : cmd.beam === 1 ? clamp(Math.round(cmd.valueG / 10) * 10, 0, 90)
           : clamp(Math.round(cmd.valueG * 100) / 100, 0, 10);

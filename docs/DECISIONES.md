@@ -415,3 +415,16 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **B09-3. TV-40 y TV-53 son incidencias.** La guía los lista entre los errores, pero su detección es `asset:*` y su texto dice que no se penaliza: no descuentan.
 - **B09-4. Vidrio roto en residuo común.** Se registra TV-67 en la capa de B09, porque el código heredado solo reconocía lo que `div-world` marca como roto.
 - **TV-DEC-06. Índices didácticos.** La calidad del corte y los tiempos no salen de la guía ni están calibrados: llevan la marca `hypothetical`.
+
+## Agente al azar en todas las prácticas
+
+`replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:
+
+- **La repetición reanuda desde JSON.** Es lo que hace la reanudación real; sin eso, el orden de las claves y el redondeo cambiaban, y un intento honesto de P6 no llegaba al mismo estado.
+- **P10: bureta fuera de escala.** Guardaba `trueMl: NaN`, que no sobrevive al JSON de la entrega. Ahora guarda 0 y `invalid` indica que no hay lectura.
+- **B03 y B04: holgura de conservación de 1e-3.** Redondean a 1e-6 y acumulan más que el 1e-9 común, así que un estudiante honesto podía quedar marcado `NOT_CONSERVED`.
+- **P5 y calorimetría: `setRider`.** Rechazan un brazo inexistente; antes creaban una propiedad que el JSON perdía.
+- **Lecturas sin valor (P7, P8, P9).** Una lectura inválida guarda `NaN`, que en la entrega llega como `null`. La repetición ahora compara y evalúa después de pasar por JSON, como la entrega.
+- **B05: polvo perdido.** La espátula se vaciaba antes de comprobar que el bote estuviera en la balanza, y el 99 % desaparecía si no lo estaba.
+- **P10: pipeta.** Aspirar con líquido dentro borraba lo que ya llevaba.
+- **Cintas con `__proto__` (B08 y potencialmente otras).** Una cinta manipulada podía escribir en `Object.prototype` del navegador del docente al repetirla. `replayTape` ahora las rechaza con `BAD_TAPE` antes de ejecutar nada.

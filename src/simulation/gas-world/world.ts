@@ -799,7 +799,8 @@ function readVolume(w: P10World, instrument: VolumeReading['instrument'], eyeDzC
       invalid = 'NOT_INVERTED';
     } else {
       const s = solveBurette(w);
-      trueMl = s.readingMl ?? NaN;
+      // Fuera de escala no hay lectura: `invalid` lo dice, y un NaN no sobrevive al JSON de la entrega.
+      trueMl = s.readingMl ?? 0;
       if (s.readingMl === null) invalid = 'OFF_SCALE';
       else if (Math.abs(b.tiltDeg) > 2) invalid = 'TILTED';
       const prev = w.evidence.__vbPrev ?? s.gasMl;
@@ -861,7 +862,8 @@ function aspirate(w: P10World, ml: number): P10DispatchResult {
   if (!p.propipette) return mouthPipetting(w);
   if (w.objects.pipette.support !== 'flask') return { ok: false, code: 'NOT_IN_SOLUTION' };
   const v = w.liquids.flask;
-  const want = clamp(ml, 0, p.nominalMl + 4);
+  // Lo que ya lleva la pipeta sigue ahí: solo cabe el resto.
+  const want = clamp(ml, 0, Math.max(0, p.nominalMl + 4 - p.ml));
   let take = Math.min(want, v.ml - 3);
   if (take <= 0) return { ok: false, code: 'NO_SOLUTION' };
   // Si la punta sale del líquido al aspirar, entra aire (burbuja).
@@ -873,8 +875,8 @@ function aspirate(w: P10World, ml: number): P10DispatchResult {
   const c = flaskTakeConc(w);
   v.ml -= take;
   v.nBicarb -= c * take;
-  p.ml = take;
-  p.nBicarb = c * take + 0;
+  p.ml += take;
+  p.nBicarb += c * take;
   // El agua de las paredes (sin acondicionar) diluye la alícuota.
   p.ml += p.waterFilmMl;
   p.waterFilmMl = 0;
