@@ -73,7 +73,7 @@ async function screenOf(page: Page, x: number, y: number, z: number): Promise<Pt
 
 test('el menú lista los laboratorios y abre cada uno', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Laboratorios virtuales de Química General I' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('QUIK');
   await openPanel(page);
   await page.getByRole('button', { name: /Entrar al laboratorio: Clasificación/ }).click();
   await expect(page.getByRole('button', { name: 'Comenzar intento' })).toBeVisible();
