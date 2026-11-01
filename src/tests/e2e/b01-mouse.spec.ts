@@ -94,14 +94,14 @@ test('microscopio solo con el ratón: interruptor, rueda de luz, revólver con e
   await expectPart(page, p, 'mic:turret');
   await drag(page, p, -4, 0, 12);
   let m = await mic(page);
-  const between = m.turretDeg % 120 > 14 && m.turretDeg % 120 < 106;
+  const between = m.turretDeg % 90 > 14 && m.turretDeg % 90 < 76;
   if (between) expect((await world(page)).evidence['err:E71']).toBe(1);
   await drag(page, p, -3, 0, 120, async () => {
     const a = (await mic(page)).turretDeg;
-    return Math.abs(a - 120) < 8 || Math.abs(a - 240) < 8;
+    return [90, 180, 270].some((d) => Math.abs(a - d) < 8);
   });
   m = await mic(page);
-  expect([120, 240]).toContain(m.turretDeg);
+  expect([90, 180, 270]).toContain(m.turretDeg);
   // De vuelta al 4X por el otro lado del anillo.
   await drag(page, p, 3, 0, 200, async () => {
     const a = (await mic(page)).turretDeg;

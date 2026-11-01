@@ -155,7 +155,7 @@ test('teclado: mando del revólver con clic y Q/E, vista lateral con L y estereo
   await page.evaluate(() => { (window as AnyState).__b01.getState().stage.controller.knob = 'mic:turret'; });
   await page.keyboard.press('e');
   let w = await world(page);
-  expect(w.microscope.turretDeg).toBe(120);
+  expect(w.microscope.turretDeg).toBe(90);
   await page.keyboard.press('q');
   w = await world(page);
   expect(w.microscope.turretDeg).toBe(0);

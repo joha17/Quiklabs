@@ -50,7 +50,7 @@ test('la demostración de B02 se reproduce completa con un error deliberado y su
   console.log(`· errores de técnica: ${errs.join(', ') || 'ninguno'}`);
   expect(errs).toEqual(['err:CEL14']);
   const obs = w.observationOrder.map((id: string) => w.observations[id]);
-  expect(obs.filter((o: AnyState) => o.isObservationValid && o.instrument === 'compound').length).toBe(8);
+  expect(obs.filter((o: AnyState) => o.isObservationValid && o.instrument === 'compound').length).toBe(9);
   expect(w.evidence.benchRestored).toBeTruthy();
   const bad = w.events.filter((e: AnyState) => e.severity === 'CRITICAL' || e.severity === 'ALERT').map((e: AnyState) => e.code);
   expect(bad, 'sin alertas de seguridad durante la demostración').toEqual([]);
