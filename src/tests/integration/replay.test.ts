@@ -104,6 +104,10 @@ vi.mock('../../simulation/f101-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/f101-world/world')>();
   return { ...m, dispatchF101: wrap(m.dispatchF101) };
 });
+vi.mock('../../simulation/f102-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/f102-world/world')>();
+  return { ...m, dispatchF102: wrap(m.dispatchF102) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -729,6 +733,25 @@ describe('repetición determinista — Física F101', () => {
         return out.w;
       }, sanitizeOnResumeF101);
       const { graded } = await verify('f101', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Física F102', () => {
+  for (const seed of [20261102, 102]) {
+    it(`F102 semilla ${seed}: nivelación, MRU, MRUA con cinta, caída libre, filtros y reanudación`, async () => {
+      const hf = await import('../helpersF102');
+      const { sanitizeOnResumeF102 } = await import('../../practices/practice-f102/resume');
+      const { newPracticeF102World } = await import('../../practices/practice-f102');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('f102', opts, () => newPracticeF102World(opts), (w, resume) => {
+        const out = hf.idealRouteF2(seed, [], undefined, w, resume);
+        nb = hf.fillNotebookF2(out.w, out.ids);
+        return out.w;
+      }, sanitizeOnResumeF102);
+      const { graded } = await verify('f102', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }
