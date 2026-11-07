@@ -193,11 +193,13 @@ export interface IdealResult {
 }
 
 /** Ruta ideal completa por comandos: exploración, dimensiones, masa y volumen, vectores, contraste y cierre. */
-export function idealRoute(seed = 101, scenarios: F101Scenario[] = [], mode?: F101Params['scientificMode']): IdealResult {
-  const w = worldF({ seed, scenarios, scientificMode: mode });
+export function idealRoute(seed = 101, scenarios: F101Scenario[] = [], mode?: F101Params['scientificMode'], start?: F101World, resume?: (w: F101World) => F101World): IdealResult {
+  let w = start ?? worldF({ seed, scenarios, scientificMode: mode });
   const ids: Record<string, string> = {};
   ppe(w);
   explore(w);
+  // Repetición: cerrar y reanudar a mitad del intento (JSON + estado seguro) no debe cambiar nada.
+  if (resume) w = resume(w);
   ids.calZero = caliperZero(w).id!;
   ids.microZero = microZero(w).id!;
   ids.standard = caliperMeasure(w, 'gaugeBlock01', 'L').id!;
