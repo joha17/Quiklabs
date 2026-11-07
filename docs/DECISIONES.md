@@ -435,6 +435,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **PTA-7.** Los cráneos de caballo y vaca están en el banco base: la vaca lleva rodete dentario sin incisivos superiores, y ambos tienen diastema.
 - **PTA-8.** Un grupo nuevo se agrega con una entrada de catálogo y su constructor en `engine/anatomy/`, sin tocar el motor. Una prueba exige que cada región del catálogo tenga geometría.
 
+## F101 · Metrología experimental y suma vectorial
+
+- **F101-1.** Física tiene su propio dominio (`f101-world`) y reutiliza la mesada, la sala, la cámara, la cinta y la calificación comunes. Calibrador y micrómetro viven en `simulation/instruments/` para que las próximas prácticas de Física los reutilicen.
+- **F101-2.** La mesa de fuerzas no se resuelve con una fórmula de equilibrio: el anillo se integra con las tensiones reales, la fricción y el perno como restricción unilateral. El registro de equilibrio solo es válido con el anillo quieto, centrado y sin tocar el perno.
+- **F101-3.** Los comandos solo informan hechos del gesto: posición pedida del cursor, ángulo girado del tambor, altura desde la que se suelta, ángulo de la vista calculado desde la cámara real. Ningún comando recibe «lectura correcta» ni «completar etapa».
+- **F101-4.** Modo científico elegible por el docente: realista (fricción de poleas y anillo, flexión de mordazas) o ideal. La calificación compara siempre con lo que corresponde a las lecturas del propio estudiante, no con el valor verdadero.
+- **F101-5.** El visor de lectura dibuja la lectura que produjo el dominio, con su paralaje o su fuerza; no corrige nada ni revela la verdad del motor, que solo aparece en la revisión.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:
