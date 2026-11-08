@@ -240,6 +240,10 @@ Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tam
 
 Segunda práctica de Física: carril nivelado con inclinómetro, lanzador de resorte y fotocompuertas para el MRU; polea, masa colgante y registrador de cinta para el MRUA contra a = m g/(M + m); torre con electroimán, fotocelda y almohadilla para medir g, y filtros de papel con un sensor de movimiento para la velocidad límite. 40 errores `F102-Exx`, 12 escenarios y demostración automática (`#f102`). Detalle en [docs/F102.md](docs/F102.md); requiere la migración `0022_course_labs_f102.sql`.
 
+## Física F103 — Proyectiles y trayectorias bidimensionales
+
+Tercera práctica de Física: lanzador de resorte sobre un soporte anclado y nivelado, fotopuerta en la boca para la velocidad de salida, plataforma de impacto para comprobar alcances predichos a cuatro ángulos, a otra altura y con viento, y pantalla de papel carbónico para reconstruir la parábola. 40 errores `F103-Exx`, 12 escenarios y demostración automática (`#f103`). Detalle en [docs/F103.md](docs/F103.md); requiere la migración `0023_course_labs_f103.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

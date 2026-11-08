@@ -22,12 +22,13 @@ import esB09 from '../locales/es/practiceB09.json';
 import esB10 from '../locales/es/practiceB10.json';
 import esF101 from '../locales/es/practiceF101.json';
 import esF102 from '../locales/es/practiceF102.json';
+import esF103 from '../locales/es/practiceF103.json';
 import esLanding from '../locales/es/landing.json';
 import esPlatform from '../locales/es/platform.json';
 
 void i18n.use(initReactI18next).init({
   // Las prácticas 3 a 6 y 10, el menú de laboratorios y la página de inicio tienen su propio archivo (claves `p01.*`, `p3.*`–`p9.*` y `p10.*`, `p3fb.*`–`p9fb.*` y `p10fb.*`, `menu.*`, `landing.*`).
-  resources: { es: { translation: { ...es, ...es3, ...es4, ...es5, ...es6, ...es01, ...es07, ...es08, ...es09, ...es10, ...esB01, ...esB02, ...esB03, ...esB04, ...esB05, ...esB06, ...esB07, ...esB08, ...esB09, ...esB10, ...esF101, ...esF102, ...esLanding, ...esPlatform } } },
+  resources: { es: { translation: { ...es, ...es3, ...es4, ...es5, ...es6, ...es01, ...es07, ...es08, ...es09, ...es10, ...esB01, ...esB02, ...esB03, ...esB04, ...esB05, ...esB06, ...esB07, ...esB08, ...esB09, ...esB10, ...esF101, ...esF102, ...esF103, ...esLanding, ...esPlatform } } },
   lng: 'es',
   fallbackLng: 'es',
   interpolation: { escapeValue: false },

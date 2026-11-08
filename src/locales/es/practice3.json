@@ -412,6 +412,15 @@
           "Las predicciones se contrastan con TUS masas, tus posiciones y tus alturas, no con una tabla ideal.",
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
+      },
+      "f103": {
+        "title": "Proyectiles y trayectorias bidimensionales",
+        "subtitle": "Mide la velocidad de salida de un lanzador de resorte con una fotopuerta, predice y comprueba alcances a varios ángulos y alturas sobre una plataforma de impacto, y reconstruye la parábola con una pantalla de papel carbónico.",
+        "points": [
+          "El vuelo es real: el aire, el viento del ventilador y una base sin anclar cambian dónde cae la esfera.",
+          "Las predicciones se contrastan con TU velocidad medida, tu altura de boca y tu ángulo, no con una tabla ideal.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",
