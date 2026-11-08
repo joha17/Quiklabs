@@ -403,6 +403,15 @@
           "La mesa de fuerzas es dinámica: el anillo se mueve hasta equilibrar las tensiones reales de los hilos.",
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
+      },
+      "f102": {
+        "title": "Cinemática rectilínea, aceleración y caída libre",
+        "subtitle": "Nivela un carril, mide velocidades con fotocompuertas y aceleraciones con cinta y polea, y obtén g con un electroimán y una fotocelda; compara velocidades límite de filtros con un sensor de movimiento.",
+        "points": [
+          "El carro se suelta con la velocidad real de tu mano: soltarlo quieto es parte de la técnica.",
+          "Las predicciones se contrastan con TUS masas, tus posiciones y tus alturas, no con una tabla ideal.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",

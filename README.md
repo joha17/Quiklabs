@@ -236,6 +236,10 @@ Plántulas rotulables, corte a mano con grosor y presión, reacción de Wiesner 
 
 Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tambor y trinquete, balanza con tara y probeta por desplazamiento para comparar densidades; mesa de fuerzas con anillo dinámico, poleas, portapesas, dinamómetro y sensor 2D para sumar tres vectores. 40 errores `F101-Exx`, 12 escenarios y demostración automática (`#f101`). Detalle en [docs/F101.md](docs/F101.md); requiere la migración `0021_course_labs_f101.sql`.
 
+## Física F102 — Cinemática rectilínea, aceleración y caída libre
+
+Segunda práctica de Física: carril nivelado con inclinómetro, lanzador de resorte y fotocompuertas para el MRU; polea, masa colgante y registrador de cinta para el MRUA contra a = m g/(M + m); torre con electroimán, fotocelda y almohadilla para medir g, y filtros de papel con un sensor de movimiento para la velocidad límite. 40 errores `F102-Exx`, 12 escenarios y demostración automática (`#f102`). Detalle en [docs/F102.md](docs/F102.md); requiere la migración `0022_course_labs_f102.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

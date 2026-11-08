@@ -443,6 +443,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F101-4.** Modo científico elegible por el docente: realista (fricción de poleas y anillo, flexión de mordazas) o ideal. La calificación compara siempre con lo que corresponde a las lecturas del propio estudiante, no con el valor verdadero.
 - **F101-5.** El visor de lectura dibuja la lectura que produjo el dominio, con su paralaje o su fuerza; no corrige nada ni revela la verdad del motor, que solo aparece en la revisión.
 
+## F102 · Cinemática rectilínea, aceleración y caída libre
+
+- **F102-1.** Montajes originales que cubren la unidad II (carril con fotocompuertas, polea y cinta; torre con electroimán, fotocelda y sensor de movimiento), redactados como laboratorio nuevo y no como copia del manual acreditado. Fotocompuerta y sensor de movimiento viven en `simulation/instruments/` para reutilizarse.
+- **F102-2.** Los parámetros no certificados de §7 (resolución de los temporizadores, retardo del electroimán, ruido del sensor, coeficientes de arrastre y rozamiento) son hipotéticos y están declarados en `params.ts`; no se declara precisión institucional hasta calibrarlos.
+- **F102-3.** No hay interpenetración reparada en la vista: el carro se detiene contra el émbolo y el tope por eventos de contacto del dominio, la masa colgante por el suelo, las compuertas no se cruzan en el carril y los cuerpos de la torre aterrizan en la almohadilla o la base. La escena solo dibuja ese estado.
+- **F102-4.** Modo ideal (sin rozamiento, polea sin inercia, sin arrastre en la esfera, imán sin retardo) y modo realista con esas pérdidas declaradas. La libreta se corrige siempre con las lecturas del propio estudiante: sus masas, posiciones, alturas y cintas.
+- **F102-5.** Sensores, sala, cámara y motor visual son comunes. La versión de configuración de cada lectura (`configVersion`) queda en la lectura: un cambio de montaje durante una corrida se marca y no altera lecturas ya registradas.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:
