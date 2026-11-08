@@ -651,6 +651,81 @@
       "CRACK_FOUND": "La probeta tiene una grieta.",
       "STATION_CLOSED": "Estación cerrada.",
       "STATION_RESET": "Situación de seguridad resuelta."
+    },
+    "demo": {
+      "ui": {
+        "watchHelp": "Una mano virtual recorre la práctica con los mismos comandos: ceros, calibrador, micrómetro, balanza, probeta y mesa de fuerzas. No genera nota.",
+        "partA": "Seguridad y patrón",
+        "partB": "Calibrador y micrómetro",
+        "partC": "Balanza y probeta",
+        "partD": "Mesa de fuerzas",
+        "partE": "Sensor 2D",
+        "partF": "Libreta y cierre",
+        "doneText": "Viste la práctica completa: los ceros, las dimensiones con calibrador y micrómetro, la masa y el volumen, el equilibrio de tres fuerzas y el contraste con el sensor. Ahora te toca hacerla a ti.",
+        "accelerated": "Las repeticiones se muestran aceleradas."
+      },
+      "notes": {
+        "standard": "El bloque patrón midió {{v}} mm: el calibrador está bien.",
+        "volume": "El agua subió {{v}} mL: ese es el volumen del cilindro."
+      },
+      "steps": {
+        "inspect": {
+          "title": "Reconocer el equipo",
+          "text": "Antes de medir se revisa cada instrumento y los patrones: calibrador, micrómetro, regla, bloque patrón y masa patrón."
+        },
+        "zeros": {
+          "title": "Ceros del calibrador y del micrómetro",
+          "text": "Se cierran las mordazas sin pieza con presión suave y se lee el cero. En el micrómetro se limpian las caras y se cierra con el trinquete. Un cero distinto de 0 se resta a todas las lecturas."
+        },
+        "standard": {
+          "title": "Comprobar con el patrón",
+          "text": "Se mide el bloque patrón con el calibrador: si la lectura coincide con su valor nominal, el instrumento mide bien."
+        },
+        "cylinder": {
+          "title": "Diámetro y altura del cilindro",
+          "text": "El cursor se cierra sobre la pieza con presión suave y se lee desde arriba. Se repite girando el cilindro: tres diámetros y tres alturas."
+        },
+        "ball": {
+          "title": "Diámetro de la esfera",
+          "text": "Con el micrómetro se acerca con el tambor y se termina con el trinquete, que limita la fuerza. Se mide en tres orientaciones."
+        },
+        "balance": {
+          "title": "Masas en la balanza",
+          "text": "Se enciende, se nivela y se tara la balanza vacía. Se pesa cada pieza y se lee cuando la indicación está estable."
+        },
+        "volume": {
+          "title": "Volumen por desplazamiento",
+          "text": "Se lee la probeta con el ojo a la altura del menisco, se sumerge el cilindro con cuidado y se vuelve a leer. Después se retira y se seca."
+        },
+        "level": {
+          "title": "Nivelar la mesa de fuerzas",
+          "text": "Con el nivel sobre el tablero se ajustan las patas: una mesa inclinada sumaría una componente del peso del anillo."
+        },
+        "forces": {
+          "title": "Montar tres fuerzas",
+          "text": "Las poleas se ubican a 0°, 90° y 233° y se cuelgan 150 g, 200 g y 250 g: un triángulo 3-4-5 que debería quedar en equilibrio."
+        },
+        "equilibrium": {
+          "title": "Registrar el equilibrio",
+          "text": "Se retira el perno y, si el anillo queda centrado sin tocarlo, se registran masas y ángulos mirando el tablero desde arriba."
+        },
+        "sensor": {
+          "title": "Contraste con el sensor 2D",
+          "text": "Se conecta y calibra el sensor con la masa patrón. Con el perno puesto y sin la tercera fuerza, el sensor mide la resultante de las otras dos."
+        },
+        "unload": {
+          "title": "Descargar la mesa",
+          "text": "Se coloca el perno y se devuelven las masas y los portapesas al soporte."
+        },
+        "notebook": {
+          "title": "Libreta",
+          "text": "Las lecturas se importan a la libreta (no se escriben a mano) y se completan los cálculos de densidad, los vectores y el análisis."
+        },
+        "close": {
+          "title": "Cerrar el puesto",
+          "text": "Se deja el puesto ordenado. En la práctica real, después se entrega el informe."
+        }
+      }
     }
   }
 }

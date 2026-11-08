@@ -8,6 +8,7 @@ import { f101LiveFeedback } from './feedback';
 import { f101NameTag } from './describe';
 import { F101_STATIONS } from '../../practices/practice-f101/definition';
 import { eyeTargetFor } from './LensF101';
+import { launchDemoF101 } from './demo';
 import { SF } from '../../simulation/f101-world/world';
 
 // La escena (R3F, drei y Rapier con su WASM) se descarga al entrar al laboratorio, no en el menú.
@@ -61,6 +62,11 @@ export function LabCanvasF101() {
       clearInterval(live);
       useF101.getState().setStage(null);
     };
+  }, [lab]);
+
+  useEffect(() => {
+    if (!lab || !useF101.getState().demo) return;
+    return launchDemoF101(lab);
   }, [lab]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {

@@ -22,6 +22,7 @@ export function IntroScreenF101({ onBack }: { onBack: () => void }) {
   const settings = useF101((s) => s.settings);
   const setSettings = useF101((s) => s.setSettings);
   const start = useF101((s) => s.start);
+  const startDemo = useF101((s) => s.startDemo);
   const resume = useF101((s) => s.resume);
   const [savedVersion, setSavedVersion] = useState(0);
   const saved = useMemo(() => loadF101Attempt(), [savedVersion]);
@@ -107,6 +108,10 @@ export function IntroScreenF101({ onBack }: { onBack: () => void }) {
             <button className="btn primary" style={{ minHeight: '2.8rem', fontSize: '1rem' }} onClick={() => start({ sameSeed: true })}>
               {t('intro.start')}
             </button>
+            <div className="demo-cta">
+              <button className="btn" style={{ minHeight: '2.6rem', fontSize: '0.98rem' }} onClick={startDemo}>▶ {t('demo.ui.watch')}</button>
+              <span className="hint">{t('f101.demo.ui.watchHelp')}</span>
+            </div>
           </section>
         </div>
       </div>
