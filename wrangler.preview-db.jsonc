@@ -1,0 +1,10 @@
+// Solo para migrar la base de los builds de ramas (bloque "previews" de wrangler.jsonc): `npm run db:migrate:preview`.
+// Wrangler no busca bases dentro de "previews", así que esta configuración declara únicamente quiklabs-preview y no
+// puede tocar la base de producción.
+{
+  "name": "quiklabs",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    { "binding": "DB", "database_name": "quiklabs-preview", "database_id": "f16a2525-366c-4c7a-9751-71aef12cf155", "migrations_dir": "migrations" }
+  ]
+}

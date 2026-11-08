@@ -1,5 +1,5 @@
 /**
- * Catálogo de laboratorios por área científica: Química (`p01`…`p10`) y Biología (`b01`…). Para sumar otra práctica o Física
+ * Catálogo de laboratorios por área científica: Química (`p01`…`p10`), Biología (`b01`…) y Física (`f101`…). Para sumar otra práctica o Física
  * basta con asignar el área al nuevo `LabId` aquí (las tarjetas muestran la insignia, los paneles agrupan por área y el
  * filtro aparece solo cuando hay más de un área).
  */
@@ -23,6 +23,7 @@ export const LAB_SUBJECT: Record<LabId, Subject> = {
   b08: 'biology',
   b09: 'biology',
   b10: 'biology',
+  f101: 'physics',
 };
 
 export const subjectOf = (id: LabId): Subject => LAB_SUBJECT[id];

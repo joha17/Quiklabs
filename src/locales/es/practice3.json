@@ -394,6 +394,15 @@
           "Cada modelo se gira: lo que está de espaldas no se puede rotular.",
           "Las aves se identifican por su forma funcional, nunca por su especie."
         ]
+      },
+      "f101": {
+        "title": "Metrología experimental y suma vectorial",
+        "subtitle": "Mide con calibrador, micrómetro, balanza y probeta, compara densidades por dos métodos y equilibra tres fuerzas en la mesa de fuerzas para sumar vectores.",
+        "points": [
+          "Cada lectura depende de cómo se mide: cero, fuerza de contacto, alineación y ángulo de la vista.",
+          "La mesa de fuerzas es dinámica: el anillo se mueve hasta equilibrar las tensiones reales de los hilos.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",

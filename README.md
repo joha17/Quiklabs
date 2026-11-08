@@ -232,6 +232,10 @@ Práctica estrictamente virtual sobre el microscopio compartido: fichas de medio
 
 Plántulas rotulables, corte a mano con grosor y presión, reacción de Wiesner con control sin teñir y láminas fijas comparadas. 72 errores `TV-NN`, 26 escenarios y demostración de 18 pasos. Imágenes ilustrativas y calibración hipotética, rotuladas. Detalle en `docs/BIOLOGIA_B09.md`; requiere la migración `0019_course_labs_b09.sql`.
 
+## Física F101 — Metrología experimental y suma vectorial
+
+Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tambor y trinquete, balanza con tara y probeta por desplazamiento para comparar densidades; mesa de fuerzas con anillo dinámico, poleas, portapesas, dinamómetro y sensor 2D para sumar tres vectores. 40 errores `F101-Exx`, 12 escenarios y demostración automática (`#f101`). Detalle en [docs/F101.md](docs/F101.md); requiere la migración `0021_course_labs_f101.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
