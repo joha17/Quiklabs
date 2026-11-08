@@ -451,6 +451,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F102-4.** Modo ideal (sin rozamiento, polea sin inercia, sin arrastre en la esfera, imán sin retardo) y modo realista con esas pérdidas declaradas. La libreta se corrige siempre con las lecturas del propio estudiante: sus masas, posiciones, alturas y cintas.
 - **F102-5.** Sensores, sala, cámara y motor visual son comunes. La versión de configuración de cada lectura (`configVersion`) queda en la lectura: un cambio de montaje durante una corrida se marca y no altera lecturas ya registradas.
 
+## F103 · Proyectiles y trayectorias bidimensionales
+
+- **F103-1.** Montaje original para la unidad de movimiento en dos dimensiones (lanzador de resorte en soporte regulable, fotopuerta de esfera, plataforma de impacto, pantalla de papel carbónico, barrera y ventilador sobre una pista en el suelo). Fotopuerta de esfera y plataforma viven en `simulation/instruments/` para reutilizarse.
+- **F103-2.** Los parámetros no certificados de §7 (constante y rendimiento del resorte, sesgo del transportador, coeficiente de arrastre, viento del ventilador, latencia y escala de la plataforma) son hipotéticos y están declarados en `params.ts`.
+- **F103-3.** El vuelo no se dibuja con la parábola: se integra con arrastre y viento y los contactos se resuelven dentro del subpaso (CCD). La plataforma registra el primer contacto sobre la placa y la pantalla deja su marca donde la esfera la cruza; la escena solo dibuja ese estado.
+- **F103-4.** Modo ideal (sin aire, resorte sin pérdidas) y modo realista. La libreta se corrige siempre con las lecturas del propio estudiante: su v₀ medida, su altura de boca, su ángulo leído y la posición de su plataforma en la cinta.
+- **F103-5.** La ruta ideal es una sola (`practice-f103/route.ts`) y la usan las pruebas de integración, la repetición determinista y, paso a paso, la demostración automática, que además lee con la cámara bien puesta: si la ruta cambia, las tres se enteran.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:
