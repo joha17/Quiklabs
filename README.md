@@ -234,7 +234,7 @@ Plántulas rotulables, corte a mano con grosor y presión, reacción de Wiesner 
 
 ## Física F101 — Metrología experimental y suma vectorial
 
-Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tambor y trinquete, balanza con tara y probeta por desplazamiento para comparar densidades; mesa de fuerzas con anillo dinámico, poleas, portapesas, dinamómetro y sensor 2D para sumar tres vectores. 40 errores `F101-Exx` y 12 escenarios. Detalle en [docs/F101.md](docs/F101.md); requiere la migración `0021_course_labs_f101.sql`.
+Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tambor y trinquete, balanza con tara y probeta por desplazamiento para comparar densidades; mesa de fuerzas con anillo dinámico, poleas, portapesas, dinamómetro y sensor 2D para sumar tres vectores. 40 errores `F101-Exx`, 12 escenarios y demostración automática (`#f101`). Detalle en [docs/F101.md](docs/F101.md); requiere la migración `0021_course_labs_f101.sql`.
 
 ## Física F102 — Cinemática rectilínea, aceleración y caída libre
 
