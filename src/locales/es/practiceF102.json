@@ -658,6 +658,86 @@
         },
         "closure": "Cierre: conclusión y estado en que dejaste el puesto"
       }
+    },
+    "demo": {
+      "ui": {
+        "watchHelp": "Una mano virtual recorre la práctica con los mismos comandos: nivelación, compuertas, cinta, caída libre y filtros. No genera nota.",
+        "partA": "Seguridad e inclinómetro",
+        "partB": "Carril y compuertas",
+        "partC": "MRU con lanzador",
+        "partD": "MRUA con polea y cinta",
+        "partE": "Caída libre y filtros",
+        "partF": "Libreta y cierre",
+        "doneText": "Viste la práctica completa: el carril nivelado, el MRU con el lanzador, el MRUA con la masa colgante, la caída libre desde tres alturas y los filtros. Ahora te toca hacerla a ti.",
+        "accelerated": "Las repeticiones se muestran aceleradas."
+      },
+      "notes": {
+        "settle": "Se espera a que el inclinómetro se asiente antes de poner el cero.",
+        "angle": "Inclinación del carril: {{deg}}°",
+        "gateTime": "Tiempo entre compuertas: {{t}} s"
+      },
+      "steps": {
+        "inspect": {
+          "title": "Reconocer el equipo",
+          "text": "Antes de medir se revisa cada instrumento: carril, compuertas, temporizadores, polea, torre, fotocelda y sensor de movimiento."
+        },
+        "zero": {
+          "title": "Cero del inclinómetro",
+          "text": "El inclinómetro se apoya en la mesada, se deja asentar y se pone en cero: así su lectura sobre el carril es la inclinación real."
+        },
+        "level": {
+          "title": "Nivelar el carril",
+          "text": "Con el inclinómetro sobre el carril se gira el tornillo del pie hasta que el ángulo quede por debajo de 0,1°. Un carril inclinado sumaría una componente de g."
+        },
+        "gates": {
+          "title": "Ubicar las compuertas",
+          "text": "Las bases se corren por la regla hasta 50 y 80 cm (primero la más lejana), se alinean perpendiculares al carril y se conectan al temporizador."
+        },
+        "ruler": {
+          "title": "Leer las posiciones",
+          "text": "La regla se lee con el ojo enfrente de cada índice y de la bandera del carro: mirar en diagonal agrega error de paralaje."
+        },
+        "launch": {
+          "title": "Corrida con el lanzador",
+          "text": "Se carga la muesca, se apoya el carro en el émbolo, se arma el temporizador y se libera el seguro. El carro cruza las dos compuertas con velocidad constante."
+        },
+        "repeat": {
+          "title": "Repetir y cambiar la separación",
+          "text": "Se repite la corrida y se acerca la primera compuerta a 40 cm: con velocidad constante, el tiempo cambia en proporción a la distancia."
+        },
+        "hang": {
+          "title": "Masa colgante y cinta",
+          "text": "Se ata el cordel, se asienta en la polea, se cuelga el portapesas con 20 g y se engancha y tensa la cinta del registrador."
+        },
+        "tape": {
+          "title": "Registrar con la cinta",
+          "text": "El registrador marca puntos a intervalos fijos mientras el carro acelera: la separación creciente entre puntos muestra la aceleración constante."
+        },
+        "unhang": {
+          "title": "Desarmar la polea",
+          "text": "Se descuelga la masa, el portapesas y la cinta para que no interfieran con la torre."
+        },
+        "fall": {
+          "title": "Caída libre desde 60 cm",
+          "text": "Con la prensa floja se sube el electroimán, se aprieta, se cuelga la esfera y se lee la altura con el ojo a la altura del polo. Al cortar la corriente la fotocelda mide el tiempo."
+        },
+        "heights": {
+          "title": "Más alturas",
+          "text": "Se repite la caída desde 90 y 120 cm: con h = ½ g t², la pendiente de h contra t² da g."
+        },
+        "filters": {
+          "title": "Filtros y velocidad terminal",
+          "text": "Con el brazo del imán afuera se configura y calibra el sensor de movimiento. Se suelta un filtro y luego dos apilados: el aire los frena hasta una velocidad terminal."
+        },
+        "notebook": {
+          "title": "Libreta",
+          "text": "Las lecturas se importan a la libreta (no se escriben a mano) y se completan los cálculos y el análisis."
+        },
+        "close": {
+          "title": "Cerrar el puesto",
+          "text": "Se deja el puesto ordenado. En la práctica real, después se entrega el informe."
+        }
+      }
     }
   }
 }

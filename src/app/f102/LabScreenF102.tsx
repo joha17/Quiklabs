@@ -7,6 +7,7 @@ import { NotebookPanelF102 } from './NotebookPanelF102';
 import { DialogsF102 } from './DialogsF102';
 import { LensF102, eyeTargetFor } from './LensF102';
 import { ToastsF102 } from './ui';
+import { DemoPanelF102 } from './demo/DemoPanelF102';
 
 function ZoomControlsF102() {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ export function LabScreenF102() {
   const { t } = useTranslation();
   const notebookOpen = useF102((s) => s.notebookOpen);
   const paused = useF102((s) => s.paused);
+  const demo = useF102((s) => !!s.demo);
   const sci = useF102((s) => s.runtime?.world.params.scientificMode ?? 'REALISTIC');
   return (
     <div className="lab">
@@ -48,10 +50,11 @@ export function LabScreenF102() {
       <HudF102 />
       <div className="lab-main">
         <div />
-        <div className="canvas-wrap p3 p4 p5 p6 p10 p01 f102">
+        <div className={`canvas-wrap p3 p4 p5 p6 p10 p01 f102${demo ? ' demo' : ''}`}>
           <LabCanvasF102 />
           <div className="model-badge" role="note">{t(`f102.intro.sci.${sci}`)}</div>
-          {paused && <div className="paused-badge" role="status">{t('hud.paused')}</div>}
+          {paused && !demo && <div className="paused-badge" role="status">{t('hud.paused')}</div>}
+          {demo && <DemoPanelF102 />}
           <LensF102 />
           <ZoomControlsF102 />
           <ToastsF102 />

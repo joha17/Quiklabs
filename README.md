@@ -238,7 +238,7 @@ Primera práctica de Física: calibrador con cursor y nonio, micrómetro con tam
 
 ## Física F102 — Cinemática rectilínea, aceleración y caída libre
 
-Segunda práctica de Física: carril nivelado con inclinómetro, lanzador de resorte y fotocompuertas para el MRU; polea, masa colgante y registrador de cinta para el MRUA contra a = m g/(M + m); torre con electroimán, fotocelda y almohadilla para medir g, y filtros de papel con un sensor de movimiento para la velocidad límite. 40 errores `F102-Exx` y 12 escenarios. Detalle en [docs/F102.md](docs/F102.md); requiere la migración `0022_course_labs_f102.sql`.
+Segunda práctica de Física: carril nivelado con inclinómetro, lanzador de resorte y fotocompuertas para el MRU; polea, masa colgante y registrador de cinta para el MRUA contra a = m g/(M + m); torre con electroimán, fotocelda y almohadilla para medir g, y filtros de papel con un sensor de movimiento para la velocidad límite. 40 errores `F102-Exx`, 12 escenarios y demostración automática (`#f102`). Detalle en [docs/F102.md](docs/F102.md); requiere la migración `0022_course_labs_f102.sql`.
 
 ## Biología B10 — Tejidos animales y anatomía comparada
 

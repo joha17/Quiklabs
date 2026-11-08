@@ -8,6 +8,7 @@ import { f102LiveFeedback } from './feedback';
 import { f102NameTag } from './describe';
 import { F102_STATIONS } from '../../practices/practice-f102/definition';
 import { eyeTargetFor } from './LensF102';
+import { launchDemoF102 } from './demo';
 
 // La escena (R3F, drei y Rapier con su WASM) se descarga al entrar al laboratorio, no en el menú.
 const F102Scene = lazy(() => import('../../engine/f102/F102Scene').then((m) => ({ default: m.F102Scene })));
@@ -58,6 +59,11 @@ export function LabCanvasF102() {
       clearInterval(live);
       useF102.getState().setStage(null);
     };
+  }, [lab]);
+
+  useEffect(() => {
+    if (!lab || !useF102.getState().demo) return;
+    return launchDemoF102(lab);
   }, [lab]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
