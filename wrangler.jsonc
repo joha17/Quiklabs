@@ -35,7 +35,7 @@
     { "binding": "PHOTOS", "bucket_name": "quiklabs-photos" }
   ],
   // Builds de ramas (Workers Builds, vista previa): base y bucket propios, nunca los de producción.
-  // Migraciones de la base de preview: `npx wrangler d1 migrations apply quiklabs-preview --remote`.
+  // Migraciones de la base de preview: `npm run db:migrate:preview` (usa wrangler.preview-db.jsonc).
   "previews": {
     "d1_databases": [
       { "binding": "DB", "database_name": "quiklabs-preview", "database_id": "f16a2525-366c-4c7a-9751-71aef12cf155", "migrations_dir": "migrations" }
