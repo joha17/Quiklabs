@@ -9,7 +9,7 @@ import '../p6/p6.css';
 import '../p01/p01.css';
 import './f04.css';
 
-/** F04: metrología experimental y suma vectorial (primera práctica de Física). */
+/** F04: leyes de Newton y sistemas acoplados (cuarta práctica de Física). */
 export default function F04App({ onBack }: { onBack: () => void }) {
   const screen = useF04((s) => s.screen);
   const uiScale = useF04((s) => s.settings.uiScale);

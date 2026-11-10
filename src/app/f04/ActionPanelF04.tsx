@@ -1,18 +1,62 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useF04 } from './store';
 import { describeObjectF04 } from './describe';
 import { HoldButton } from './ui';
-import type { F04Command } from '../../simulation/f04-world/commands';
-import { BALLS_F3, ballFlying } from '../../simulation/f04-world/world';
-import { GEOF04 } from '../../simulation/f04-world/geometry';
+import type { F04Command, FbdBody, FbdDir, FbdForce, FbdPartner, ForceId, SensorId } from '../../simulation/f04-world/commands';
+import { SLOT_MASSES, runningF4 } from '../../simulation/f04-world/world';
 import { eyeTargetFor } from './LensF04';
+
+const FORCES: FbdForce[] = ['weight', 'normal', 'tension', 'friction', 'push', 'contact'];
+const DIRS: FbdDir[] = ['up', 'down', 'left', 'right'];
+const PARTNERS: FbdPartner[] = ['earth', 'track', 'string', 'hand', 'cartP', 'cartQ', 'cart', 'hanger'];
+const FBD_OF: Record<string, FbdBody> = { cart01: 'cart', hanger01: 'hanger', cartP: 'cartP' };
+
+/**
+ * Editor del diagrama de cuerpo libre sobre el cuerpo seleccionado: cada flecha se arma con fuerza, sentido y el cuerpo
+ * que la ejerce (el par de la tercera ley). El dominio decide si el diagrama es coherente al bloquearlo; aquí no hay
+ * «diagrama correcto» ni plantilla.
+ */
+function FbdEditor({ body }: { body: FbdBody }) {
+  const { t } = useTranslation();
+  const rt = useF04((s) => s.runtime);
+  const dispatch = useF04((s) => s.dispatch);
+  const toast = useF04((s) => s.toast);
+  const [force, setForce] = useState<FbdForce>('weight');
+  const [dir, setDir] = useState<FbdDir>('down');
+  const [partner, setPartner] = useState<FbdPartner>('earth');
+  if (!rt) return null;
+  const f = rt.world.fbd[body];
+  const run = (c: F04Command) => {
+    const r = dispatch(c);
+    if (!r.ok && r.code) toast('warn', t(`f04.cmd.${r.code}`));
+  };
+  return (
+    <fieldset className="f04-fbd" disabled={f.locked}>
+      <legend>{t('f04.fbd.title', { body: t(`f04.fbd.body.${body}`) })}{f.locked ? ` · ${t('f04.fbd.locked')}` : ''}</legend>
+      <ol className="f04-fbd-list">
+        {f.arrows.map((a, i) => (
+          <li key={`${a.force}${a.dir}${i}`}>
+            {t(`f04.fbd.force.${a.force}`)} · {t(`f04.fbd.dir.${a.dir}`)} · {t('f04.fbd.by', { p: t(`f04.fbd.partner.${a.partner}`) })}
+            {!f.locked && <button className="btn ghost" aria-label={t('f04.fbd.erase')} onClick={() => run({ type: 'eraseForce', body, index: i })}>×</button>}
+          </li>
+        ))}
+        {!f.arrows.length && <li className="hint">{t('f04.fbd.empty')}</li>}
+      </ol>
+      <label>{t('f04.fbd.forceL')} <select value={force} onChange={(e) => setForce(e.target.value as FbdForce)}>{FORCES.map((x) => <option key={x} value={x}>{t(`f04.fbd.force.${x}`)}</option>)}</select></label>
+      <label>{t('f04.fbd.dirL')} <select value={dir} onChange={(e) => setDir(e.target.value as FbdDir)}>{DIRS.map((x) => <option key={x} value={x}>{t(`f04.fbd.dir.${x}`)}</option>)}</select></label>
+      <label>{t('f04.fbd.partnerL')} <select value={partner} onChange={(e) => setPartner(e.target.value as FbdPartner)}>{PARTNERS.map((x) => <option key={x} value={x}>{t(`f04.fbd.partner.${x}`)}</option>)}</select></label>
+      <button className="btn" onClick={() => run({ type: 'drawForce', body, force, dir, partner })}>➕ {t('f04.fbd.draw')}</button>
+      <button className="btn primary" onClick={() => run({ type: 'lockFbd', body })}>🔒 {t('f04.fbd.lock')}</button>
+    </fieldset>
+  );
+}
 
 /**
  * Panel de acciones de F04: alternativa accesible a cada gesto con el ratón. Ejecuta EXACTAMENTE los mismos comandos
- * del dominio que el controlador (girar el mando de elevación de a medio grado, el tornillo de nivel vuelta a vuelta,
- * correr la plataforma o la pantalla centímetro a centímetro, cargar la muesca, tirar del cordón); no es un atajo
- * científico: no hay «medir el alcance» ni «poner la plataforma donde cae».
+ * del dominio que el controlador (el tornillo de nivel vuelta a vuelta, la compuerta, el freno y el tope centímetro a
+ * centímetro, el sensor A de a un grado, la pesa a su lugar, el empuje con la fuerza elegida); no es un atajo
+ * científico: no hay «medir la aceleración» ni «nivelar el carril».
  */
 export function ActionPanelF04() {
   const { t } = useTranslation();
@@ -24,7 +68,9 @@ export function ActionPanelF04() {
   const dispatch = useF04((s) => s.dispatch);
   const toast = useF04((s) => s.toast);
   const demo = useF04((s) => !!s.demo);
+  const setSettings = useF04((s) => s.setSettings);
   const nudge = useRef<number | null>(null);
+  const [pushN, setPushN] = useState(3);
   if (!rt) return null;
   const w = rt.world;
   const ctl = stage?.controller;
@@ -53,97 +99,130 @@ export function ActionPanelF04() {
   const btn = (key: string, label: string, fn: () => unknown, cls = 'btn') => add(key, <button className={cls} onClick={() => run(fn() as never)}>{label}</button>);
   const hold = (key: string, label: string, fn: () => void, ms = 120) => add(key, <HoldButton onStart={() => startNudge(fn, ms)} onStop={stopNudge}>{label}</HoldButton>);
   const eye = (target = id) => btn('eye', `👁 ${t('f04.act.eyeLevel')}`, () => stage?.camera?.eyeLevel(eyeTargetFor(target)), 'btn ghost');
-  const l = w.launcher;
+  const lens = (target: string, label: string) => btn(`lens${target}`, `📈 ${label}`, () => setSettings({ lens: target }), 'btn ghost');
+  const sensorButtons = (sid: SensorId) => {
+    const s = w.sensors[sid];
+    btn('plug', t(s.connected ? 'f04.act.unplug' : 'f04.act.plug'), () => D({ type: 'connect', channel: sid, on: !s.connected }));
+    btn('zero', t('f04.act.zero'), () => D({ type: 'zeroSensor', id: sid }));
+    if (sid !== 'accel01') {
+      const fid = sid as ForceId;
+      btn('cal', t('f04.act.calibrate'), () => D({ type: 'calibrateSensor', id: fid }));
+      const ranges = w.params.force.ranges;
+      btn('range', t('f04.act.range', { n: ranges[(s.rangeIdx + 1) % ranges.length] }), () => D({ type: 'setRange', id: fid, n: (s.rangeIdx + 1) % ranges.length }));
+      hold('tiltUp', `▲ ${t('f04.act.tiltUp')}`, () => void D({ type: 'mountSensor', id: fid, angleDeg: w.sensors[fid].angleDeg + 1 }), 200);
+      hold('tiltDown', `▼ ${t('f04.act.tiltDown')}`, () => void D({ type: 'mountSensor', id: fid, angleDeg: w.sensors[fid].angleDeg - 1 }), 200);
+      if (fid !== 'forceA') btn('sign', t('f04.act.sign', { s: s.axisSign > 0 ? '−' : '+' }), () => D({ type: 'setAxisSign', id: fid, sign: s.axisSign > 0 ? -1 : 1 }));
+    }
+  };
+  const busy = runningF4(w);
 
   if (id && o) {
     switch (o.kind) {
-      case 'stand':
-        btn('anchor', t(w.stand.anchored ? 'f04.act.unanchor' : 'f04.act.anchor'), () => D({ type: 'anchorStand', on: !w.stand.anchored }), w.stand.anchored ? 'btn ghost' : 'btn primary');
-        hold('up', `▲ ${t('f04.act.standUp')}`, () => void D({ type: 'setStandHeight', cm: w.stand.heightCm + 1 }));
-        hold('down', `▼ ${t('f04.act.standDown')}`, () => void D({ type: 'setStandHeight', cm: w.stand.heightCm - 1 }));
+      case 'track':
         hold('screwUp', `⟳ ${t('f04.act.screwUp')}`, () => void D({ type: 'turnLevelScrew', turns: 1 }), 300);
         hold('screwDown', `⟲ ${t('f04.act.screwDown')}`, () => void D({ type: 'turnLevelScrew', turns: -1 }), 300);
-        btn('level', `🔍 ${t('f04.act.readLevel')}`, () => ctl?.readLevel(), 'btn primary');
+        btn('tilt', `🔍 ${t('f04.act.readTilt')}`, () => D({ type: 'readTilt' }), 'btn primary');
         break;
-      case 'launcher':
-        hold('angUp', `▲ ${t('f04.act.angleUp')}`, () => void D({ type: 'setAngle', deg: l.angleDeg + 0.5 }));
-        hold('angDown', `▼ ${t('f04.act.angleDown')}`, () => void D({ type: 'setAngle', deg: l.angleDeg - 0.5 }));
-        if (!w.stand.anchored) {
-          hold('yawL', `↶ ${t('f04.act.yawLeft')}`, () => void D({ type: 'setYaw', deg: l.yawDeg + 0.1 }), 200);
-          hold('yawR', `↷ ${t('f04.act.yawRight')}`, () => void D({ type: 'setYaw', deg: l.yawDeg - 0.1 }), 200);
+      case 'cart':
+        if (w.cart.on === 'balance') btn('off', t('f04.act.offBalance'), () => D({ type: 'removeFromBalance' }), 'btn primary');
+        else {
+          if (w.cart.latched) btn('weigh', t('f04.act.weigh'), () => D({ type: 'placeOnBalance', id: 'cart01' }));
+          btn('attach', t(w.string.attached ? 'f04.act.detach' : 'f04.act.attach'), () => D({ type: 'attachString', on: !w.string.attached }));
+          btn('clip', t(w.logger.cableClipped ? 'f04.act.unclip' : 'f04.act.clip'), () => D({ type: 'clipCable', on: !w.logger.cableClipped }));
+          if (w.cart.latched) {
+            btn('release', `▶ ${t('f04.act.release')}`, () => ctl?.release() ?? D({ type: 'release' }), 'btn primary');
+            btn('pushCart', t('f04.act.pushCart'), () => D({ type: 'pushCart', ms: 0.3 }), 'btn ghost');
+          } else btn('return', `↩ ${t('f04.act.returnCart')}`, () => D({ type: 'returnCart' }), 'btn primary');
+          if (!w.cart.latched && !busy) lens('logger01', t('f04.act.graph'));
         }
-        btn('zero', t('f04.act.zero'), () => D({ type: 'zeroProtractor' }));
-        btn('readAngle', `🔍 ${t('f04.act.readAngle')}`, () => ctl?.readProtractor(), 'btn primary');
-        btn('cap', t(l.capOn ? 'f04.act.capOff' : 'f04.act.capOn'), () => D({ type: 'setCap', on: !l.capOn }));
-        for (const n of [1, 2, 3]) if (l.notch !== n) btn(`notch${n}`, t('f04.act.cock', { n }), () => D({ type: 'cock', notch: n }));
-        if (l.notch > 0 && !l.loaded) btn('uncock', t('f04.act.uncock'), () => D({ type: 'cock', notch: 0 }), 'btn ghost');
-        if (l.loaded) btn('unload', t('f04.act.unload'), () => D({ type: 'unloadBall' }), 'btn ghost');
-        btn('fire', `🎯 ${t('f04.act.fire')}`, () => ctl?.fire(), 'btn primary');
-        eye('launcher01');
+        eye('cart01');
         break;
-      case 'gate':
-        btn('mount', t(w.gate.mounted ? 'f04.act.unmount' : 'f04.act.mount'), () => D({ type: 'mountGate', on: !w.gate.mounted }));
-        hold('offUp', `▲ ${t('f04.act.offsetUp')}`, () => void D({ type: 'setGateOffset', mm: w.gate.offsetMm + 0.5 }), 200);
-        hold('offDown', `▼ ${t('f04.act.offsetDown')}`, () => void D({ type: 'setGateOffset', mm: w.gate.offsetMm - 0.5 }), 200);
-        btn('plug', t(w.gate.connected ? 'f04.act.unplug' : 'f04.act.plug'), () => D({ type: 'connect', target: 'gate', on: !w.gate.connected }));
+      case 'latch':
+        btn('release', `▶ ${t('f04.act.release')}`, () => ctl?.release() ?? D({ type: 'release' }), 'btn primary');
         break;
-      case 'timer':
-        btn('rate', t('f04.act.rate', { hz: w.timer.rateHz }), () => ctl?.cycleRate());
-        btn('range', t('f04.act.range', { r: t(`f04.desc.range.${w.timer.range === 'short' ? 'long' : 'short'}`) }), () => D({ type: 'setClockRange', range: w.timer.range === 'short' ? 'long' : 'short' }));
-        btn('readGate', `🔍 ${t('f04.act.readGate')}`, () => ctl?.readGate(), 'btn primary');
-        btn('readImpact', `🔍 ${t('f04.act.readImpact')}`, () => ctl?.readImpact(), 'btn primary');
-        eye('timer01');
+      case 'brake':
+        btn('brake', t(w.brake.on ? 'f04.act.brakeOff' : 'f04.act.brakeOn'), () => D({ type: 'setBrake', on: !w.brake.on }), w.brake.on ? 'btn ghost' : 'btn primary');
+        hold('brakeFwd', `◀ ${t('f04.act.towardPulley')}`, () => void D({ type: 'moveBrake', s: w.brake.s + 0.01 }));
+        hold('brakeBack', `▶ ${t('f04.act.towardRelease')}`, () => void D({ type: 'moveBrake', s: w.brake.s - 0.01 }));
         break;
-      case 'platform': {
-        const p = w.platform;
-        hold('fwd', `▶ ${t('f04.act.platFwd')}`, () => void D({ type: 'movePlatform', xCm: p.x * 100 + 1, yCm: p.y * 100 }));
-        hold('back', `◀ ${t('f04.act.platBack')}`, () => void D({ type: 'movePlatform', xCm: p.x * 100 - 1, yCm: p.y * 100 }));
-        hold('left', `▲ ${t('f04.act.platSide')}`, () => void D({ type: 'movePlatform', xCm: p.x * 100, yCm: p.y * 100 + 1 }));
-        hold('right', `▼ ${t('f04.act.platOther')}`, () => void D({ type: 'movePlatform', xCm: p.x * 100, yCm: p.y * 100 - 1 }));
-        btn('center', t('f04.act.platCenter'), () => D({ type: 'movePlatform', xCm: p.x * 100, yCm: GEOF04.lane.yc }), 'btn ghost');
-        btn('plug', t(p.connected ? 'f04.act.unplug' : 'f04.act.plug'), () => D({ type: 'connect', target: 'platform', on: !p.connected }));
-        btn('cal', t('f04.act.calibrate'), () => D({ type: 'calibratePlatform' }));
-        btn('tape', `🔍 ${t('f04.act.readTape')}`, () => ctl?.readTape('platform'), 'btn primary');
+      case 'stop':
+        hold('stopFwd', `◀ ${t('f04.act.towardPulley')}`, () => void D({ type: 'moveStop', s: w.stopS + 0.01 }));
+        hold('stopBack', `▶ ${t('f04.act.towardRelease')}`, () => void D({ type: 'moveStop', s: w.stopS - 0.01 }));
         break;
-      }
-      case 'screen': {
-        const s = w.screen;
-        btn('lane', t(s.inLane ? 'f04.act.screenOut' : 'f04.act.screenIn'), () => D({ type: 'moveScreen', xCm: s.x * 100, inLane: !s.inLane }));
-        hold('fwd', `▶ ${t('f04.act.platFwd')}`, () => void D({ type: 'moveScreen', xCm: s.x * 100 + 1, inLane: s.inLane }));
-        hold('back', `◀ ${t('f04.act.platBack')}`, () => void D({ type: 'moveScreen', xCm: s.x * 100 - 1, inLane: s.inLane }));
-        btn('clear', t('f04.act.clear'), () => D({ type: 'clearScreen' }));
-        if (s.inLane) btn('tape', `🔍 ${t('f04.act.readTape')}`, () => ctl?.readTape('screen'));
-        btn('mark', `🔍 ${t('f04.act.readMark')}`, () => ctl?.readScreen(), 'btn primary');
-        eye('screen01');
+      case 'pulley':
+        btn('clamp', t(w.string.clamped ? 'f04.act.unclamp' : 'f04.act.clamp'), () => D({ type: 'clampPulley', on: !w.string.clamped }));
+        btn('groove', t('f04.act.groove'), () => D({ type: 'threadString', path: 'groove' }), w.string.path === 'groove' ? 'btn ghost' : 'btn primary');
+        btn('axle', t('f04.act.axle'), () => D({ type: 'threadString', path: 'axle' }), 'btn ghost');
+        if (w.string.hung && w.string.held) btn('taut', t('f04.act.taut'), () => D({ type: 'tensionString' }), 'btn primary');
         break;
-      }
-      case 'barrier':
-        btn('band', t(w.barrierClosed ? 'f04.act.barrierOpen' : 'f04.act.barrierClose'), () => D({ type: 'closeBarrier', on: !w.barrierClosed }), 'btn primary');
+      case 'hanger':
+        if (o.support === 'rack') {
+          btn('hang', t('f04.act.hang'), () => D({ type: 'hangHanger', on: true }), 'btn primary');
+          btn('weigh', t('f04.act.weigh'), () => D({ type: 'placeOnBalance', id: 'hanger01' }));
+        } else if (o.support === 'balance') btn('off', t('f04.act.offBalance'), () => D({ type: 'removeFromBalance' }), 'btn primary');
+        else if (o.support === 'floor') btn('pick', t('f04.act.pickUp'), () => D({ type: 'hangHanger', on: false }), 'btn primary');
+        else {
+          if (w.string.held) btn('taut', t('f04.act.taut'), () => D({ type: 'tensionString' }), 'btn primary');
+          btn('unhang', t('f04.act.unhang'), () => D({ type: 'hangHanger', on: false }));
+        }
         break;
-      case 'fan':
-        btn('speed', t('f04.act.fanSpeed', { n: (w.fan.speed + 1) % w.params.fanMs.length }), () => ctl?.cycleFan());
-        btn('dir', t('f04.act.fanDir', { d: t(`f04.desc.dir.${w.fan.dir}`) }), () => ctl?.cycleFanDir());
+      case 'slotMass':
+        if (o.support === 'balance') btn('off', t('f04.act.offBalance'), () => D({ type: 'removeFromBalance' }), 'btn primary');
+        else {
+          if (o.support !== 'hanger01') btn('toHanger', t('f04.act.toHanger'), () => D({ type: 'placeMass', id, on: 'hanger' }), 'btn primary');
+          if (o.support !== 'cart01') btn('toCart', t('f04.act.toCart'), () => D({ type: 'placeMass', id, on: 'cart' }));
+          if (o.support !== 'rack') btn('toRack', t('f04.act.toRack'), () => D({ type: 'placeMass', id, on: 'rack' }));
+          else btn('weigh', t('f04.act.weigh'), () => D({ type: 'placeOnBalance', id }));
+        }
         break;
-      case 'ball':
-        if (o.support === 'tray' && !l.loaded) btn('load', t('f04.act.load'), () => D({ type: 'loadBall', ball: id }), 'btn primary');
-        if (o.support === 'floor' || o.support === 'bench') btn('collect', t('f04.act.collect'), () => D({ type: 'collectBall', ball: id }), 'btn primary');
-        break;
-      case 'tray':
-        BALLS_F3.filter((b) => w.objects[b].support === 'floor' || w.objects[b].support === 'bench').forEach((b) => btn(`col${b}`, t('f04.act.collectBall', { b: t(`f04.obj.${b}`) }), () => D({ type: 'collectBall', ball: b })));
+      case 'massRack':
+        SLOT_MASSES.filter((m) => w.objects[m].support !== 'rack' && w.objects[m].support !== 'balance').forEach((m) => btn(`back${m}`, t('f04.act.massBack', { m: t(`f04.obj.${m}`) }), () => D({ type: 'placeMass', id: m, on: 'rack' })));
         btn('close', `✅ ${t('f04.act.closeStation')}`, () => D({ type: 'closeStation' }), 'btn primary');
         break;
-      case 'plumb':
-        btn('drop', t('f04.act.dropPlumb'), () => D({ type: 'dropPlumb' }));
-        if (w.plumbMark) btn('read', `🔍 ${t('f04.act.readTape')}`, () => ctl?.readTape('plumb'), 'btn primary');
+      case 'forceSensor':
+      case 'accelerometer':
+        sensorButtons(id as SensorId);
         break;
-      case 'floorTape':
-        btn('align', t('f04.act.alignTape'), () => D({ type: 'alignTape' }), 'btn primary');
-        eye('floorTape01');
+      case 'logger': {
+        const rates = w.params.rates;
+        btn('rate', t('f04.act.rate', { hz: rates[(rates.indexOf(w.logger.rateHz) + 1) % rates.length] }), () => D({ type: 'setRate', hz: rates[(rates.indexOf(w.logger.rateHz) + 1) % rates.length] }));
+        btn('gates', t(w.logger.gatesConnected ? 'f04.act.gatesOff' : 'f04.act.gatesOn'), () => D({ type: 'connect', channel: 'gates', on: !w.logger.gatesConnected }));
+        lens('logger01', t('f04.act.graph'));
+        lens('pair', t('f04.act.graphPair'));
+        eye('logger01');
         break;
-      case 'heightRuler':
-        btn('read', `🔍 ${t('f04.act.readHeight')}`, () => ctl?.readHeight('muzzle'), 'btn primary');
-        eye('heightRuler01');
+      }
+      case 'gate': {
+        const g = w.gates[id];
+        hold('gFwd', `◀ ${t('f04.act.towardPulley')}`, () => void D({ type: 'moveGate', id: id as 'gate1' | 'gate2', s: g.s + 0.01 }));
+        hold('gBack', `▶ ${t('f04.act.towardRelease')}`, () => void D({ type: 'moveGate', id: id as 'gate1' | 'gate2', s: g.s - 0.01 }));
+        btn('scale', `🔍 ${t('f04.act.readScale')}`, () => ctl?.readScale(id as 'gate1' | 'gate2') ?? D({ type: 'readScale', target: id as 'gate1' | 'gate2', viewDeg: 0 }), 'btn primary');
+        eye(id);
         break;
+      }
+      case 'balance':
+        btn('tare', t('f04.act.tare'), () => D({ type: 'tareBalance' }));
+        btn('read', `🔍 ${t('f04.act.readBalance')}`, () => ctl?.readBalance() ?? D({ type: 'readBalance' }), 'btn primary');
+        if (w.balance.on) btn('off', t('f04.act.offBalance'), () => D({ type: 'removeFromBalance' }));
+        eye('balance01');
+        break;
+      case 'pairTrack':
+      case 'pairCart': {
+        if (o.support === 'balance') {
+          btn('off', t('f04.act.offBalance'), () => D({ type: 'removeFromBalance' }), 'btn primary');
+          break;
+        }
+        add('pushN', (
+          <label className="f04-push">{t('f04.act.pushForce')} <input type="range" min={0.5} max={8} step={0.5} value={pushN} onChange={(e) => setPushN(Number(e.target.value))} aria-valuetext={`${pushN} N`} /> <output>{pushN.toFixed(1).replace('.', ',')} N</output></label>
+        ));
+        btn('push', `👋 ${t('f04.act.push')}`, () => D({ type: 'push', forceN: pushN, durationS: 0.3 }), 'btn primary');
+        btn('readPair', `🔍 ${t('f04.act.readPair')}`, () => D({ type: 'readPair' }));
+        btn('reset', t('f04.act.resetPair'), () => D({ type: 'resetPair' }));
+        if (id !== 'pairTrack01' && !w.pair.active) btn('weigh', t('f04.act.weigh'), () => D({ type: 'placeOnBalance', id }));
+        lens('pair', t('f04.act.graphPair'));
+        eye('pair');
+        break;
+      }
     }
     btn('insp', `🔍 ${t('f04.act.inspect')}`, () => {
       D({ type: 'inspect', target: id });
@@ -151,13 +230,14 @@ export function ActionPanelF04() {
     }, 'btn ghost');
   }
   if (w.safety.block) btn('ack', `⚠ ${t('f04.act.acknowledge')}`, () => D({ type: 'acknowledge' }), 'btn primary');
-  void ballFlying;
 
   const desc = id ? describeObjectF04(w, id) : '';
+  const fbdBody = id ? FBD_OF[id] : undefined;
   return (
     <section id="actions" className={`actions${demo ? ' demo-locked' : ''}`} aria-label={t('f04.act.title')} aria-disabled={demo || undefined}>
       <div className="desc" id="action-desc" aria-live="polite">{id ? desc : t('f04.act.none')}</div>
       <div className="row">{buttons}</div>
+      {fbdBody && <FbdEditor body={fbdBody} />}
     </section>
   );
 }

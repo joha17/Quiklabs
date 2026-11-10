@@ -1,23 +1,23 @@
 /**
  * Interacción de F04: gestos del ratón → comandos físicos. Trabaja en cm de la sala y nunca conoce Three.js (§14).
  *
- * - Mandos con su grado de libertad real: el mando de elevación gira el cañón (arrastre vertical), la base del lanzador
- *   gira en azimut (arrastre horizontal, solo sin anclar), la columna del soporte sube o baja, el tornillo de nivel se
- *   gira (rueda), el émbolo se tira hacia atrás hasta una muesca, la perilla de la fotopuerta corre el haz, la
- *   plataforma y la pantalla se arrastran sobre el suelo de la pista.
- * - Esferas: se toman de la bandeja o del suelo y, al soltarlas, la pose decide (boca del cañón → cargar; bandeja →
- *   guardar). Lo que se lleva en la mano no atraviesa los aparatos macizos ni sale de la mesada o de la zona de vuelo.
- * - Clic en una escala: lectura con la dirección REAL de la cámara (paralaje).
+ * - Mandos con su grado de libertad real: el tornillo de nivel se gira (rueda o arrastre vertical); las compuertas, el
+ *   freno y el tope se arrastran a lo largo del carril; el sensor A se inclina sobre su gancho; la mano que empuja al
+ *   carro P se arrastra: cuanto más largo el gesto, mayor la fuerza del empuje.
+ * - Pesas ranuradas y portapesas: se toman y, al soltarlos, la pose decide (sobre el portapesas o el carro → cargar;
+ *   sobre el plato → pesar; bajo la polea → colgar del cordel; estante → guardar). Lo que se lleva en la mano no
+ *   atraviesa los aparatos macizos ni sale de la mesada.
+ * - Clic en el índice de una compuerta: lectura de la escala con la dirección REAL de la cámara (paralaje).
  * - Clic y arrastre se distinguen por un umbral de 6 px. Los topes los decide el dominio: un rechazo avisa.
  */
 import { clampToBench } from '../interaction/viewport';
 import type { F04Host } from './host';
 import type { F04Lab3D } from './F04Lab3D';
-import type { F04Command, F04DispatchResult } from '../../simulation/f04-world/commands';
+import type { F04Command, F04DispatchResult, ForceId, SensorId } from '../../simulation/f04-world/commands';
 import type { F04ObjKind, F04World, Pose } from '../../simulation/f04-world/types';
-import { FLOOR_Z, GEOF04 } from '../../simulation/f04-world/geometry';
-import { ballFlying, trayPose } from '../../simulation/f04-world/world';
-import { LANE, eyePoint, muzzleRoom, platformIndexRoom, rulerRoom, screenRoom } from './layout';
+import { GEOF04, trackS } from '../../simulation/f04-world/geometry';
+import { SLOT_MASSES, runningF4 } from '../../simulation/f04-world/world';
+import { cartRoom, dropX, eyePoint, hangerRackPose, hangerRoom, objRoom, panRoom, rackSlot } from './layout';
 
 export interface PickHitF {
   id: string;
@@ -45,7 +45,7 @@ export interface HeldF {
   from: { pose: Pose; support: string };
 }
 
-type KnobKind = 'angle' | 'yaw' | 'column' | 'screw' | 'plunger' | 'gateOffset' | 'platform' | 'screen';
+type KnobKind = 'screw' | 'gate' | 'brake' | 'stop' | 'sensorTilt' | 'hand' | 'cartPush';
 interface Knob {
   kind: KnobKind;
   id: string;
@@ -55,10 +55,12 @@ interface Knob {
   lastX: number;
   moved: boolean;
   acc: number;
+  t0: number;
 }
 
 const CLICK_PX = 6;
-const RATES = [1000, 10000, 100000];
+const PORT: Record<string, SensorId | 'gates'> = { portA: 'forceA', portAcc: 'accel01', portG: 'gates', portP: 'dynP', portQ: 'dynQ' };
+const T = GEOF04.track;
 
 export class F04Controller {
   view: ViewAdapterF | null = null;
@@ -66,6 +68,8 @@ export class F04Controller {
   hovered: string | null = null;
   hoveredPart: string | null = null;
   dockTarget: string | null = null;
+  /** Fuerza del empuje que se está preparando con la mano (N), para la ayuda en pantalla. */
+  pushPreview: number | null = null;
   private knob: Knob | null = null;
   private pointer: { x: number; y: number } | null = null;
   private downAt: { x: number; y: number; id: string; part?: string } | null = null;
@@ -131,91 +135,42 @@ export class F04Controller {
     return ang * (v.x * side.x + v.y * side.y + v.z * side.z >= 0 ? 1 : -1);
   }
 
-  /** Transportador: cara hacia el operador (−y), a la altura de la boca. */
-  protractorView() {
-    return this.viewDeg(eyePoint(this.w, 'launcher01'), { x: 0, y: -1, z: 0 }, { x: 0, y: 0, z: 1 });
-  }
-
-  /** Regla vertical: cara hacia −y; el ojo debe estar a la altura de la boca. */
-  rulerView() {
-    const r = rulerRoom(this.w);
-    return this.viewDeg({ x: r.x, y: r.y, z: muzzleRoom(this.w).z }, { x: 0, y: -1, z: 0 }, { x: 0, y: 0, z: 1 });
-  }
-
-  /** Cinta del suelo: se lee desde arriba del índice. */
-  tapeView(x: number) {
-    return this.viewDeg({ x, y: GEOF04.floorTape.y, z: FLOOR_Z }, { x: 0, y: 0, z: 1 }, { x: 1, y: 0, z: 0 });
-  }
-
-  /** Escala de la pantalla: cara hacia el lanzador (−x), a la altura de la última marca. */
-  screenView() {
-    return this.viewDeg(eyePoint(this.w, 'screen01'), { x: -1, y: 0, z: 0 }, { x: 0, y: 0, z: 1 });
+  /**
+   * Escala del carril en el índice de la compuerta: la cara mira al operador (−y). El paralaje que importa es a lo
+   * largo del carril (x): el signo dice de qué lado del índice está el ojo.
+   */
+  scaleView(id: 'gate1' | 'gate2') {
+    const p = eyePoint(this.w, id);
+    const c = this.cam();
+    const v = { x: c.x - p.x, y: c.y - p.y, z: c.z - p.z };
+    const len = Math.hypot(v.x, v.y, v.z) || 1;
+    return (Math.asin(Math.max(-1, Math.min(1, v.x / len))) * 180) / Math.PI;
   }
 
   // ─────────────── Lecturas y botones ───────────────
 
-  readProtractor() {
-    const r = this.send({ type: 'readProtractor', viewDeg: this.protractorView() });
-    if (r.ok) this.host.onLens?.('launcher01');
+  readScale(id: 'gate1' | 'gate2') {
+    const r = this.send({ type: 'readScale', target: id, viewDeg: this.scaleView(id) });
+    if (r.ok) this.host.onLens?.(id);
     return r;
   }
 
-  readLevel() {
-    const r = this.send({ type: 'readLevel' });
-    if (r.ok) this.host.onLens?.('stand01');
+  readBalance() {
+    const r = this.send({ type: 'readBalance' });
+    if (r.ok) this.host.onLens?.('balance01');
     return r;
   }
 
-  readHeight(mark: 'muzzle' | 'deck' = 'muzzle') {
-    const r = this.send({ type: 'readHeight', mark, viewDeg: this.rulerView() });
-    if (r.ok) this.host.onLens?.('heightRuler01');
-    return r;
-  }
-
-  readTape(target: 'platform' | 'screen' | 'plumb', mark: 'index' | 'base' = 'index') {
-    const w = this.w;
-    const x = target === 'platform' ? platformIndexRoom(w).x : target === 'screen' ? screenRoom(w).x : (w.plumbMark?.x ?? w.launcher.x) * 100;
-    const r = this.send({ type: 'readTape', target, mark, viewDeg: this.tapeView(x) });
-    if (r.ok) this.host.onLens?.('floorTape01');
-    return r;
-  }
-
-  readScreen() {
-    const r = this.send({ type: 'readScreen', viewDeg: this.screenView() });
-    if (r.ok) this.host.onLens?.('screen01');
-    return r;
-  }
-
-  readGate() {
-    const r = this.send({ type: 'readGate' });
-    if (r.ok) this.host.onLens?.('timer01');
-    return r;
-  }
-
-  readImpact() {
-    const r = this.send({ type: 'readImpact' });
-    if (r.ok) this.host.onLens?.('platform01');
-    return r;
-  }
-
-  fire() {
-    const r = this.send({ type: 'fire' }, null);
+  release() {
+    const r = this.send({ type: 'release' }, null);
     if (r.ok) this.host.sound('metal');
     return r;
   }
 
   cycleRate() {
-    const i = RATES.indexOf(this.w.timer.rateHz);
-    return this.send({ type: 'setTimerRate', hz: RATES[(i + 1) % RATES.length] });
-  }
-
-  cycleFan() {
-    return this.send({ type: 'setFan', speed: (this.w.fan.speed + 1) % this.w.params.fanMs.length });
-  }
-
-  cycleFanDir() {
-    const dirs = ['side', 'head', 'tail'] as const;
-    return this.send({ type: 'setFan', speed: this.w.fan.speed, dir: dirs[(dirs.indexOf(this.w.fan.dir) + 1) % 3] });
+    const rates = this.w.params.rates;
+    const i = rates.indexOf(this.w.logger.rateHz);
+    return this.send({ type: 'setRate', hz: rates[(i + 1) % rates.length] });
   }
 
   // ─────────────── Puntero ───────────────
@@ -231,12 +186,12 @@ export class F04Controller {
     this.host.select(hit.id);
     if (this.blocked()) return true;
     if (this.held) {
-      this.release();
+      this.drop();
       return true;
     }
     const knob = this.knobFor(hit);
     if (knob) {
-      this.knob = { kind: knob, id: hit.id, sx, sy, lastY: sy, lastX: sx, moved: false, acc: 0 };
+      this.knob = { kind: knob, id: hit.id, sx, sy, lastY: sy, lastX: sx, moved: false, acc: 0, t0: this.now };
       this.view.setOrbitEnabled(false);
     }
     this.downAt = { x: sx, y: sy, ...hit };
@@ -281,21 +236,17 @@ export class F04Controller {
       this.click(d.id, d.part);
       return;
     }
-    if (this.held && !this.held.keyboard) this.release();
+    if (this.held && !this.held.keyboard) this.drop();
   }
 
   onWheel(dy: number): boolean {
     const notch = dy > 0 ? 1 : -1;
     if (this.held) {
-      this.held.z = Math.max(FLOOR_Z, Math.min(150, this.held.z - notch * 2));
+      this.held.z = Math.max(0, Math.min(60, this.held.z - notch * 2));
       return true;
     }
-    if (this.hovered === 'stand01' && this.hoveredPart === 'screw') {
+    if (this.hovered === 'track01' && this.hoveredPart === 'screw') {
       this.send({ type: 'turnLevelScrew', turns: -notch }, null);
-      return true;
-    }
-    if (this.hovered === 'launcher01' && this.hoveredPart === 'knob') {
-      this.send({ type: 'setAngle', deg: this.w.launcher.angleDeg - notch * 0.5 }, null);
       return true;
     }
     return false;
@@ -304,90 +255,94 @@ export class F04Controller {
   /** Clic (sin arrastre) sobre una parte: botones, perillas, escalas. */
   click(id: string, part?: string) {
     const w = this.w;
-    switch (id) {
-      case 'stand01':
-        if (part === 'anchor') return this.send({ type: 'anchorStand', on: !w.stand.anchored }, 'metal');
-        if (part === 'screw') return this.send({ type: 'turnLevelScrew', turns: 1 }, null);
-        if (part === 'level') return this.readLevel();
-        return this.lab.camera?.eyeLevel('stand01');
-      case 'launcher01':
-        if (part === 'cord') return this.fire();
-        if (part === 'cap') return this.send({ type: 'setCap', on: !w.launcher.capOn });
-        if (part === 'protractor') return this.readProtractor();
-        if (part === 'zero') return this.send({ type: 'zeroProtractor' });
-        if (part === 'barrel' && w.launcher.loaded) return this.send({ type: 'unloadBall' });
-        if (part === 'plunger') return this.send({ type: 'cock', notch: w.launcher.notch > 0 ? 0 : 1 }, 'metal');
-        return this.lab.camera?.eyeLevel('launcher01');
-      case 'gate01':
-        if (part === 'plug') return this.send({ type: 'connect', target: 'gate', on: !w.gate.connected });
-        if (part === 'offset') return this.send({ type: 'setGateOffset', mm: 0 });
-        return this.send({ type: 'mountGate', on: !w.gate.mounted }, 'metal');
-      case 'timer01':
-        if (part === 'rate') return this.cycleRate();
-        if (part === 'range') return this.send({ type: 'setClockRange', range: w.timer.range === 'short' ? 'long' : 'short' });
-        if (part === 'readGate') return this.readGate();
-        if (part === 'readImpact') return this.readImpact();
-        return this.lab.camera?.eyeLevel('timer01');
-      case 'platform01':
-        if (part === 'cal') return this.send({ type: 'calibratePlatform' });
-        if (part === 'plug') return this.send({ type: 'connect', target: 'platform', on: !w.platform.connected });
-        if (part === 'index') return this.readTape('platform');
-        return this.lab.camera?.eyeLevel('platform01');
-      case 'screen01':
-        if (part === 'clear') return this.send({ type: 'clearScreen' });
-        if (part === 'scale') return this.readScreen();
-        if (part === 'foot' && w.screen.inLane) return this.readTape('screen');
-        return this.send({ type: 'moveScreen', xCm: w.screen.x * 100, inLane: !w.screen.inLane });
-      case 'barrier01':
-        return this.send({ type: 'closeBarrier', on: !w.barrierClosed }, 'metal');
-      case 'fan01':
-        if (part === 'dir') return this.cycleFanDir();
-        return this.cycleFan();
-      case 'plumb01':
-        if (part === 'mark') return this.readTape('plumb');
-        return this.send({ type: 'dropPlumb' });
-      case 'floorTape01':
-        if (part === 'zero') return this.send({ type: 'alignTape' }, 'metal');
-        return this.lab.camera?.eyeLevel('floorTape01');
-      case 'heightRuler01':
-        return this.readHeight('muzzle');
-    }
     const o = this.obj(id);
-    if (o?.kind === 'ball') {
-      if (o.support === 'floor') return this.send({ type: 'collectBall', ball: id }, 'clink');
-      if (o.support === 'tray' && !w.launcher.loaded && !w.launcher.capOn) return this.send({ type: 'loadBall', ball: id }, 'clink');
+    switch (id) {
+      case 'track01':
+        if (part === 'screw') return this.send({ type: 'turnLevelScrew', turns: 1 }, null);
+        return this.lab.camera?.focusObject(id, false);
+      case 'cart01':
+        if (part === 'clip') return this.send({ type: 'clipCable', on: !w.logger.cableClipped });
+        if (w.balance.on === 'cart01') return this.send({ type: 'removeFromBalance' }, 'clink');
+        if (!w.cart.latched) return this.send({ type: 'returnCart' }, 'clink');
+        if (!w.string.attached) return this.send({ type: 'attachString', on: true });
+        return this.lab.camera?.eyeLevel('cart01');
+      case 'latch01':
+        return this.release();
+      case 'brake01':
+        if (part === 'switch') return this.send({ type: 'setBrake', on: !w.brake.on }, 'metal');
+        return this.lab.camera?.focusObject(id, false);
+      case 'pulley01':
+        if (part === 'clamp') return this.send({ type: 'clampPulley', on: !w.string.clamped }, 'metal');
+        if (part === 'axle') return this.send({ type: 'threadString', path: 'axle' });
+        if (w.string.path === 'none' || w.string.path === 'axle') return this.send({ type: 'threadString', path: 'groove' });
+        if (w.string.hung && w.string.held) return this.send({ type: 'tensionString' });
+        return this.lab.camera?.focusObject(id, false);
+      case 'hanger01':
+        if (o?.support === 'floor' || o?.support === 'balance') return this.send(o.support === 'floor' ? { type: 'hangHanger', on: false } : { type: 'removeFromBalance' }, 'clink');
+        if (w.string.hung && w.string.held) return this.send({ type: 'tensionString' });
+        if (w.string.hung && w.cart.latched) return this.send({ type: 'hangHanger', on: false }, 'clink');
+        if (o?.support === 'rack') return this.send({ type: 'hangHanger', on: true }, 'clink');
+        return undefined;
+      case 'logger01':
+        if (part === 'rate') return this.cycleRate();
+        if (part && PORT[part]) {
+          const ch = PORT[part];
+          const on = ch === 'gates' ? w.logger.gatesConnected : w.sensors[ch].connected;
+          return this.send({ type: 'connect', channel: ch, on: !on });
+        }
+        return this.host.onLens?.('logger01');
+      case 'gate1':
+      case 'gate2':
+        if (part === 'index') return this.readScale(id);
+        return this.lab.camera?.eyeLevel(id);
+      case 'balance01':
+        if (part === 'tare') return this.send({ type: 'tareBalance' });
+        if (part === 'read') return this.readBalance();
+        if (part === 'pan' && w.balance.on) return this.send({ type: 'removeFromBalance' }, 'clink');
+        return this.lab.camera?.eyeLevel('balance01');
+      case 'cartP':
+        if (part === 'hand') return this.send({ type: 'push', forceN: 3, durationS: 0.3 }, 'click');
+        if (w.balance.on === 'cartP') return this.send({ type: 'removeFromBalance' }, 'clink');
+        return this.send({ type: 'resetPair' });
+      case 'cartQ':
+        if (w.balance.on === 'cartQ') return this.send({ type: 'removeFromBalance' }, 'clink');
+        return this.send({ type: 'readPair' });
+    }
+    if (o?.kind === 'forceSensor' || o?.kind === 'accelerometer') {
+      const sid = id as SensorId;
+      if (part === 'zero') return this.send({ type: 'zeroSensor', id: sid });
+      if (part === 'cal' && o.kind === 'forceSensor') return this.send({ type: 'calibrateSensor', id: sid as ForceId });
+      if (part === 'plug') return this.send({ type: 'connect', channel: sid, on: !w.sensors[sid].connected });
+      if (o.kind === 'forceSensor' && id !== 'forceA' && part === 'body') return this.send({ type: 'setAxisSign', id: sid as ForceId, sign: w.sensors[sid].axisSign === 1 ? -1 : 1 });
+    }
+    if (o?.kind === 'slotMass') {
+      if (o.support === 'balance') return this.send({ type: 'removeFromBalance' }, 'clink');
+      if (o.support === 'rack') return this.send({ type: 'placeMass', id, on: 'hanger' }, 'clink');
+      return this.send({ type: 'placeMass', id, on: 'rack' }, 'clink');
     }
     this.lab.camera?.focusObject(id, false);
   }
 
   private knobFor(hit: PickHitF): KnobKind | null {
-    if (hit.id === 'launcher01' && hit.part === 'knob') return 'angle';
-    if (hit.id === 'launcher01' && hit.part === 'yaw') return 'yaw';
-    if (hit.id === 'launcher01' && hit.part === 'plunger') return 'plunger';
-    if (hit.id === 'stand01' && hit.part === 'column') return 'column';
-    if (hit.id === 'stand01' && hit.part === 'screw') return 'screw';
-    if (hit.id === 'gate01' && hit.part === 'offset') return 'gateOffset';
-    if (hit.id === 'platform01' && hit.part === 'body') return 'platform';
-    if (hit.id === 'screen01' && hit.part === 'body') return 'screen';
+    if (hit.id === 'track01' && hit.part === 'screw') return 'screw';
+    if ((hit.id === 'gate1' || hit.id === 'gate2') && hit.part === 'mount') return 'gate';
+    if (hit.id === 'brake01' && hit.part === 'body') return 'brake';
+    if (hit.id === 'stop01') return 'stop';
+    if (hit.id === 'forceA' && hit.part === 'body') return 'sensorTilt';
+    if (hit.id === 'cartP' && hit.part === 'hand') return 'hand';
+    if (hit.id === 'cart01' && hit.part === 'body' && this.w.cart.latched && this.w.cart.on === 'track') return 'cartPush';
     return null;
+  }
+
+  /** s del carril bajo el puntero (proyección sobre el plano del riel). */
+  private sAt(sx: number, sy: number) {
+    const p = this.view!.toBench(sx, sy, T.railZ);
+    return trackS(p.x);
   }
 
   private driveKnob(k: Knob, sx: number, sy: number) {
     const w = this.w;
     switch (k.kind) {
-      case 'angle':
-        this.dispatch({ type: 'setAngle', deg: w.launcher.angleDeg + (k.lastY - sy) * 0.25 });
-        break;
-      case 'yaw':
-        this.run(this.dispatch({ type: 'setYaw', deg: w.launcher.yawDeg + (sx - k.lastX) * 0.05 }));
-        break;
-      case 'plunger':
-        // Tirar del émbolo hacia atrás (−x en pantalla) por la distancia recorrida.
-        k.acc = Math.max(0, Math.min(3.4, (k.sx - sx) * 0.04));
-        break;
-      case 'column':
-        this.dispatch({ type: 'setStandHeight', cm: w.stand.heightCm + (k.lastY - sy) * 0.3 });
-        break;
       case 'screw': {
         k.acc += (k.lastY - sy) / 14;
         const turns = Math.trunc(k.acc);
@@ -397,30 +352,40 @@ export class F04Controller {
         }
         break;
       }
-      case 'gateOffset':
-        this.dispatch({ type: 'setGateOffset', mm: w.gate.offsetMm + (k.lastY - sy) * 0.1 });
+      case 'gate':
+        this.run(this.dispatch({ type: 'moveGate', id: k.id as 'gate1' | 'gate2', s: this.sAt(sx, sy) }));
         break;
-      case 'platform': {
-        const p = this.view!.toBench(sx, sy, FLOOR_Z);
-        this.run(this.dispatch({ type: 'movePlatform', xCm: p.x, yCm: p.y }));
+      case 'brake':
+        this.run(this.dispatch({ type: 'moveBrake', s: this.sAt(sx, sy) - GEOF04.brake.len / 2 }));
         break;
-      }
-      case 'screen': {
-        const p = this.view!.toBench(sx, sy, FLOOR_Z);
-        this.run(this.dispatch({ type: 'moveScreen', xCm: p.x, inLane: w.screen.inLane }));
+      case 'stop':
+        this.run(this.dispatch({ type: 'moveStop', s: this.sAt(sx, sy) }));
         break;
-      }
+      case 'sensorTilt':
+        this.dispatch({ type: 'mountSensor', id: 'forceA', angleDeg: w.sensors.forceA.angleDeg + (k.lastY - sy) * 0.3 });
+        break;
+      case 'hand':
+        // Arrastrar la mano hacia la derecha prepara el empuje: el largo del gesto da la fuerza máxima.
+        k.acc = Math.max(0, Math.min(10, (sx - k.sx) * 0.05));
+        this.pushPreview = k.acc;
+        break;
+      case 'cartPush':
+        // Empujar el carro con la mano hacia la polea (−x): el gesto da la rapidez inicial (F04-E09 si se usa).
+        k.acc = Math.max(0, Math.min(1.5, (k.sx - sx) * 0.006));
+        break;
     }
     k.lastX = sx;
     k.lastY = sy;
   }
 
   private endKnob(k: Knob) {
-    if (k.kind === 'plunger') {
-      const n = Math.round(k.acc);
-      if (n > 0) this.send({ type: 'cock', notch: n }, 'metal');
+    if (k.kind === 'hand') {
+      this.pushPreview = null;
+      const f = Math.round(k.acc * 10) / 10;
+      if (f >= 0.2) this.send({ type: 'push', forceN: f, durationS: 0.3 }, 'click');
     }
-    if (k.kind === 'angle' && !this.w.stand.anchored) this.hintOnce('f04.hint.anchorFirst', 'warn');
+    if (k.kind === 'cartPush' && k.acc >= 0.05) this.send({ type: 'pushCart', ms: Math.round(k.acc * 100) / 100 }, 'metal');
+    if (k.kind === 'gate') this.hintOnce('f04.hint.readScaleFront');
   }
 
   onKeyDown(key: string, shift: boolean): boolean {
@@ -428,7 +393,7 @@ export class F04Controller {
     const h = this.held;
     if (h) {
       const step = shift ? 10 : 2;
-      if (key === 'Enter') return this.release(), true;
+      if (key === 'Enter') return this.drop(), true;
       if (key === 'Escape') return this.cancel(), true;
       const d = { ArrowLeft: [-step / 2, 0], ArrowRight: [step / 2, 0], ArrowUp: [0, step / 2], ArrowDown: [0, -step / 2] }[key];
       if (d) {
@@ -436,19 +401,15 @@ export class F04Controller {
         h.y += d[1];
         return true;
       }
-      if (k === '+' || key === 'PageUp') return (h.z = Math.min(150, h.z + step)), true;
-      if (k === '-' || key === 'PageDown') return (h.z = Math.max(FLOOR_Z, h.z - step)), true;
+      if (k === '+' || key === 'PageUp') return (h.z = Math.min(60, h.z + step)), true;
+      if (k === '-' || key === 'PageDown') return (h.z = Math.max(0, h.z - step)), true;
       return false;
     }
     switch (k) {
-      case ' ': return this.fire(), true;
-      case 'g': return this.readGate(), true;
-      case 'p': return this.readImpact(), true;
-      case 'a': return this.readProtractor(), true;
-      case 'n': return this.readLevel(), true;
-      case 'h': return this.readHeight(), true;
-      case 'm': return this.readScreen(), true;
-      case 'b': return this.send({ type: 'closeBarrier', on: !this.w.barrierClosed }, 'metal'), true;
+      case ' ': return this.release(), true;
+      case 'r': return this.send({ type: 'returnCart' }, 'clink'), true;
+      case 'f': return this.send({ type: 'setBrake', on: !this.w.brake.on }, 'metal'), true;
+      case 'b': return this.readBalance(), true;
     }
     if (key === 'ArrowLeft' || key === 'ArrowRight') {
       const ids = Object.values(this.w.objects).sort((a, b) => a.pose.x - b.pose.x || a.pose.y - b.pose.y).map((o) => o.id);
@@ -460,12 +421,12 @@ export class F04Controller {
       return true;
     }
     if (key === 'ArrowUp' || key === 'ArrowDown') {
-      this.send({ type: 'setAngle', deg: this.w.launcher.angleDeg + (key === 'ArrowUp' ? 1 : -1) * (shift ? 5 : 0.5) }, null);
+      this.send({ type: 'turnLevelScrew', turns: key === 'ArrowUp' ? 1 : -1 }, null);
       return true;
     }
     if (key === 'Enter') {
       const sel = this.host.getSelected();
-      if (sel && this.w.objects[sel]?.kind === 'ball') return this.grab(sel, true);
+      if (sel && this.grabbable(sel)) return this.grab(sel, true);
     }
     return false;
   }
@@ -474,17 +435,27 @@ export class F04Controller {
     return false;
   }
 
-  // ─────────────── Tomar y soltar esferas ───────────────
+  // ─────────────── Tomar y soltar pesas y portapesas ───────────────
+
+  private grabbable(id: string): boolean {
+    const o = this.obj(id);
+    if (!o) return false;
+    if (o.kind === 'slotMass') return o.support === 'rack' || o.support === 'hanger01' || o.support === 'cart01';
+    if (o.kind === 'hanger') return o.support === 'rack' || o.support === 'floor';
+    return false;
+  }
 
   grab(id: string, keyboard = false): boolean {
-    const w = this.w;
     const o = this.obj(id);
-    if (!o || o.kind !== 'ball' || this.blocked()) return false;
-    if (o.support === 'air' || o.support === 'launcher') return false;
-    if (this.held) this.release();
-    const start = o.support === 'tray' ? trayPose(w, id) : o.pose;
-    const from = { pose: { ...start }, support: o.support };
-    const r = this.dispatch({ type: 'setPose', id, pose: { ...start }, support: 'hand' });
+    if (!o || !this.grabbable(id) || this.blocked()) return false;
+    if (o.kind === 'slotMass' && o.support === 'hanger01' && this.w.string.hung && !this.w.string.held && !this.w.string.landed && runningF4(this.w)) return false;
+    if (this.held) this.drop();
+    const start = objRoom(this.w, id);
+    const from = { pose: { ...o.pose }, support: o.support };
+    const pose = { x: start.x, y: start.y, z: start.z, rotationRad: 0 };
+    if (o.kind === 'slotMass' && o.support !== 'rack') this.dispatch({ type: 'placeMass', id, on: 'rack' });
+    if (o.kind === 'hanger' && o.support === 'floor') this.dispatch({ type: 'hangHanger', on: false });
+    const r = this.dispatch({ type: 'setPose', id, pose, support: 'hand' });
     if (!r.ok) return !!this.run(r) && false;
     this.held = { id, kind: o.kind, z: start.z + 6, curZ: start.z, x: start.x, y: start.y, keyboard, from };
     this.view?.setOrbitEnabled(false);
@@ -493,7 +464,7 @@ export class F04Controller {
     return true;
   }
 
-  release() {
+  drop() {
     const h = this.held;
     if (!h) return;
     this.held = null;
@@ -510,33 +481,32 @@ export class F04Controller {
     this.held = null;
     this.view?.setOrbitEnabled(true);
     this.host.onHeldChange?.(null);
-    this.toTray(h.id);
+    this.toRack(h.id);
   }
 
-  private toTray(id: string) {
-    this.dispatch({ type: 'setPose', id, pose: trayPose(this.w, id), support: 'tray' });
-    this.dispatch({ type: 'collectBall', ball: id });
+  private toRack(id: string) {
+    const i = SLOT_MASSES.indexOf(id as (typeof SLOT_MASSES)[number]);
+    const p = i >= 0 ? rackSlot(i) : hangerRackPose();
+    this.dispatch({ type: 'setPose', id, pose: { ...p, rotationRad: 0 }, support: 'rack' });
     this.host.sound('clink');
   }
 
-  /** Destino al soltar: boca del cañón (cargar), bandeja del soporte o el suelo de la zona. */
+  /** Destino al soltar según la pose: portapesas, carro, plato de la balanza, bajo la polea o el estante. */
   place(h: HeldF, p: Pose) {
     const w = this.w;
-    const m = muzzleRoom(w);
-    const tray = trayPose(w, h.id);
-    if (Math.hypot(p.x - m.x, p.y - m.y) < 8 && Math.abs(p.z - m.z) < 12) {
-      this.dispatch({ type: 'setPose', id: h.id, pose: trayPose(w, h.id), support: 'tray' });
-      const r = this.send({ type: 'loadBall', ball: h.id }, 'clink');
-      if (r.ok) return;
-    }
-    if (Math.hypot(p.x - tray.x, p.y - tray.y) < 14) return this.toTray(h.id);
-    if (p.y < -20) {
-      this.dispatch({ type: 'setPose', id: h.id, pose: { x: p.x, y: p.y, z: FLOOR_Z, rotationRad: 0 }, support: 'floor' });
-      this.host.sound('click');
+    const near = (q: { x: number; y: number }, r: number) => Math.hypot(p.x - q.x, p.y - q.y) < r;
+    this.toRack(h.id);
+    if (h.kind === 'slotMass') {
+      if (w.string.hung || w.objects.hanger01.support === 'rack') {
+        if (near(hangerRoom(w), 7)) return void this.send({ type: 'placeMass', id: h.id, on: 'hanger' }, 'clink');
+      }
+      if (near(cartRoom(w), 10)) return void this.send({ type: 'placeMass', id: h.id, on: 'cart' }, 'clink');
+      if (near(panRoom(), 9)) return void this.send({ type: 'placeOnBalance', id: h.id }, 'clink');
       return;
     }
-    const c = clampToBench(p.x, p.y);
-    this.dispatch({ type: 'setPose', id: h.id, pose: { x: c.x, y: c.y, z: 0, rotationRad: 0 }, support: 'bench' });
+    // Portapesas: bajo la polea → colgar del cordel; sobre el plato → pesar.
+    if (Math.abs(p.x - dropX()) < 12 && Math.abs(p.y - T.y) < 12) return void this.send({ type: 'hangHanger', on: true }, 'clink');
+    if (near(panRoom(), 9)) return void this.send({ type: 'placeOnBalance', id: h.id }, 'clink');
   }
 
   private restingIds(): string[] {
@@ -556,21 +526,16 @@ export class F04Controller {
       h.y = p.y;
     }
     const o = this.obj(h.id)!;
-    // Sobre la zona de vuelo la mano baja al suelo de la pista; sobre la mesada queda dentro de ella.
-    const inZone = h.y < -10;
-    const lim = inZone
-      ? { x: Math.max(LANE.x0 - 60, Math.min(LANE.x1 - 10, h.x)), y: Math.max(-230, Math.min(-12, h.y)) }
-      : clampToBench(h.x, h.y);
+    // Lo que se lleva en la mano queda sobre la mesada y choca con los aparatos macizos (contrato común).
+    const lim = clampToBench(h.x, h.y);
     let tx = lim.x;
     let ty = lim.y;
-    // Lo que se lleva en la mano choca con los aparatos macizos (contrato común de la mesada).
     const pushed = this.view.solidPush?.(h.id, o.pose, tx, ty, this.restingIds(), false, true);
     if (pushed) {
       tx = pushed.x;
       ty = pushed.y;
     }
-    const floor = inZone ? FLOOR_Z : 0;
-    const tz = Math.max(h.z, floor);
+    const tz = Math.max(h.z, 0);
     const kk = Math.min(1, dt * 16);
     const nx = o.pose.x + (tx - o.pose.x) * kk;
     const ny = o.pose.y + (ty - o.pose.y) * kk;
@@ -578,8 +543,13 @@ export class F04Controller {
     if (Math.hypot(nx - o.pose.x, ny - o.pose.y, h.curZ - o.pose.z) > 0.004) {
       this.dispatch({ type: 'setPose', id: h.id, pose: { x: nx, y: ny, z: h.curZ, rotationRad: 0 }, support: 'hand' });
     }
-    const m = muzzleRoom(this.w);
-    this.dockTarget = Math.hypot(nx - m.x, ny - m.y) < 8 ? 'launcher01' : null;
+    const w = this.w;
+    const d = (q: { x: number; y: number }) => Math.hypot(nx - q.x, ny - q.y);
+    this.dockTarget =
+      h.kind === 'hanger' && Math.abs(nx - dropX()) < 12 ? 'pulley01'
+        : d(panRoom()) < 9 ? 'balance01'
+          : h.kind === 'slotMass' && d(hangerRoom(w)) < 7 ? 'hanger01'
+            : h.kind === 'slotMass' && d(cartRoom(w)) < 10 ? 'cart01' : null;
     if (this.pointer && !h.keyboard) {
       const W = this.view.viewW();
       if (this.pointer.x < 30) this.view.edgePan(-1, dt);
@@ -587,8 +557,8 @@ export class F04Controller {
     }
   }
 
-  /** ¿Hay una esfera en vuelo? (el panel desactiva los cambios de montaje). */
-  flying(): boolean {
-    return ballFlying(this.w);
+  /** ¿Hay un ensayo en curso? (el panel desactiva los cambios de montaje). */
+  busy(): boolean {
+    return runningF4(this.w);
   }
 }

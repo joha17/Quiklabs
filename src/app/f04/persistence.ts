@@ -1,5 +1,5 @@
 /**
- * Persistencia local del intento de F04: mundo (soporte, lanzador, plataforma, pantalla, esferas, lecturas), libreta,
+ * Persistencia local del intento de F04: mundo (carril, carro, cordel, sensores, pareja, diagramas, lecturas), libreta,
  * semilla, escenarios y registro de acciones encadenado. Clave propia por usuario (plataforma).
  */
 import type { F04World } from '../../simulation/f04-world/types';
@@ -39,7 +39,7 @@ export function loadF04Attempt(): SavedF04Attempt | null {
     const raw = localStorage.getItem(scopedKey(F04_SAVE_KEY));
     if (!raw) return null;
     const a = JSON.parse(raw) as SavedF04Attempt;
-    if (a.version !== 1 || !a.world?.launcher || !a.world?.platform || !a.notebook?.angles) return null;
+    if (a.version !== 1 || !a.world?.cart || !a.world?.pair || !a.notebook?.runs) return null;
     return a;
   } catch {
     return null;

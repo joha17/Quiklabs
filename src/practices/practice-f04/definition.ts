@@ -28,7 +28,7 @@ const PT = GEOF04.pairTrack;
 
 export const F04_STATIONS: F04Station[] = [
   { id: 'A', target: [88, T.y, 6], dist: 175, elevation: 0.35 },
-  { id: 'B', target: [2, T.y, -22], dist: 95, elevation: 0.12, azimuth: 0.45 },
+  { id: 'B', target: [12, T.y, -6], dist: 110, elevation: 0.38, azimuth: 0.4 },
   { id: 'C', target: [180, 34, 8], dist: 80, elevation: 0.5 },
   { id: 'D', target: [(PT.x0 + PT.x1) / 2, PT.y, 5], dist: 85, elevation: 0.35 },
   { id: 'E', target: [GEOF04.balance.x - 15, 38, 6], dist: 80, elevation: 0.45 },

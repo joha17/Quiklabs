@@ -12,7 +12,7 @@ import { materials, type MaterialSet } from '../renderers/materials';
 import type { F04World } from '../../simulation/f04-world/types';
 
 /** Lo que se lee de frente y a la altura del ojo (vista normal a la escala, sin paralaje). */
-export type EyeTargetF4 = 'launcher01' | 'heightRuler01' | 'screen01' | 'floorTape01' | 'platform01' | 'timer01' | 'stand01';
+export type EyeTargetF4 = 'gate1' | 'gate2' | 'balance01' | 'logger01' | 'cart01' | 'pair';
 
 export interface CameraApiF {
   goToStation(id: string): void;

@@ -88,8 +88,8 @@ describe('F04 · oráculos', () => {
     expect(p).toBeGreaterThan(w.momentum.handImpulse - 2 * w.params.pairRollingN * 0.3 - 1e-6);
     h.runF4(w, 0.5);
     const r = w.readings[C({ type: 'readPair' }).id!];
-    expect(r.pair!.FA).toBeGreaterThan(2.5);
-    expect(Math.abs(r.pair!.FA + r.pair!.FB)).toBeLessThan(F04_REFERENCE.thirdLaw.tol);
+    expect(r.pair!.FA!).toBeGreaterThan(2.5);
+    expect(Math.abs(r.pair!.FA! + r.pair!.FB!)).toBeLessThan(F04_REFERENCE.thirdLaw.tol);
   });
 });
 

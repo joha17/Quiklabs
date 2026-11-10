@@ -206,9 +206,10 @@ export interface ReadingF4 {
   /** Qué se midió ('cart01', 'hanger01', 'gate1', 'track'…). */
   target?: string;
   /** Ensayo del carro: medias de la ventana y tiempos de las compuertas. */
-  run?: { a: number; T: number; t0: number; t1: number; n: number; dt1: number; dt2: number; t1g: number; t2g: number; trueA: number; trueT: number };
+  /** Campos sin dato (canal apagado, compuerta sin paso) quedan en null: NaN no sobrevive al JSON de la cinta. */
+  run?: { a: number | null; T: number | null; t0: number; t1: number; n: number; dt1: number | null; dt2: number | null; t1g: number | null; t2g: number | null; trueA: number | null; trueT: number | null };
   /** Pareja: lectura simultánea de los dos sensores en el pico del contacto. */
-  pair?: { FA: number; FB: number; t: number; trueC: number };
+  pair?: { FA: number | null; FB: number | null; t: number; trueC: number };
   /** Montaje del ensayo o de la pieza leída (para vincular lecturas del mismo montaje). */
   setup?: Partial<RunSetup> & { load?: number; posCm?: number };
   configVersion: number;

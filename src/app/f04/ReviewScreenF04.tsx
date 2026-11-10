@@ -2,10 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { useF04 } from './store';
 import { downloadJson } from '../persistence';
 import { newSeed } from '../../simulation/core/rng';
-import { expectedRanges, expectedTrajectory, expectedVelocity } from '../../practices/practice-f04/expected-results';
+import { expectedModel, expectedPairs, expectedRuns, expectedSlope, rdF4 } from '../../practices/practice-f04/expected-results';
 import { notebookIssuesF04 } from '../../practices/practice-f04/rubric';
-import { dragFraction } from '../../simulation/models/f04/regimes';
-import { dragOn } from '../../simulation/f04-world/world';
+import { lossFraction } from '../../simulation/models/f04/regimes';
+import { cartMassKg } from '../../simulation/f04-world/world';
 import { SIMULATED_ERRORS_F04, errKeyF4 } from '../../practices/practice-f04/error-scenarios';
 
 const pct = (v: number) => `${Math.round(v * 100)} %`;
@@ -26,14 +26,19 @@ export function ReviewScreenF04({ onBack }: { onBack: () => void }) {
   const w = rt.world;
   const feedback = ev.components.flatMap((c) => c.items.filter((i) => i.feedbackKey && i.ok !== true).map((i) => ({ comp: c.id, key: i.feedbackKey!, params: i.params })));
   const issues = notebookIssuesF04(w, nb);
-  const ev0 = expectedVelocity(w, nb);
-  const er = expectedRanges(w, nb);
-  const et = expectedTrajectory(w, nb);
-  // Verdad del motor: rapidez real de cada disparo leído (diámetro real / Δt real) y arrastre del modo activo.
-  const gates = nb.velocity.map((x) => (x.readingId ? w.readings[x.readingId] : null)).filter((r) => r && r.kind === 'gate' && Number.isFinite(r.trueValue) && r.trueValue > 0);
-  const vTrue = gates.length ? gates.reduce((s, r) => s + (w.balls[r!.setup?.ball ?? 'ballA']?.diameterM ?? 0.025) / r!.trueValue, 0) / gates.length : NaN;
-  const b = w.balls.ballA;
-  const drag = dragOn(w) ? dragFraction(vTrue, b.massKg, w.params.g, w.params.airDensity, w.params.sphereCd, Math.PI * (b.diameterM / 2) ** 2) : 0;
+  const er = expectedRuns(w, nb);
+  const em = expectedModel(w, nb);
+  const es = expectedSlope(w, nb);
+  const ep = expectedPairs(w, nb);
+  // Verdad del motor: medias verdaderas de las ventanas leídas, masa real del sistema y fracción de pérdidas del modo.
+  const runs = nb.runs.map((x) => rdF4(w, x.readingId)).filter((r) => r?.run);
+  const mean = (xs: number[]) => (xs.length ? xs.reduce((q, x) => q + x, 0) / xs.length : NaN);
+  const aTrue = mean(runs.map((r) => r!.run!.trueA ?? NaN));
+  const TTrue = mean(runs.map((r) => r!.run!.trueT ?? NaN));
+  const pairs = nb.pairs.map((x) => rdF4(w, x.readingId)).filter((r) => r?.pair);
+  const p = w.params;
+  const mc = cartMassKg(w);
+  const loss = lossFraction(mc, em.mh, p.g, p.pulleyI, p.pulleyR, p.rollingN);
   const committed = SIMULATED_ERRORS_F04.filter((x) => (w.evidence[x.evidenceKey] ?? 0) > 0 || issues.includes(`nb:${errKeyF4(x)}`));
   return (
     <main className="review">
@@ -91,9 +96,11 @@ export function ReviewScreenF04({ onBack }: { onBack: () => void }) {
             <table className="data">
               <thead><tr><th>{t('f04.review.qty')}</th><th>{t('f04.review.yours')}</th><th>{t('f04.review.engine')}</th></tr></thead>
               <tbody>
-                <tr><td>{t('f04.review.v0')}</td><td>{f(ev0.v0Mean, 3)} ± {f(ev0.uV, 3)} m/s</td><td>{f(vTrue, 3)} m/s</td></tr>
-                <tr><td>{t('f04.review.range')}</td><td>{f(er.rangeErr, 1)} %</td><td>{t('f04.review.drag', { p: f(drag * 100, 1) })}</td></tr>
-                <tr><td>{t('f04.review.fit')}</td><td>{f(et.fit.v0, 3)} m/s · θ {f(et.fit.thetaDeg, 1)}°</td><td>{f(vTrue, 3)} m/s</td></tr>
+                <tr><td>{t('f04.review.a')}</td><td>{f(er.aMean, 3)} ± {f(er.uA, 3)} m/s²</td><td>{f(aTrue, 3)} m/s²</td></tr>
+                <tr><td>{t('f04.review.T')}</td><td>{f(er.TMean, 3)} ± {f(er.uT, 3)} N</td><td>{f(TTrue, 3)} N</td></tr>
+                <tr><td>{t('f04.review.pred')}</td><td>{f(em.aPred, 3)} m/s² · {f(em.discrepancy, 1)} %</td><td>{t('f04.review.loss', { p: f(loss * 100, 1) })}</td></tr>
+                <tr><td>{t('f04.review.slope')}</td><td>{f(es.slope, 3)} kg</td><td>{f(mc, 3)} kg</td></tr>
+                <tr><td>{t('f04.review.third')}</td><td>{f(ep.sumF, 3)} N</td><td>{pairs.length ? '0,000 N' : '—'}</td></tr>
               </tbody>
             </table>
           </div>

@@ -99,8 +99,8 @@ describe('F04 — ruta ideal', () => {
     const { w, ids } = ideal();
     for (const id of ids.pairs) {
       const p = w.readings[id].pair!;
-      expect(Math.abs(p.FA)).toBeGreaterThan(1);
-      expect(Math.abs(p.FA + p.FB)).toBeLessThan(0.03);
+      expect(Math.abs(p.FA!)).toBeGreaterThan(1);
+      expect(Math.abs(p.FA! + p.FB!)).toBeLessThan(0.03);
     }
   });
 });
@@ -148,7 +148,7 @@ const trial = (w: F04World, win?: (rec: F04World['runs'][number]) => { t0: numbe
 };
 
 /** Aceleración verdadera de un ensayo limpio de referencia con la misma semilla. */
-const refA = () => trial(ready()).run!.trueA;
+const refA = () => trial(ready()).run!.trueA!;
 
 /** Pareja lista: dinamómetros conectados, calibrados y en cero, con sentidos opuestos salvo que se pida otra cosa. */
 const pairReady = (opts: Parameters<typeof h.worldF4>[0] & { range?: number; signs?: boolean } = {}) => {
@@ -209,7 +209,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = trial(w, (rec) => ({ t0: 0.15, t1: (rec.landedT ?? 1) + 0.4 }));
     return { w, check: () => {
       expect(r.qualityFlags).toContain('LANDED');
-      expect(r.run!.T).toBeLessThan(clean.run!.T * 0.9);
+      expect(r.run!.T!).toBeLessThan(clean.run!.T! * 0.9);
     } };
   },
   E06: () => nbWith((nb, w) => {
@@ -222,7 +222,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = trial(w);
     return { w, check: () => {
       expect(r.qualityFlags).toContain('PERPENDICULAR');
-      expect(r.run!.T).toBeLessThan(r.run!.trueT * 0.3);
+      expect(r.run!.T!).toBeLessThan(r.run!.trueT! * 0.3);
     } };
   },
   E08: () => {
@@ -274,7 +274,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = R(w, C({ type: 'readPair' }));
     return { w, check: () => {
       expect(r.qualityFlags).toContain('SAME_SIGN');
-      expect(r.pair!.FA * r.pair!.FB).toBeGreaterThan(0);
+      expect(r.pair!.FA! * r.pair!.FB!).toBeGreaterThan(0);
     } };
   },
   E14: () => nbWith((nb, w) => {
@@ -362,7 +362,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = trial(w);
     return { w, check: () => {
       expect(r.qualityFlags).toContain('OCCLUDED');
-      expect(Number.isNaN(r.run!.dt2)).toBe(true);
+      expect(r.run!.dt2).toBeNull();
     } };
   },
   E26: () => {
@@ -371,7 +371,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = trial(w);
     return { w, check: () => {
       expect(r.qualityFlags).toContain('TILTED_SENSOR');
-      expect(r.run!.T / r.run!.trueT).toBeCloseTo(Math.cos(Math.PI / 6), 1);
+      expect(r.run!.T! / r.run!.trueT!).toBeCloseTo(Math.cos(Math.PI / 6), 1);
     } };
   },
   E27: () => {
@@ -379,7 +379,7 @@ const FIXTURES: Record<string, Fixture> = {
     const r = trial(w);
     return { w, check: () => {
       expect(r.qualityFlags).toContain('UNCALIBRATED');
-      expect(r.run!.T / r.run!.trueT).toBeCloseTo(1.04, 1);
+      expect(r.run!.T! / r.run!.trueT!).toBeCloseTo(1.04, 1);
     } };
   },
   E28: () => {
@@ -441,7 +441,7 @@ const FIXTURES: Record<string, Fixture> = {
     return { w, check: () => {
       expect(w.cart.shock).toBe(true);
       expect(r.qualityFlags).toContain('POST_IMPACT');
-      expect(r.value - r.run!.trueA).toBeGreaterThan(0.1);
+      expect(r.value - r.run!.trueA!).toBeGreaterThan(0.1);
     } };
   },
   E40: () => {

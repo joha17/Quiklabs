@@ -1,7 +1,8 @@
 /**
  * Escena 3D de F04 (React Three Fiber): misma sala, luces y orbitador que las demás prácticas. Orden de cada
- * fotograma: dominio con paso fijo → interacción → vistas. La zona de vuelo (8 × 1,2 m) ocupa el suelo delante de la
- * mesada: soporte y lanzador en un extremo, colchón de impacto en el otro; la interfaz queda sobre la mesada.
+ * fotograma: dominio con paso fijo → interacción → vistas. El carril de 160 cm ocupa el tramo izquierdo de la mesada
+ * con la polea fuera del borde (el portapesas cuelga hasta el suelo); la pareja de carros, la balanza, el registrador
+ * y el estante de pesas quedan a la derecha y detrás del carril.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
@@ -16,7 +17,7 @@ import { Environment, Lights, Room } from '../scene/LabScene';
 import { GRAVITY, fromScene, toScene } from '../units';
 import { QUALITY, pickQuality, type QualityLevel, type QualitySetting } from '../quality';
 import { demoPointerTexture, nameTagTexture } from '../renderers/textures';
-import { ballRoom, deckRoom, muzzleRoom, platformRoom, rulerRoom, screenRoom } from './layout';
+import { objRoom } from './layout';
 
 function Driver() {
   const lab = useF04Lab();
@@ -69,23 +70,16 @@ function Objects() {
 }
 
 const TAG_Z: Record<string, number> = {
-  lane: 160, stand: 8, launcher: 14, gate: 10, timer: 9, platform: 6, screen: 158, barrier: 100, fan: 60, ball: 4, tray: 5, floorTape: 4, plumb: 6, heightRuler: 156,
+  track: 8, cart: 18, latch: 7, brake: 6, stop: 8, pulley: 6, hanger: 10, slotMass: 3, massRack: 9, forceSensor: 5, accelerometer: 4, logger: 10, gate: 18, balance: 9, pairTrack: 8, pairCart: 10,
 };
-const HIDE_TAGS = new Set(['ball', 'tray', 'plumb', 'floorTape']);
+const HIDE_TAGS = new Set(['slotMass', 'latch', 'accelerometer']);
 /** Aparatos montados (no están «sobre la mesada») cuyo nombre igual se muestra. */
-const MOUNTED_TAGS = new Set(['lane', 'stand', 'launcher', 'gate', 'platform', 'screen', 'barrier', 'fan', 'heightRuler']);
+const MOUNTED_TAGS = new Set(['track', 'cart', 'pulley', 'hanger', 'gate', 'brake', 'stop', 'logger', 'balance', 'pairTrack', 'massRack']);
 
-function tagBase(w: Parameters<typeof muzzleRoom>[0], o: { id: string; kind: string; pose: { x: number; y: number; z: number } }) {
-  switch (o.kind) {
-    case 'launcher': case 'gate': case 'plumb': return muzzleRoom(w);
-    case 'stand': return deckRoom(w);
-    case 'platform': return platformRoom(w);
-    case 'screen': return screenRoom(w);
-    case 'heightRuler': return rulerRoom(w);
-    case 'lane': return { x: 330, y: o.pose.y, z: o.pose.z };
-    case 'ball': return ballRoom(w, o.id) ?? o.pose;
-    default: return o.pose;
-  }
+function tagBase(w: Parameters<typeof objRoom>[0], o: { id: string; kind: string; pose: { x: number; y: number; z: number } }) {
+  if (o.kind === 'track') return { x: 90, y: o.pose.y, z: 0 };
+  if (o.kind === 'gate') return objRoom(w, o.id);
+  return o.kind === 'slotMass' || o.kind === 'hanger' ? (w.objects[o.id].support === 'hand' ? o.pose : objRoom(w, o.id)) : objRoom(w, o.id);
 }
 
 function NameTags() {
@@ -105,7 +99,7 @@ function NameTags() {
     const sel = lab.host.getSelected();
     for (const o of Object.values(w.objects)) {
       if (HIDE_TAGS.has(o.kind) && sel !== o.id) continue;
-      if (o.support !== 'bench' && o.support !== 'hand' && !MOUNTED_TAGS.has(o.kind) && o.kind !== 'timer' && sel !== o.id && lab.controller.hovered !== o.id) continue;
+      if (o.support !== 'bench' && o.support !== 'hand' && !MOUNTED_TAGS.has(o.kind) && sel !== o.id && lab.controller.hovered !== o.id) continue;
       seen.add(o.id);
       let slot = slots.current.get(o.id);
       if (!slot) {
@@ -173,9 +167,7 @@ function DemoCursor() {
   return <primitive object={sprite} />;
 }
 
-const EYE: Record<string, EyeTargetF4> = {
-  launcher01: 'launcher01', heightRuler01: 'heightRuler01', screen01: 'screen01', floorTape01: 'floorTape01', platform01: 'platform01', timer01: 'timer01', stand01: 'stand01',
-};
+const EYE: Record<string, EyeTargetF4> = { gate1: 'gate1', gate2: 'gate2', balance01: 'balance01', logger01: 'logger01', cart01: 'cart01' };
 
 function Bridge() {
   const lab = useF04Lab();

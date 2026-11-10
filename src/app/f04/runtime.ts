@@ -1,7 +1,7 @@
 /**
  * Puente entre la simulación de la F04 (paso fijo, determinista) y la aplicación.
  * - `dispatch(command)` aplica el comando y registra solo las acciones con significado: los movimientos continuos
- *   (mando del ángulo, columna, tornillo, plataforma, pantalla) no van a la bitácora, pero sí a la cinta del intento.
+ *   (tornillo de nivel, freno, tope, compuertas, ángulo del sensor) no van a la bitácora, pero sí a la cinta del intento.
  * - `advance(dt)` acumula tiempo real × escala y ejecuta pasos fijos (el resultado no depende de los fps).
  */
 import type { F04World, SimEvent } from '../../simulation/f04-world/types';
@@ -69,7 +69,7 @@ export class F04Runtime {
   private toAction(cmd: F04Command, r: F04DispatchResult): PracticeF04Event {
     const w = this.world;
     const { type, ...payload } = cmd as Record<string, unknown> & { type: string };
-    const ids = ['id', 'ball', 'target'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
+    const ids = ['id', 'target', 'channel', 'body'].map((k) => payload[k]).filter((x): x is string => typeof x === 'string');
     const prev = this.actions[this.actions.length - 1]?.stateHash ?? '0';
     return {
       attemptId: this.attemptId,

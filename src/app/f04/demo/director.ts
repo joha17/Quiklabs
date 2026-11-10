@@ -1,13 +1,15 @@
 /**
  * Demostración automática de F04: una «mano virtual» que ejecuta los MISMOS comandos del dominio que el panel de
- * acciones y el controlador (anclar y nivelar el soporte, girar el mando del ángulo de a 2°, cargar la muesca, tirar
- * del cordón, arrastrar la plataforma y la pantalla, leer con la vista de frente o desde arriba). No altera la ciencia,
+ * acciones y el controlador (pesar en la balanza tarada, dibujar los diagramas, nivelar el carril vuelta a vuelta,
+ * colgar el portapesas y tensar el cordel, correr las compuertas, soltar el pestillo, elegir la ventana de la gráfica,
+ * empujar la pareja y leer de frente). No altera la ciencia,
  * no marca etapas a mano, no genera nota ni se guarda como intento. Avanza con el reloj de la escena (`lab.onFrame`):
  * la pausa y la velocidad también detienen o aceleran sus esperas.
  */
 import type { F04Lab3D } from '../../../engine/f04/F04Lab3D';
 import type { F04Command, F04DispatchResult } from '../../../simulation/f04-world/commands';
 import type { F04World } from '../../../simulation/f04-world/types';
+import { objRoom } from '../../../engine/f04/layout';
 
 export class DemoAbort extends Error {}
 
@@ -168,7 +170,7 @@ export class DemoDirectorF04 {
   async press(id: string | null, at?: { x: number; y: number; z: number }, pauseS = 0.5) {
     if (id) this.hooks.select(id);
     const o = id ? this.w.objects[id] : null;
-    const p = at ?? (o ? { x: o.pose.x, y: o.pose.y, z: o.pose.z + 4 } : null);
+    const p = at ?? (o && id ? { ...objRoom(this.w, id), z: objRoom(this.w, id).z + 4 } : null);
     if (p) this.pointAt = p;
     await this.wait(pauseS);
   }

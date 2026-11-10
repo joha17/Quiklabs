@@ -35,7 +35,7 @@ export interface F04Settings {
   volume: number;
   showNames: boolean;
   quality: QualitySetting;
-  /** Opción docente: modelo ideal (sin aire ni pérdidas del resorte) o realista (arrastre, rendimiento y dispersión). */
+  /** Opción docente: modelo ideal (sin roce, polea sin inercia, sensores ideales) o realista (roce, inercia de la polea y sensores reales). */
   scientificMode: 'CURRICULAR' | 'REALISTIC';
   /** Lente de lectura abierta (instrumento cuya escala se amplía). */
   lens: string | null;
@@ -58,7 +58,7 @@ export interface F04DemoUi {
   speed: number;
 }
 
-const F04_DEMO_SEED = 20261103;
+const F04_DEMO_SEED = 20261104;
 
 export type F04Modal = null | { kind: 'ppe' } | { kind: 'submit' } | { kind: 'settings' } | { kind: 'help' } | { kind: 'restored' };
 

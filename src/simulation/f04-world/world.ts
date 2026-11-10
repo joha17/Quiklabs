@@ -773,9 +773,7 @@ function zeroSensor(w: F04World, id: SensorId): F04DispatchResult {
     }
     return { ok: true };
   }
-  let f = 0;
-  if (id === 'forceA') f = hookForceN(w);
-  else f = w.pair.contactN > 0 ? -w.pair.contactN : 0;
+  const f = id === 'forceA' ? hookForceN(w) : w.pair.contactN > 0 ? -w.pair.contactN : 0;
   s.offset = -f * Math.cos(s.angleDeg * DEG) * s.scale;
   s.zeroed = Math.abs(f) < 0.01;
   if (s.zeroed) {
@@ -959,14 +957,17 @@ function readRun(w: F04World, t0: number, t1: number): F04DispatchResult {
     kind: 'run', instrumentId: 'logger01', value, unit: 'm/s²', resolution: p.accelResolution, uncertainty: p.uB.accel, sourceObjectIds: ['logger01', 'accel01', 'forceA', 'gate1', 'gate2', 'cart01'], qualityFlags: qf,
     trueValue: mean(win.map((x) => x[3])), target: 'cart01', trial: rec.id, configVersion: rec.configVersion,
     run: {
-      a: value, T: Number.isFinite(TMean) ? Math.round(TMean * 1e4) / 1e4 : NaN, t0: a0, t1: a1, n: win.length, dt1: dt1 ?? NaN, dt2: dt2 ?? NaN, t1g: ind(g1?.[0]) ?? NaN, t2g: ind(g2?.[0]) ?? NaN,
-      trueA: mean(win.map((x) => x[3])), trueT: mean(win.map((x) => x[4])),
+      a: fin(value), T: Number.isFinite(TMean) ? Math.round(TMean * 1e4) / 1e4 : null, t0: a0, t1: a1, n: win.length, dt1: fin(dt1), dt2: fin(dt2), t1g: fin(ind(g1?.[0])), t2g: fin(ind(g2?.[0])),
+      trueA: fin(mean(win.map((x) => x[3]))), trueT: fin(mean(win.map((x) => x[4]))),
     },
     setup: { ...su },
   });
   emitF4(w, 'RUN_READ', qf.length ? 'WARN' : 'INFO', { a: value, n: win.length });
   return { ok: true, id: r.id, value };
 }
+
+/** Número finito o null (la cinta se guarda en JSON y NaN no sobrevive). */
+const fin = (x: number | null | undefined): number | null => (x !== null && x !== undefined && Number.isFinite(x) ? x : null);
 
 // ─────────────────────────── Pareja de carros ───────────────────────────
 
@@ -1022,7 +1023,7 @@ function readPair(w: F04World): F04DispatchResult {
   for (const f of flags) if (FLAG_ERR[f]) errF4(w, FLAG_ERR[f][0], FLAG_ERR[f][1], 'WARN', { inst: 'dynP' });
   const r = addReading(w, {
     kind: 'pair', instrumentId: 'dynP', value: FA, unit: 'N', resolution: p.force.resolutions[su.rangeA] ?? 0.01, uncertainty: p.uB.forceN, sourceObjectIds: ['dynP', 'dynQ', 'cartP', 'cartQ'], qualityFlags: flags,
-    trueValue: smp[3], target: 'pair', trial: rec.id, configVersion: rec.configVersion, pair: { FA, FB, t: smp[0], trueC: smp[3] },
+    trueValue: smp[3], target: 'pair', trial: rec.id, configVersion: rec.configVersion, pair: { FA: fin(FA), FB: fin(FB), t: smp[0], trueC: smp[3] },
     setup: { rateHz: su.rateHz },
   });
   emitF4(w, 'PAIR_READ', flags.length ? 'WARN' : 'INFO', { a: FA, b: FB });

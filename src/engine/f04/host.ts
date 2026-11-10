@@ -18,7 +18,8 @@ export interface F04Host {
   onLens?(target: F04Lens | null): void;
 }
 
-export type F04Lens = 'launcher01' | 'stand01' | 'heightRuler01' | 'floorTape01' | 'screen01' | 'timer01' | 'platform01';
+/** Lo que se amplía: la escala del carril en una compuerta, la pantalla de la balanza o la gráfica del registrador. */
+export type F04Lens = 'gate1' | 'gate2' | 'balance01' | 'logger01' | 'pair';
 
 /** Los sonidos de F04 son los del sintetizador común. */
 export type F04Sound = ReactionSound;

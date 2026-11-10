@@ -2,32 +2,33 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useF04 } from './store';
 import {
-  CALC_FIELDS_F3, CALC_UNIT_F3, INSTRUMENTS_F3, QUESTIONS_F3, SETUP_FIELDS_F3, SETUP_UNIT_F3, type Entry, type F04Notebook,
+  CALC_FIELDS_F4, CALC_UNIT_F4, INSTRUMENTS_F4, MCQ_OPTIONS_F4, QUESTIONS_F4, SETUP_FIELDS_F4, SETUP_UNIT_F4, type Entry, type F04Notebook,
 } from '../../practices/practice-f04/notebook';
-import { readingsOfF4 } from '../../practices/practice-f04/expected-results';
-import type { ReadingF4 } from '../../simulation/f04-world/types';
+import type { F04World, ReadingF4 } from '../../simulation/f04-world/types';
 import { downloadJson } from '../persistence';
 
-type Tab = 'setup' | 'velocity' | 'angles' | 'trajectory' | 'calc' | 'analysis' | 'readings';
-const TABS: Tab[] = ['setup', 'velocity', 'angles', 'trajectory', 'calc', 'analysis', 'readings'];
+type Tab = 'setup' | 'runs' | 'masses' | 'pairs' | 'calc' | 'analysis' | 'readings';
+const TABS: Tab[] = ['setup', 'runs', 'masses', 'pairs', 'calc', 'analysis', 'readings'];
 
-const fmt = (v: number, d = 2) => (Number.isFinite(v) ? v.toFixed(d).replace('.', ',') : '—');
+const fmt = (v: number | null | undefined, d = 2) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(d).replace('.', ',') : '—');
 const decOf = (r: ReadingF4) => Math.max(0, Math.round(-Math.log10(r.resolution) + 0.01));
 const warnOf = (r: ReadingF4) => (r.qualityFlags.length ? ' ⚠' : '');
-/** Lo que muestra una lectura en las listas: valor y, para la plataforma, x e y del contacto y el tiempo de vuelo. */
+const readingsOf = (w: F04World) => w.readingOrder.map((id) => w.readings[id]).filter(Boolean);
+/** Lo que muestra una lectura en las listas: el ensayo con sus medias y tiempos; la pareja con las dos fuerzas. */
 const showOf = (r: ReadingF4) => {
-  if (r.kind === 'impact' && r.impact) {
-    const i = r.impact;
-    return `x ${fmt(i.xCm, 1)} cm · y ${fmt(i.yCm, 1)} cm · t ${i.tFlight >= 0 ? fmt(i.tFlight, 4) : '—'} s`;
+  if (r.kind === 'run' && r.run) {
+    const x = r.run;
+    return `a ${fmt(x.a, 3)} m/s² · T ${fmt(x.T, 3)} N · Δt₁ ${fmt(x.dt1, 5)} s · Δt₂ ${fmt(x.dt2, 5)} s · t₁ ${fmt(x.t1g, 4)} · t₂ ${fmt(x.t2g, 4)} s`;
   }
-  return `${fmt(r.value, decOf(r))} ${r.unit}`;
+  if (r.kind === 'pair' && r.pair) return `F_A ${fmt(r.pair.FA, 2)} N · F_B ${fmt(r.pair.FB, 2)} N`;
+  return `${fmt(r.value, decOf(r))} ${r.unit}${r.target && r.kind !== 'accelRest' ? ` · ${r.target}` : ''}`;
 };
 
 /**
- * Libreta digital de F04: cada dato bruto (inclinación, altura de la boca, cero de la cinta, Δt de la fotopuerta,
- * ángulos, posiciones de la plataforma y de la pantalla, impactos y marcas) se importa de una lectura con su id; v₀,
- * alcances, predicciones, el ajuste de la trayectoria, las componentes y las incertidumbres las escribe el estudiante.
- * La libreta no calcula nada por él.
+ * Libreta digital de F04: cada dato bruto (masas de la balanza, posiciones de las compuertas en la escala, aceleración en
+ * reposo, ensayos del registrador con sus Δt, pares de fuerzas de la pareja) se importa de una lectura con su id; las
+ * velocidades en las compuertas, la aceleración cinemática, las predicciones del modelo, la masa efectiva, la pendiente
+ * del barrido, las sumas de la tercera ley y las incertidumbres las escribe el estudiante. La libreta no calcula nada.
  */
 export function NotebookPanelF04() {
   const { t } = useTranslation();
@@ -45,7 +46,7 @@ export function NotebookPanelF04() {
   }, [wanted]);
   if (!rt) return null;
   const w = rt.world;
-  const all = readingsOfF4(w);
+  const all = readingsOf(w);
   const of = (pred: (r: ReadingF4) => boolean) => all.filter(pred);
   const label = (r: ReadingF4) => `${r.id} · ${showOf(r)}${warnOf(r)}`;
 
@@ -86,19 +87,15 @@ export function NotebookPanelF04() {
     <input aria-label={aria} inputMode="decimal" value={value} onChange={(e) => setNb((n) => set(n, e.target.value), path, value, e.target.value)} />
   );
 
-  const setupOpts: Record<(typeof SETUP_FIELDS_F3)[number], ReadingF4[]> = {
-    tilt: of((r) => r.kind === 'level'),
-    muzzleH: of((r) => r.kind === 'height'),
-    tapeZero: of((r) => r.kind === 'length' && r.target === 'plumb'),
-    trajAngle: of((r) => r.kind === 'angle'),
+  const setupOpts: Record<(typeof SETUP_FIELDS_F4)[number], ReadingF4[]> = {
+    cartM: of((r) => r.kind === 'mass' && r.target === 'cart01'),
+    hangerM: of((r) => r.kind === 'mass' && r.target === 'hanger01'),
+    g1: of((r) => r.kind === 'length' && r.target === 'gate1'),
+    g2: of((r) => r.kind === 'length' && r.target === 'gate2'),
+    aRest: of((r) => r.kind === 'accelRest'),
   };
-  const gates = of((r) => r.kind === 'gate');
-  const impacts = of((r) => r.kind === 'impact');
-  const angles = of((r) => r.kind === 'angle');
-  const heights = of((r) => r.kind === 'height');
-  const platTape = of((r) => r.kind === 'length' && r.target === 'platform');
-  const screenTape = of((r) => r.kind === 'length' && r.target === 'screen');
-  const marks = of((r) => r.kind === 'mark');
+  const runs = of((r) => r.kind === 'run');
+  const pairs = of((r) => r.kind === 'pair');
 
   return (
     <aside className="drawer notebook" aria-label={t('nb.title')}>
@@ -123,7 +120,7 @@ export function NotebookPanelF04() {
               <table className="data">
                 <thead><tr><th>{t('f04.nb.instrument')}</th><th>{t('f04.nb.resolution')}</th><th>u<sub>B</sub></th><th>{t('f04.nb.status')}</th></tr></thead>
                 <tbody>
-                  {INSTRUMENTS_F3.map((k) => {
+                  {INSTRUMENTS_F4.map((k) => {
                     const r = nb.instruments[k];
                     const upd = (f: 'resolution' | 'uncertainty' | 'status', v: string) => setNb((n) => { n.instruments[k][f] = v; }, `instruments.${k}.${f}`, r[f], v);
                     return (
@@ -144,22 +141,22 @@ export function NotebookPanelF04() {
               </table>
             </div>
             <h3>{t('f04.nb.setup')}</h3>
-            {SETUP_FIELDS_F3.map((k) => cell(`${t(`f04.nb.setupF.${k}`)} (${SETUP_UNIT_F3[k]})`, nb.setup[k], `setup.${k}`, (n, p) => Object.assign(n.setup[k], p), setupOpts[k], false))}
-            {text('ballD', nb.ballD, (n, v) => { n.ballD = v; }, false)}
+            {SETUP_FIELDS_F4.map((k) => cell(`${t(`f04.nb.setupF.${k}`)} (${SETUP_UNIT_F4[k]})`, nb.setup[k], `setup.${k}`, (n, p) => Object.assign(n.setup[k], p), setupOpts[k], false))}
+            {text('flagW', nb.flagW, (n, v) => { n.flagW = v; }, false)}
           </>
         )}
-        {tab === 'velocity' && (
+        {tab === 'runs' && (
           <>
-            <p className="hint">{t('f04.nb.velocityLead')}</p>
+            <p className="hint">{t('f04.nb.runsLead')}</p>
             <div className="table-scroll">
               <table className="data">
-                <thead><tr><th>#</th><th>{t('f04.nb.shot')}</th><th>v₀ (m/s)</th></tr></thead>
+                <thead><tr><th>#</th><th>{t('f04.nb.run')}</th><th>v₁ (m/s)</th><th>v₂ (m/s)</th><th>a (m/s²)</th></tr></thead>
                 <tbody>
-                  {nb.velocity.map((row, i) => (
+                  {nb.runs.map((row, i) => (
                     <tr key={i}>
                       <td>{i + 1}</td>
-                      <td>{pick(`${t('f04.nb.shot')} ${i + 1}`, row.readingId, gates, `velocity.${i}.readingId`, (n, id) => { n.velocity[i].readingId = id; })}</td>
-                      <td>{num(`v0 ${i + 1}`, row.v0, `velocity.${i}.v0`, (n, v) => { n.velocity[i].v0 = v; })}</td>
+                      <td>{pick(`${t('f04.nb.run')} ${i + 1}`, row.readingId, runs, `runs.${i}.readingId`, (n, id) => { n.runs[i].readingId = id; })}</td>
+                      {(['v1', 'v2', 'aGates'] as const).map((f) => <td key={f}>{num(`${f} ${i + 1}`, row[f], `runs.${i}.${f}`, (n, v) => { n.runs[i][f] = v; })}</td>)}
                     </tr>
                   ))}
                 </tbody>
@@ -167,72 +164,64 @@ export function NotebookPanelF04() {
             </div>
           </>
         )}
-        {tab === 'angles' && (
+        {tab === 'masses' && (
           <>
-            <p className="hint">{t('f04.nb.anglesLead')}</p>
-            {nb.angles.map((row, i) => (
-              <div key={i} className="nb-group">
-                <strong>{t('f04.nb.angleRow', { n: i + 1 })}</strong>
-                <div className="cell">
-                  <span className="label">{t('f04.nb.impact')}</span>
-                  {pick(`${t('f04.nb.angleRow', { n: i + 1 })} ${t('f04.nb.impact')}`, row.readingId, impacts, `angles.${i}.readingId`, (n, id) => { n.angles[i].readingId = id; })}
-                </div>
-                {cell(`θ (°) ${i + 1}`, row.angle, `angles.${i}.angle`, (n, p) => Object.assign(n.angles[i].angle, p), angles, false)}
-                {cell(`${t('f04.nb.xPlat')} (cm) ${i + 1}`, row.xPlat, `angles.${i}.xPlat`, (n, p) => Object.assign(n.angles[i].xPlat, p), platTape, false)}
-                {(['R', 'Rpred', 'Tpred'] as const).map((f) => (
-                  <div className="cell" key={f}>
-                    <span className="label">{t(`f04.nb.col.${f}`)}</span>
-                    {num(`${f} ${i + 1}`, row[f], `angles.${i}.${f}`, (n, v) => { n.angles[i][f] = v; })}
-                  </div>
-                ))}
-              </div>
-            ))}
-            <h3>{t('f04.nb.conditions')}</h3>
-            {nb.conditions.map((row, i) => (
-              <div key={i} className="nb-group">
-                <strong>{t('f04.nb.condRow', { n: i + 1 })}</strong>
-                <div className="cell">
-                  <span className="label">{t('f04.nb.impact')}</span>
-                  {pick(`${t('f04.nb.condRow', { n: i + 1 })} ${t('f04.nb.impact')}`, row.readingId, impacts, `conditions.${i}.readingId`, (n, id) => { n.conditions[i].readingId = id; })}
-                </div>
-                {cell(`y₀ (cm) ${i + 1}`, row.h, `conditions.${i}.h`, (n, p) => Object.assign(n.conditions[i].h, p), heights, false)}
-                {cell(`${t('f04.nb.xPlat')} (cm) ${i + 1}`, row.xPlat, `conditions.${i}.xPlat`, (n, p) => Object.assign(n.conditions[i].xPlat, p), platTape, false)}
-                {(['R', 'Rpred'] as const).map((f) => (
-                  <div className="cell" key={f}>
-                    <span className="label">{t(`f04.nb.col.${f}`)}</span>
-                    {num(`${f} c${i + 1}`, row[f], `conditions.${i}.${f}`, (n, v) => { n.conditions[i][f] = v; })}
-                  </div>
-                ))}
-              </div>
-            ))}
+            <p className="hint">{t('f04.nb.massesLead')}</p>
+            <div className="table-scroll">
+              <table className="data">
+                <thead><tr><th>#</th><th>{t('f04.nb.run')}</th><th>m<sub>h</sub> (kg)</th><th>a<sub>pred</sub> (m/s²)</th></tr></thead>
+                <tbody>
+                  {nb.massRuns.map((row, i) => (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{pick(`${t('f04.nb.massRun')} ${i + 1}`, row.readingId, runs, `massRuns.${i}.readingId`, (n, id) => { n.massRuns[i].readingId = id; })}</td>
+                      <td>{num(`mh ${i + 1}`, row.mh, `massRuns.${i}.mh`, (n, v) => { n.massRuns[i].mh = v; })}</td>
+                      <td>{num(`aPred ${i + 1}`, row.aPred, `massRuns.${i}.aPred`, (n, v) => { n.massRuns[i].aPred = v; })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
-        {tab === 'trajectory' && (
+        {tab === 'pairs' && (
           <>
-            <p className="hint">{t('f04.nb.trajectoryLead')}</p>
-            {nb.trajectory.map((row, i) => (
-              <div key={i} className="nb-group">
-                <strong>{t('f04.nb.point', { n: i + 1 })}</strong>
-                <div className="cell">
-                  <span className="label">{t('f04.nb.mark')}</span>
-                  {pick(`${t('f04.nb.point', { n: i + 1 })} ${t('f04.nb.mark')}`, row.readingId, marks, `trajectory.${i}.readingId`, (n, id) => { n.trajectory[i].readingId = id; })}
-                </div>
-                {cell(`x (cm) ${i + 1}`, row.x, `trajectory.${i}.x`, (n, p) => Object.assign(n.trajectory[i].x, p), screenTape, false)}
-              </div>
-            ))}
+            <p className="hint">{t('f04.nb.pairsLead')}</p>
+            <div className="table-scroll">
+              <table className="data">
+                <thead><tr><th>#</th><th>{t('f04.nb.pair')}</th><th>F<sub>PQ</sub> + F<sub>QP</sub> (N)</th></tr></thead>
+                <tbody>
+                  {nb.pairs.map((row, i) => (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{pick(`${t('f04.nb.pair')} ${i + 1}`, row.readingId, pairs, `pairs.${i}.readingId`, (n, id) => { n.pairs[i].readingId = id; })}</td>
+                      <td>{num(`sum ${i + 1}`, row.sum, `pairs.${i}.sum`, (n, v) => { n.pairs[i].sum = v; })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
         {tab === 'calc' && (
           <>
             <p className="hint">{t('f04.nb.calcLead')}</p>
-            {CALC_FIELDS_F3.map((k) => cell(`${t(`f04.nb.calc.${k}`)}${CALC_UNIT_F3[k] ? ` (${CALC_UNIT_F3[k]})` : ''}`, nb.calc[k], `calc.${k}`, (n, p) => Object.assign(n.calc[k], p), [], k === 'v0Mean'))}
+            {CALC_FIELDS_F4.map((k) => cell(`${t(`f04.nb.calc.${k}`)}${CALC_UNIT_F4[k] ? ` (${CALC_UNIT_F4[k]})` : ''}`, nb.calc[k], `calc.${k}`, (n, p) => Object.assign(n.calc[k], p), [], k === 'aMean' || k === 'TMean'))}
             <h3>{t('f04.nb.contrast')}</h3>
             {text('contrastText', nb.contrastText, (n, v) => { n.contrastText = v; })}
           </>
         )}
         {tab === 'analysis' && (
           <>
-            {QUESTIONS_F3.map((q) => text(`analysis.${q}`, nb.analysis[q], (n, v) => { n.analysis[q] = v; }))}
+            <fieldset className="field">
+              <legend>{t('f04.nb.mcq')}</legend>
+              {MCQ_OPTIONS_F4.map((m) => (
+                <label key={m} style={{ display: 'block' }}>
+                  <input type="radio" name="f04-mcq" value={m} checked={nb.mcq === m} onChange={() => setNb((n) => { n.mcq = m; }, 'mcq', nb.mcq, m)} /> {t(`f04.nb.mcqOpt.${m}`)}
+                </label>
+              ))}
+            </fieldset>
+            {QUESTIONS_F4.map((q) => text(`analysis.${q}`, nb.analysis[q], (n, v) => { n.analysis[q] = v; }))}
             {text('closure', nb.closure, (n, v) => { n.closure = v; })}
           </>
         )}

@@ -55,11 +55,13 @@ export function expectedRunRow(w: F04World, nb: F04Notebook, r: ReadingF4 | null
   if (!r || r.kind !== 'run' || !r.run) return { v1: NaN, v2: NaN, aGates: NaN, v1Rounded: NaN, v2Rounded: NaN };
   const fw = flagWidthM(nb);
   const d = gateSeparationM(w, nb, r);
-  const v1 = gateSpeed(fw, r.run.dt1);
-  const v2 = gateSpeed(fw, r.run.dt2);
+  const dt1 = r.run.dt1 ?? NaN;
+  const dt2 = r.run.dt2 ?? NaN;
+  const v1 = gateSpeed(fw, dt1);
+  const v2 = gateSpeed(fw, dt2);
   return {
     v1, v2, aGates: kinematicAccel(v1, v2, d),
-    v1Rounded: gateSpeed(fw, Math.round(r.run.dt1 * 1000) / 1000), v2Rounded: gateSpeed(fw, Math.round(r.run.dt2 * 1000) / 1000),
+    v1Rounded: gateSpeed(fw, Math.round(dt1 * 1000) / 1000), v2Rounded: gateSpeed(fw, Math.round(dt2 * 1000) / 1000),
   };
 }
 
@@ -111,6 +113,6 @@ export function expectedSlope(w: F04World, nb: F04Notebook) {
 }
 
 export function expectedPairs(w: F04World, nb: F04Notebook) {
-  const sums = nb.pairs.map((x) => rdF4(w, x.readingId)).map((r) => (r?.pair ? r.pair.FA + r.pair.FB : NaN));
+  const sums = nb.pairs.map((x) => rdF4(w, x.readingId)).map((r) => (r?.pair ? (r.pair.FA ?? NaN) + (r.pair.FB ?? NaN) : NaN));
   return { sums, sumF: mean(sums.filter(Number.isFinite)) };
 }

@@ -8,7 +8,7 @@ import type { QualitySetting } from '../../engine/quality';
 import { CoatIcon, GogglesIcon, HairIcon, ShoesIcon } from '../accessibility/PpeIcons';
 import { f04StageEvidence } from '../../practices/practice-f04/evidence';
 import type { F04World } from '../../simulation/f04-world/types';
-import { ballFlying } from '../../simulation/f04-world/world';
+import { runningF4 } from '../../simulation/f04-world/world';
 
 const PPE_ITEMS = [
   { key: 'coat', Icon: CoatIcon },
@@ -18,11 +18,10 @@ const PPE_ITEMS = [
 ] as const;
 type PpeKey = (typeof PPE_ITEMS)[number]['key'];
 
-/** No se entrega con una esfera en vuelo, el resorte cargado o un bloqueo de seguridad sin atender. */
+/** No se entrega con un ensayo en curso o un bloqueo de seguridad sin atender. */
 export function f04SubmissionBlockers(w: F04World): string[] {
   const out: string[] = [];
-  if (ballFlying(w)) out.push('FLYING');
-  if (w.launcher.notch > 0) out.push('SPRING');
+  if (runningF4(w) || w.pair.active) out.push('RUNNING');
   if (w.safety.block) out.push('BLOCK');
   return out;
 }

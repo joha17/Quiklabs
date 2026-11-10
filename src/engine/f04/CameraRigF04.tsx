@@ -1,8 +1,7 @@
 /**
  * Cámara orbital de F04: vistas por estación (A–F), transición suave, zoom a objeto y «vista de lectura» normal a
- * cada escala: de frente al transportador a la altura de la boca, a la regla vertical a la altura de la boca, desde
- * arriba a la cinta del suelo, de frente a la pantalla a la altura de la marca. La cámara baja hasta el suelo de la
- * zona de vuelo y recorre la pista entera (8 m) desde detrás del lanzador o desde el costado.
+ * cada escala: de frente al índice de cada compuerta sobre la escala del carril (sin paralaje), a la pantalla de la
+ * balanza y del registrador. Delante del borde izquierdo la cámara baja hasta el suelo para seguir al portapesas.
  */
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -13,7 +12,7 @@ import { ORBIT_LIMITS, ROOM } from '../scene/room';
 import { useF04Lab } from './context';
 import { F04_STATIONS } from '../../practices/practice-f04/definition';
 import { fromScene, toScene } from '../units';
-import { ballRoom, eyePoint, muzzleRoom, platformRoom, screenRoom } from './layout';
+import { eyePoint, objRoom } from './layout';
 
 interface Tween {
   fromT: THREE.Vector3;
@@ -24,18 +23,18 @@ interface Tween {
 }
 
 const OBJ_H: Record<string, number> = {
-  lane: 40, stand: 30, launcher: 12, gate: 8, timer: 6, platform: 4, screen: 150, barrier: 90, fan: 50, ball: 3, tray: 3, floorTape: 3, plumb: 6, heightRuler: 60,
+  track: 10, cart: 14, latch: 5, brake: 4, stop: 6, pulley: 8, hanger: 8, slotMass: 2, massRack: 6, forceSensor: 3, accelerometer: 2, logger: 8, gate: 16, balance: 8, pairTrack: 4, pairCart: 6,
 };
 
 /**
- * Mantiene la cámara dentro de la sala. A diferencia de las prácticas de mesada, delante de la mesada puede bajar hasta
- * 12 cm sobre el suelo (la zona de vuelo está en el suelo y las escalas se leen a la altura de la boca).
+ * Mantiene la cámara dentro de la sala. Delante de la mesada o más allá de su borde izquierdo (donde cuelga el
+ * portapesas) puede bajar hasta 12 cm sobre el suelo; sobre la mesada no la atraviesa.
  */
 function confineF04(camera: THREE.Camera) {
   const p = camera.position;
   p.x = THREE.MathUtils.clamp(p.x, ROOM.xMin + 14, ROOM.xMax - 14);
   p.z = THREE.MathUtils.clamp(p.z, ROOM.zBack + 4, ROOM.zFront - 14);
-  const yMin = p.z > 8 ? ROOM.yFloor + 12 : 1;
+  const yMin = p.z > 8 || p.x < -6 ? ROOM.yFloor + 12 : 1;
   p.y = THREE.MathUtils.clamp(p.y, yMin, ROOM.yCeil - 14);
 }
 
@@ -80,7 +79,7 @@ export function CameraRigF04() {
         const o = lab.runtime.world.objects[id];
         if (!o) return;
         const w = lab.runtime.world;
-        const p = o.kind === 'launcher' || o.kind === 'gate' ? muzzleRoom(w) : o.kind === 'platform' ? platformRoom(w) : o.kind === 'screen' ? screenRoom(w) : (ballRoom(w, id) ?? o.pose);
+        const p = o.support === 'hand' ? o.pose : objRoom(w, id);
         const h = Math.min(30, OBJ_H[o.kind] ?? 6);
         const t = new THREE.Vector3(...toScene(p.x, p.y, p.z + h / 2));
         const dist = close ? Math.max(14, h * 2.2) : Math.max(30, h * 3.5);
@@ -91,19 +90,13 @@ export function CameraRigF04() {
       eyeLevel: (target) => {
         const w = lab.runtime.world;
         const e = eyePoint(w, target);
-        if (target === 'floorTape01' || target === 'platform01') {
-          // Cinta del suelo: el ojo justo encima del índice.
+        if (target === 'pair') {
           const t = new THREE.Vector3(...toScene(e.x, e.y, e.z));
-          go(t, t.clone().add(new THREE.Vector3(0, 45, 0.5)));
+          go(t, t.clone().add(new THREE.Vector3(0, 30, 70)));
           return;
         }
-        if (target === 'screen01') {
-          // Pantalla: de frente desde el lado del lanzador, a la altura de la marca.
-          const t = new THREE.Vector3(...toScene(e.x, e.y, e.z));
-          go(t, t.clone().add(new THREE.Vector3(-60, 0, 0)));
-          return;
-        }
-        const dist = target === 'heightRuler01' ? 45 : target === 'timer01' ? 30 : 35;
+        // Escalas y pantallas: de frente, a la altura del índice (el ojo en la normal de la escala).
+        const dist = target === 'gate1' || target === 'gate2' ? 28 : target === 'cart01' ? 40 : 30;
         front(e.x, e.y, e.z, dist);
       },
       orbit: (dAz, dPol) => {

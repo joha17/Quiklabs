@@ -8,7 +8,9 @@ import { rand } from '../core/rng';
 export function emitF4(w: F04World, code: string, severity: Severity, params?: SimEvent['params']): SimEvent {
   const seq = (w.evidence.__eventSeq ?? 0) + 1;
   w.evidence.__eventSeq = seq;
-  const e: SimEvent = { seq, t: w.timeS, code, severity, params };
+  // Un número sin dato (canal apagado) se guarda como «—»: NaN no sobrevive al JSON de la cinta ni se muestra bien.
+  const clean = params && Object.fromEntries(Object.entries(params).map(([k, v]) => [k, typeof v === 'number' && !Number.isFinite(v) ? '—' : v]));
+  const e: SimEvent = { seq, t: w.timeS, code, severity, params: clean };
   w.events.push(e);
   if (w.events.length > 600) w.events.splice(0, w.events.length - 600);
   return e;

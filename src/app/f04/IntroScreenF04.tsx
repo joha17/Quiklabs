@@ -5,7 +5,7 @@ import { tList } from '../i18n';
 import { newSeed } from '../../simulation/core/rng';
 import type { F04Mode } from '../../practices/practice-f04/definition';
 import { F04_SCENARIOS, type F04Scenario } from '../../practices/practice-f04/error-scenarios';
-import { SF3 } from '../../simulation/f04-world/world';
+import { SF4 } from '../../simulation/f04-world/world';
 import { fmtTime } from './ui';
 
 const MODES: F04Mode[] = ['PRACTICE', 'GUIDED', 'EVALUATION', 'DEBUG'];
@@ -13,8 +13,8 @@ const MODES: F04Mode[] = ['PRACTICE', 'GUIDED', 'EVALUATION', 'DEBUG'];
 /** Perfiles de actividad : no sustituyen el modo; fijan qué escenarios docentes empiezan activos. */
 const PROFILES: Record<'BASICS' | 'TECHNIQUE' | 'DIAGNOSIS', F04Scenario[]> = {
   BASICS: [],
-  TECHNIQUE: [SF3.HIGH_ANGLE, SF3.SIDE_PLATFORM, SF3.RAISED_BASE, SF3.GATE_CALIBRATION],
-  DIAGNOSIS: [SF3.WEAK_SPRING, SF3.SIDE_WIND, SF3.SENSOR_DELAY, SF3.OUT_OF_PLANE],
+  TECHNIQUE: [SF4.SATURATED, SF4.SLACK, SF4.SLOPE, SF4.BILATERAL],
+  DIAGNOSIS: [SF4.FRICTION, SF4.PULLEY_INERTIA, SF4.LOSSY, SF4.CLOSE_STOP],
 };
 
 export function IntroScreenF04({ onBack }: { onBack: () => void }) {

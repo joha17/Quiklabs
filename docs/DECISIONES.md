@@ -459,6 +459,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F103-4.** Modo ideal (sin aire, resorte sin pérdidas) y modo realista. La libreta se corrige siempre con las lecturas del propio estudiante: su v₀ medida, su altura de boca, su ángulo leído y la posición de su plataforma en la cinta.
 - **F103-5.** La ruta ideal es una sola (`practice-f103/route.ts`) y la usan las pruebas de integración, la repetición determinista y, paso a paso, la demostración automática, que además lee con la cámara bien puesta: si la ruta cambia, las tres se enteran.
 
+## F04 · Leyes de Newton y sistemas acoplados
+
+- **F04-1.** Montaje original para la unidad de dinámica sobre la mesada de 560 cm: carril de 160 cm en el tramo izquierdo con la polea fuera del borde (el portapesas cuelga hasta el suelo, 88 cm más abajo), pista corta de la pareja a la derecha y balanza, registrador y estante detrás del carril. El identificador es `f04` (no `f104`): así lo pidió el usuario. El sensor de fuerza vive en `simulation/instruments/force-sensor.ts` para reutilizarse.
+- **F04-2.** Los parámetros no certificados de §7 (inercia y roce del rodamiento de la polea, roce del carril, del cable y de la abrazadera, constante del freno, pendiente y corrimiento de los sensores sin calibrar, ruido, rigidez de los parachoques) son hipotéticos y están declarados en `params.ts`.
+- **F04-3.** El cordel no es una restricción fija: con holgura, carro y portapesas se mueven por separado y se unen con un choque inelástico al tensarse; la energía que se pierde va a lo disipado. El roce y el freno se integran con el teorema de la energía para que el balance cierre en todo el ensayo, también con choques y aterrizajes.
+- **F04-4.** El registrador guarda la señal completa y el estudiante elige la ventana de lectura en la gráfica: la ventana no se corrige sola. Si incluye el aterrizaje, el freno o el choque, la lectura sale marcada y el error se atribuye a la técnica, no al instrumento.
+- **F04-5.** Los diagramas de cuerpo libre se arman sobre los cuerpos de la escena con fuerza, sentido y el cuerpo que la ejerce; el dominio decide la coherencia al bloquear. La ruta ideal (`practice-f04/route.ts`) es una sola y la usan las pruebas, la repetición y la demostración.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:
