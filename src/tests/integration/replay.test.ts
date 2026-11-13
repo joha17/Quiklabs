@@ -120,6 +120,10 @@ vi.mock('../../simulation/f05-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/f05-world/world')>();
   return { ...m, dispatchF05: wrap(m.dispatchF05) };
 });
+vi.mock('../../simulation/f06-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/f06-world/world')>();
+  return { ...m, dispatchF06: wrap(m.dispatchF06) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -1022,3 +1026,22 @@ async function messySession(labId: GradedLab, src: { tape: AttemptTape; notebook
   else if (out.status !== 'OK') problems.push(`la repetición da otra nota: ${out.replayScore} vs ${graded.evaluation.total}`);
   return problems;
 }
+
+describe('repetición determinista — Física F06', () => {
+  for (const seed of [20261113, 106]) {
+    it(`F06 semilla ${seed}: balanza, calibración del resorte, sensores, disparos, alturas, péndulo, pérdidas y reanudación`, async () => {
+      const hf = await import('../helpersF06');
+      const { sanitizeOnResumeF06 } = await import('../../practices/practice-f06/resume');
+      const { newPracticeF06World } = await import('../../practices/practice-f06');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('f06', opts, () => newPracticeF06World(opts), (w, resume) => {
+        const out = hf.idealRouteF6(seed, [], undefined, w, resume);
+        nb = hf.fillNotebookF6(out.w, out.ids);
+        return out.w;
+      }, sanitizeOnResumeF06);
+      const { graded } = await verify('f06', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});

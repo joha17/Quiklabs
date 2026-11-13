@@ -422,6 +422,15 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f06": {
+        "title": "Trabajo, resortes y conservación de la energía",
+        "subtitle": "Calibra un resorte con pesas y una regla, dispáralo contra un carro con sensores de fuerza y posición, mide el trabajo como área bajo F–x, sigue la energía por un riel con subida y en un péndulo, y descubre adónde va la que se pierde.",
+        "points": [
+          "La energía se sigue de verdad: cada julio guardado en el resorte se reparte entre movimiento, altura y lo que disipan el roce y el amortiguador.",
+          "El trabajo de una fuerza variable sale del área bajo TU curva F–x, no de F · x.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, de frente y con los instrumentos listos."
+        ]
+      },
       "f05": {
         "title": "Rozamiento y dinámica de planos inclinados",
         "subtitle": "Tira de un bloque con un dinamómetro a rapidez constante, separa el pico estático de la meseta cinética, varía la carga, busca el ángulo crítico inclinando el plano y mide la bajada con fotopuertas.",

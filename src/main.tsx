@@ -39,6 +39,7 @@ void import('./app/f102/store').then((m) => ((window as unknown as { __f102: unk
 void import('./app/f103/store').then((m) => ((window as unknown as { __f103: unknown }).__f103 = m.useF103));
 void import('./app/f04/store').then((m) => ((window as unknown as { __f04: unknown }).__f04 = m.useF04));
 void import('./app/f05/store').then((m) => ((window as unknown as { __f05: unknown }).__f05 = m.useF05));
+void import('./app/f06/store').then((m) => ((window as unknown as { __f06: unknown }).__f06 = m.useF06));
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
