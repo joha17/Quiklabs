@@ -467,6 +467,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F04-4.** El registrador guarda la señal completa y el estudiante elige la ventana de lectura en la gráfica: la ventana no se corrige sola. Si incluye el aterrizaje, el freno o el choque, la lectura sale marcada y el error se atribuye a la técnica, no al instrumento.
 - **F04-5.** Los diagramas de cuerpo libre se arman sobre los cuerpos de la escena con fuerza, sentido y el cuerpo que la ejerce; el dominio decide la coherencia al bloquear. La ruta ideal (`practice-f04/route.ts`) es una sola y la usan las pruebas, la repetición y la demostración.
 
+## F05 · Rozamiento y dinámica de planos inclinados
+
+- **F05-1.** Montaje original sobre la mesada: tablero de 100 cm con la bisagra a la izquierda y el tirador en una ménsula del extremo alto, balanza, termómetro, estantes y registrador a la derecha. El identificador es `f05`, como en F04. La célula de carga reutiliza `instruments/force-sensor.ts` y el ajuste lineal sale de los modelos de F04.
+- **F05-2.** Coeficientes de rozamiento, tiempo de adherencia (τ = 2 s), factor de desgaste, resorte del cable y parámetros de los instrumentos son hipotéticos y están declarados en `params.ts`.
+- **F05-3.** El ángulo crítico solo se registra si el bloque arranca mientras se gira el elevador con el bloque en reposo («armado»): un arranque por un golpe o por la deriva del tablero no es un ángulo crítico. Así la lectura del goniómetro queda ligada a la técnica.
+- **F05-4.** Una superficie rayada conserva su desgaste aunque se cambie de tira; inspeccionarla registra el daño y deja de marcar las lecturas. La base del tablero tiene una inclinación pequeña (±0,1° a ±0,4°) en modo realista para que el ángulo se lea en el goniómetro y no en la escala del soporte.
+- **F05-5.** El registrador guarda el tirón completo y el estudiante elige dos ventanas: la del pico (hasta pasado el arranque) y la de la meseta (con la oscilación extinguida). La ruta ideal (`practice-f05/route.ts`) usa una meseta adaptativa y es la misma para las pruebas, la repetición y la demostración.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

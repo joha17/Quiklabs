@@ -173,6 +173,14 @@ import type { F04Notebook } from './practice-f04/notebook';
 import type { F04World } from '../simulation/f04-world/types';
 import { dispatchF04, stepF04World } from '../simulation/f04-world/world';
 import { conservedTotalsF04 } from '../simulation/f04-world/conservation';
+import { newPracticeF05World, type PracticeF05Options } from './practice-f05';
+import { f05StageEvidence } from './practice-f05/evidence';
+import { evaluateF05 } from './practice-f05/rubric';
+import { sanitizeOnResumeF05 } from './practice-f05/resume';
+import type { F05Notebook } from './practice-f05/notebook';
+import type { F05World } from '../simulation/f05-world/types';
+import { dispatchF05, stepF05World } from '../simulation/f05-world/world';
+import { conservedTotalsF05 } from '../simulation/f05-world/conservation';
 import type { PlantWorld } from '../simulation/plant-world/types';
 import { conservedPlant, dispatchPlant, stepPlantWorld } from '../simulation/plant-world/world';
 import type { PhotoWorld } from '../simulation/photo-world/types';
@@ -184,7 +192,7 @@ import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f101', 'f102', 'f103', 'f04'];
+export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f101', 'f102', 'f103', 'f04', 'f05'];
 
 interface WorldBase {
   tick: number;
@@ -504,6 +512,18 @@ export const ADAPTERS: Record<GradedLab, Adapter> = {
     conserved: (w) => conservedTotalsF04(w as F04World),
     mode: (o) => opt<PracticeF04Options>(o).mode,
   },
+  f05: {
+    create: (o) => newPracticeF05World(opt<PracticeF05Options>(o)),
+    dispatch: (w, c) => void dispatchF05(w as F05World, c as never),
+    step: (w) => stepF05World(w as F05World),
+    sanitize: (w) => sanitizeOnResumeF05(w as F05World),
+    latch: (w, nb) => void f05StageEvidence(w as F05World, nb as F05Notebook),
+    evaluate: (w, s) => evaluateF05(w as F05World, s.notebook as F05Notebook),
+    // Lo inmutable del intento: semilla, parámetros (masas, coeficientes, resorte, sensores) y escenarios.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as F05World).scenarios, initialTotals: (w as F05World).initialTotals }),
+    conserved: (w) => conservedTotalsF05(w as F05World),
+    mode: (o) => opt<PracticeF05Options>(o).mode,
+  },
 };
 
 export const isGradedLab = (x: unknown): x is GradedLab => GRADED_LABS.includes(x as GradedLab);
@@ -527,7 +547,7 @@ export interface GradeResult {
 
 /** El intento empezó con la semilla del identificador (`pN-` o `bNN-<semilla base 36>-<marca>`). */
 export function seedFromAttemptId(attemptId: string): number | null {
-  const m = /^(?:p(?:01|[2-9]|10)|b(?:0[1-9]|10)|f10[1-3]|f04)-([0-9a-z]+)-/.exec(attemptId);
+  const m = /^(?:p(?:01|[2-9]|10)|b(?:0[1-9]|10)|f10[1-3]|f0[45])-([0-9a-z]+)-/.exec(attemptId);
   return m ? parseInt(m[1], 36) : null;
 }
 

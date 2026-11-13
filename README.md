@@ -248,6 +248,10 @@ Tercera práctica de Física: lanzador de resorte sobre un soporte anclado y niv
 
 Cuarta práctica de Física: carril nivelado con el acelerómetro, carro unido por una polea a una masa colgante, sensor de fuerza en el gancho y fotopuertas; ensayos repetidos con la ventana elegida en la gráfica del registrador, barrido de masa colgante contra a = m_h g/(m_c + m_h) y la masa efectiva de la polea, diagramas de cuerpo libre sobre los objetos y tercera ley con dos carros y dinamómetros enfrentados. 40 errores `F04-Exx`, 12 escenarios y demostración automática (`#f04`). Detalle en [docs/F04.md](docs/F04.md); requiere la migración `0024_course_labs_f04.sql`.
 
+## Física F05 — Rozamiento y dinámica de planos inclinados
+
+Quinta práctica de Física: tablero inclinable con revestimientos de madera, papel y goma, bloque con lastres y tirador de husillo con célula de carga; pico estático y meseta cinética elegidos en la gráfica del registrador, barrido de carga, ángulo crítico leído de frente en el goniómetro y bajada a 30° con fotopuertas, contrastando μ entre métodos. 40 errores `F05-Exx`, 12 escenarios y demostración automática (`#f05`). Detalle en [docs/F05.md](docs/F05.md); requiere la migración `0025_course_labs_f05.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
