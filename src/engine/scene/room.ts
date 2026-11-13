@@ -170,7 +170,7 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
   // ── Vitrinas superiores con material de vidrio ──
   const cabWood = new THREE.MeshStandardMaterial({ color: 0xb98d5f, roughness: 0.6 });
   const glassPane = new THREE.MeshPhysicalMaterial({ color: 0xdbe6ee, roughness: 0.05, transparent: true, opacity: 0.28, clearcoat: 1, depthWrite: false });
-  for (const [x0, x1] of variant === 'p2' ? [[-20, 120], [140, 300]] : [[-20, 100]]) {
+  for (const [x0, x1] of variant === 'p2' ? [[-20, 120], [140, 300]] : variant === 'f06' ? [] : [[-20, 100]]) {
     const w = x1 - x0;
     const cx = (x0 + x1) / 2;
     g.add(box(w, 70, 2, cabWood, cx, 93, WALL_Z + 1));
@@ -237,8 +237,8 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
     poster(posterTexture('PLANO', ['Bloquear el elevador', 'antes de cerrar'], '#d0021b', 'goggles'), 318, 60);
     poster(posterTexture('CABLE', ['Tirador al inicio', 'antes de soltarlo'], '#1565c0', 'eye'), 318, 92);
   } else if (variant === 'f06') {
-    poster(posterTexture('RESORTE', ['Nunca desmontarlo', 'comprimido'], '#d0021b', 'goggles'), 318, 60);
-    poster(posterTexture('RIEL', ['Freno puesto', 'antes de disparar'], '#1565c0', 'eye'), 318, 92);
+    poster(posterTexture('RESORTE', ['Nunca desmontarlo', 'comprimido'], '#d0021b', 'goggles'), 214, 82);
+    poster(posterTexture('RIEL', ['Freno puesto', 'antes de disparar'], '#1565c0', 'eye'), 240, 82);
   } else if (variant === 'p7') {
     poster(posterTexture('ELECTRICIDAD', ['Nunca con las', 'manos mojadas'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('DISOLVENTES', ['Frascos tapados,', 'sin llamas'], '#d0021b', 'nofood'), 318, 92);

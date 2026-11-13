@@ -27,9 +27,9 @@ const ST = GEOF06.stand;
 const PD = GEOF06.pend;
 
 export const F06_STATIONS: F06Station[] = [
-  { id: 'A', target: [44, 34, 70], dist: 150, elevation: 0.2 },
+  { id: 'A', target: [56, 34, 64], dist: 215, elevation: 0.15 },
   { id: 'B', target: [190, TR.y, 18], dist: 200, elevation: 0.3 },
-  { id: 'C', target: [306, 46, 90], dist: 170, elevation: 0.15, azimuth: -0.2 },
+  { id: 'C', target: [300, 40, 72], dist: 250, elevation: 0.12, azimuth: 0.35 },
   { id: 'D', target: [118, TR.y + 6, 14], dist: 70, elevation: 0.35, azimuth: 0.35 },
   { id: 'E', target: [200, TR.y, 22], dist: 110, elevation: 0.32 },
   { id: 'F', target: [170, 32, 40], dist: 300, elevation: 0.25 },

@@ -143,6 +143,8 @@
       "F": "F · Análisis"
     },
     "stage": {
+      "INTRO": "Presentación",
+      "PPE_CHECK": "Equipo de protección",
       "MATERIALS": "Materiales",
       "SPRING": "Ley de Hooke",
       "STORE": "Energía elástica",
@@ -150,7 +152,9 @@
       "LOSSES": "Pérdidas",
       "CHECK": "Comprobación",
       "REPORT": "Informe",
-      "COMPLETE": "Completo"
+      "COMPLETE": "Completo",
+      "SUBMISSION": "Entrega",
+      "REVIEW": "Revisión"
     },
     "stageFlag": {
       "ppeReady": "Equipo de protección puesto",

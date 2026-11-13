@@ -12,7 +12,7 @@ import type { F06Command } from '../../../simulation/f06-world/commands';
 import { fillNotebookF6 } from '../../../practices/practice-f06/notebook-fill';
 import { INSPECT_F6, ROUTE_PAD, emptyRouteIdsF6, routeCompression, routeHeights } from '../../../practices/practice-f06/route';
 import { GEOF06 } from '../../../simulation/f06-world/geometry';
-import { SLOTS, busyF6 } from '../../../simulation/f06-world/world';
+import { SLOTS, busyF6, standAmplitudeCm } from '../../../simulation/f06-world/world';
 import { useF06 } from '../store';
 
 export interface DemoUiHooksF06 {
@@ -46,7 +46,8 @@ export function buildDemoScriptF06(ui: DemoUiHooksF06): DemoStepF06[] {
   /** Lectura de la regla ya en reposo (espera la amortiguación de la carga, más rápido en pantalla). */
   const ruler = async (d: DemoDirectorF06) => {
     const t0 = d.w.timeS;
-    await d.fast(4, () => d.until(() => d.w.timeS - t0 > 8, 12));
+    // Espera a que el puntero quede quieto (no un tiempo fijo: con más carga la oscilación dura más).
+    await d.fast(4, () => d.until(() => d.w.timeS - t0 > 2 && standAmplitudeCm(d.w) < 0.02, 40));
     d.lab.camera?.eyeLevel('ruler01');
     await d.wait(0.9);
     await d.press('ruler01', undefined, 0.3);

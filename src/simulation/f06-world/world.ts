@@ -106,6 +106,16 @@ export const busyF6 = (w: F06World) => runningRunF6(w);
 export const cartMovingF6 = (w: F06World) => w.cart.on === 'track' && Math.abs(w.cart.v) > 1e-4;
 export const bobMovingF6 = (w: F06World) => !w.pend.held && (Math.abs(w.pend.omega) > 1e-4 || Math.abs(w.pend.thetaDeg) > 0.01 || Math.abs(w.pend.vy) > 1e-4);
 /** Posición de equilibrio de la carga colgada (m). */
+/** Oscilación que queda en el soporte (cm): amplitud estimada con la posición y la velocidad respecto del equilibrio. */
+export function standAmplitudeCm(w: F06World): number {
+  const sp = springAt(w, 'stand');
+  if (!sp) return 0;
+  const st = w.stand;
+  const m = hangingKg(w);
+  const om = m > 0 ? Math.sqrt(springKOf(w, sp) / m) : 1;
+  return Math.hypot(st.x - standEquilibrium(w), st.v / om) * 100;
+}
+
 export function standEquilibrium(w: F06World): number {
   const id = springAt(w, 'stand');
   if (!id || !w.stand.hangerOn) return 0;
@@ -543,10 +553,7 @@ function readRuler(w: F06World, viewDeg: number): F06DispatchResult {
     flags.push('ZERO_OFFSET');
     errF6(w, 'E03', 'RULER_ZERO_OFFSET', 'WARN');
   }
-  // Oscilación que queda: amplitud estimada con la posición y la velocidad respecto del equilibrio.
-  const m = hangingKg(w);
-  const om = m > 0 ? Math.sqrt(springKOf(w, sp) / m) : 1;
-  const amp = Math.hypot(st.x - standEquilibrium(w), st.v / om) * 100;
+  const amp = standAmplitudeCm(w);
   if (st.hangerOn && amp > 0.05) {
     flags.push('OSCILLATING');
     errF6(w, 'E05', 'READ_OSCILLATING', 'WARN');

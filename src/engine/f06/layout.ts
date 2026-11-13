@@ -184,7 +184,7 @@ export function objRoom(w: F06World, id: string): P3 {
     case 'angleSensor':
       return pivotRoom();
     case 'stand':
-      return { x: ST.x, y: ST.y, z: 60 };
+      return { x: ST.x, y: ST.y, z: 0 };
     default:
       return { x: o.pose.x, y: o.pose.y, z: o.pose.z };
   }
