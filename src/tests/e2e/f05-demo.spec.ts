@@ -49,7 +49,7 @@ test('la demostración de F05 se reproduce completa y deja el puesto cerrado', a
   console.log(`· errores de técnica: ${errs.join(', ') || 'ninguno'}`);
   expect(errs).toEqual([]);
   const readings = Object.values(w.readings) as AnyState[];
-  expect(readings.filter((r) => r.kind === 'pull').length).toBe(8);
+  expect(readings.filter((r) => r.kind === 'pull').length).toBe(10);
   expect(readings.filter((r) => r.kind === 'angle').length).toBe(3);
   expect(readings.filter((r) => r.kind === 'slide').length).toBe(1);
   expect(readings.filter((r) => r.kind === 'mass').length).toBe(2);
