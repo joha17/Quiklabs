@@ -422,6 +422,15 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f05": {
+        "title": "Rozamiento y dinámica de planos inclinados",
+        "subtitle": "Tira de un bloque con un dinamómetro a rapidez constante, separa el pico estático de la meseta cinética, varía la carga, busca el ángulo crítico inclinando el plano y mide la bajada con fotopuertas.",
+        "points": [
+          "El contacto es real: la adherencia crece con el tiempo quieto, las tiras se rayan y un cable inclinado cambia la normal.",
+          "Los coeficientes se contrastan entre métodos (fuerzas, ángulo crítico y bajada) con TUS lecturas, no con una tabla.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas y diagramas de cuerpo libre coherentes."
+        ]
+      },
       "f04": {
         "title": "Leyes de Newton y sistemas acoplados",
         "subtitle": "Arma un carro con polea y masa colgante, mide la aceleración y la tensión con sensores reales, varía la masa colgante y comprueba la tercera ley con dos dinamómetros opuestos.",
