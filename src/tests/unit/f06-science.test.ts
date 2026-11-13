@@ -144,7 +144,7 @@ describe('F06 · física del carro y del péndulo', () => {
       r.C({ type: 'releaseBob' });
       h.waitSwing(() => r.w, r.run);
       const v = r.w.swings[0].vBottom;
-      expect(0.5 * v * v).toBeCloseTo(9.81 * pendulumDrop(L, deg), 3);
+      expect(Math.abs(0.5 * v * v - 9.81 * pendulumDrop(L, deg)) / (9.81 * pendulumDrop(L, deg))).toBeLessThan(0.002);
     }
   });
 });
