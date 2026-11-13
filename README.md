@@ -252,6 +252,10 @@ Cuarta práctica de Física: carril nivelado con el acelerómetro, carro unido p
 
 Quinta práctica de Física: tablero inclinable con revestimientos de madera, papel y goma, bloque con lastres y tirador de husillo con célula de carga; pico estático y meseta cinética elegidos en la gráfica del registrador, barrido de carga, ángulo crítico leído de frente en el goniómetro y bajada a 30° con fotopuertas, contrastando μ entre métodos. 40 errores `F05-Exx`, 12 escenarios y demostración automática (`#f05`). Detalle en [docs/F05.md](docs/F05.md); requiere la migración `0025_course_labs_f05.sql`.
 
+## Física F06 — Trabajo, resortes y conservación de la energía
+
+Sexta práctica de Física: calibración de un resorte con pesas ranuradas y una regla, lanzador de resorte con sensores de fuerza y posición (trabajo como área bajo F–x y potencia P(t)), carro en un riel con subida de altura regulable y fotopuertas, péndulo simple y un tramo de pérdidas con patín y amortiguador para seguir la energía disipada. 40 errores `F06-Exx`, 12 escenarios y demostración automática (`#f06`). Detalle en [docs/F06.md](docs/F06.md); requiere la migración `0026_course_labs_f06.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

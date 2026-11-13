@@ -169,13 +169,17 @@
       "F": "F · Análisis y diagramas"
     },
     "stage": {
+      "INTRO": "Presentación",
+      "PPE_CHECK": "Equipo de protección",
       "MATERIALS": "Materiales",
       "STATIC": "Rozamiento estático",
       "KINETIC": "Rozamiento cinético",
       "INCLINE": "Plano inclinado",
       "ANALYSIS": "Análisis",
       "REPORT": "Informe",
-      "COMPLETE": "Completo"
+      "COMPLETE": "Completo",
+      "SUBMISSION": "Entrega",
+      "REVIEW": "Revisión"
     },
     "comp": {
       "safety": "Seguridad",
