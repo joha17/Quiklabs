@@ -109,7 +109,7 @@ export function Lights({ q, hemi = 0.2, ambient = 0, sun = 1.9, shadowScale = 2,
   );
 }
 
-export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' }) {
+export function Room({ q, variant = 'p2' }: { q: QualityLevel; variant?: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' | 'f08' }) {
   const room = useMemo(() => {
     const g = createRoom(q, variant);
     return g;
