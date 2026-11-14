@@ -64,10 +64,10 @@ export function levelTrack(w: () => F07World, cmd: Cmd, run: Run): string {
  * Un choque: el blanco quieto en el centro (o lanzado desde la derecha si v₂ ≠ 0), el carro A trabado en la muesca de
  * referencia, suelta sin empujar, espera a que los dos queden frenados en los topes y lee fotopuertas (y fuerza o cámara).
  */
-export function collisionTrial(w: () => F07World, cmd: Cmd, run: Run, read: { force?: boolean; motion?: boolean } = {}): { gates: string; force: string; motion: string } {
+export function collisionTrial(w: () => F07World, cmd: Cmd, run: Run, read: { force?: boolean; motion?: boolean } = {}, cockB = ROUTE_COCK): { gates: string; force: string; motion: string } {
   if (w().bumper.joined) cmd({ type: 'separateCarts' });
   cmd({ type: 'cock', cart: 'cartA', cm: ROUTE_COCK });
-  if (Math.abs(w().params.v2) > 1e-6) cmd({ type: 'cock', cart: 'cartB', cm: ROUTE_COCK });
+  if (Math.abs(w().params.v2) > 1e-6 && cockB > 0) cmd({ type: 'cock', cart: 'cartB', cm: cockB });
   else cmd({ type: 'placeCart', cart: 'cartB', s: GEOF07.cartB0 });
   run(0.3);
   cmd({ type: 'release' });
@@ -135,7 +135,9 @@ export function idealRouteCommandsF7(w: () => F07World, cmd: Cmd, run: Run, opts
   // Etapa 3 — choque perfectamente inelástico: velcro apretado y fijado.
   cmd({ type: 'setBumper', bumper: 'velcro' });
   cmd({ type: 'fixVelcro', on: true });
-  ids.stick = collisionTrial(w, cmd, run).gates;
+  // Con velcro el blanco espera quieto en el centro aunque el escenario lance los dos carros: así la pareja pegada
+  // conserva rapidez para pasar la fotopuerta después del choque.
+  ids.stick = collisionTrial(w, cmd, run, {}, 0).gates;
   cmd({ type: 'separateCarts' });
   cmd({ type: 'setBumper', bumper: 'spring' });
   // Etapa 4 — centro de masa: carga en B, pesada, y un choque registrado por la cámara.
