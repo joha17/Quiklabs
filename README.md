@@ -256,6 +256,10 @@ Quinta práctica de Física: tablero inclinable con revestimientos de madera, pa
 
 Sexta práctica de Física: calibración de un resorte con pesas ranuradas y una regla, lanzador de resorte con sensores de fuerza y posición (trabajo como área bajo F–x y potencia P(t)), carro en un riel con subida de altura regulable y fotopuertas, péndulo simple y un tramo de pérdidas con patín y amortiguador para seguir la energía disipada. 40 errores `F06-Exx`, 12 escenarios y demostración automática (`#f06`). Detalle en [docs/F06.md](docs/F06.md); requiere la migración `0026_course_labs_f06.sql`.
 
+## Física F07 — Impulso, colisiones y momento lineal
+
+Séptima práctica de Física: riel de 2 m nivelado con tornillo y burbuja, dos carros con lanzadores de émbolo y paragolpes de resorte, imanes o velcro, fotopuertas con abrazadera, sensor de fuerza a 5000 Hz (impulso como área bajo F–t) y cámara lateral para seguir el centro de masa; choques elásticos, perfectamente inelásticos y la conservación del momento con datos propios. 40 errores `F07-Exx`, 12 escenarios y demostración automática (`#f07`). Detalle en [docs/F07.md](docs/F07.md); requiere la migración `0027_course_labs_f07.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
