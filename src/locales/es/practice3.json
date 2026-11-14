@@ -422,6 +422,15 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f08": {
+        "title": "Rotación de cuerpos rígidos y momento de inercia",
+        "subtitle": "Aplica un torque constante con una masa que cae enrollada en un tambor, mide la aceleración angular con un encoder, compara disco, aro y barra con masas corredizas, comprueba el teorema de los ejes paralelos y sigue la energía con un tacómetro y una fotopuerta.",
+        "points": [
+          "El giro es real: el roce del eje, un sólido descentrado o una masa corrediza sin fijar cambian la α que mide tu encoder.",
+          "El momento de inercia sale de TUS α, tu tensión y tu radio del tambor, descontando el roce con la desaceleración libre.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, con la guarda cerrada y los instrumentos listos."
+        ]
+      },
       "f07": {
         "title": "Impulso, colisiones y momento lineal",
         "subtitle": "Lanza un carro contra otro sobre un riel nivelado, mide las velocidades con fotopuertas y la fuerza del choque a 5000 Hz, obtén el impulso como área bajo F–t, pega los carros con velcro y sigue el centro de masa con una cámara.",
