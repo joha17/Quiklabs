@@ -2,7 +2,10 @@
  * Formato de la cinta de un intento (sin dependencias: lo importa el runtime de cada práctica sin arrastrar la
  * simulación de las demás). La repetición y la calificación están en `grading.ts`.
  */
-export type GradedLab = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06' | 'b07' | 'b08' | 'b09' | 'b10' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' | 'f08' | 'f09';
+import type { LabId } from '../labs/registry';
+
+/** Todos los laboratorios se califican en el servidor (un adaptador por laboratorio en `grading.ts`). */
+export type GradedLab = LabId;
 
 /** Marca de la cinta: al reanudar, la aplicación deja el mundo en estado seguro (`sanitizeOnResume*`). */
 export const RESUME = '#resume';

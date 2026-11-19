@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LabId, Submission, SubmissionReplay } from '../../../worker/core/types';
 import { api } from './api';
-import { LAB_TITLE } from './TeacherPanel';
+import { labTitleKey } from '../../labs/registry';
 import { Notice, errorText, fmtDate, pct } from './ui';
 
 export type CourseSubmission = Submission & { studentName: string; studentCode: string | null; hasTape: boolean };
@@ -101,7 +101,7 @@ export function SubmissionReview({ courseId }: { courseId: string }) {
               {t('pf.student.lab')}{' '}
               <select value={lab} onChange={(e) => setLab(e.target.value as LabId | '')}>
                 <option value="">{t('pf.review.allLabs')}</option>
-                {labs.map((l) => <option key={l} value={l}>{t(LAB_TITLE[l])}</option>)}
+                {labs.map((l) => <option key={l} value={l}>{t(labTitleKey(l))}</option>)}
               </select>
             </label>
           </div>
@@ -117,7 +117,7 @@ export function SubmissionReview({ courseId }: { courseId: string }) {
                 {shown.map((s) => (
                   <tr key={s.id}>
                     <td>{s.studentName}{s.studentCode && <span className="pf-muted"> · {s.studentCode}</span>}</td>
-                    <td>{t(LAB_TITLE[s.labId])} <span className="pf-muted">· {t(`pf.labs.mode.${s.mode}`)}</span></td>
+                    <td>{t(labTitleKey(s.labId))} <span className="pf-muted">· {t(`pf.labs.mode.${s.mode}`)}</span></td>
                     <td>{fmtDate(s.submittedAt, true)}</td>
                     <td className="num"><strong>{pct(s.score)}</strong></td>
                     <td>

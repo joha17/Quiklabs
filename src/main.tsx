@@ -5,6 +5,8 @@ import './app/styles.css';
 import { App } from './app/App';
 import { useLab } from './app/store';
 import { useShell } from './app/shell';
+import { LAB_MODULES } from './app/labModules';
+import { LAB_IDS } from './labs/registry';
 import { applyTheme, storedTheme } from './app/theme';
 
 // Tema elegido en la página de inicio (si no hay elección, se sigue el modo del sistema).
@@ -13,36 +15,11 @@ applyTheme(storedTheme());
 // Asas de inspección para pruebas automatizadas (Playwright) y para el modo depuración docente.
 (window as unknown as { __lab: typeof useLab }).__lab = useLab;
 (window as unknown as { __shell: typeof useShell }).__shell = useShell;
-// La Práctica 3 se carga al abrirla; su store se expone en cuanto existe (window.__p3).
-void import('./app/p3/store').then((m) => ((window as unknown as { __p3: unknown }).__p3 = m.useP3));
-// La Práctica 4 también se carga al abrirla (window.__p4).
-void import('./app/p4/store').then((m) => ((window as unknown as { __p4: unknown }).__p4 = m.useP4));
-void import('./app/p5/store').then((m) => ((window as unknown as { __p5: unknown }).__p5 = m.useP5));
-void import('./app/p6/store').then((m) => ((window as unknown as { __p6: unknown }).__p6 = m.useP6));
-void import('./app/p01/store').then((m) => ((window as unknown as { __p01: unknown }).__p01 = m.useP01));
-void import('./app/p7/store').then((m) => ((window as unknown as { __p7: unknown }).__p7 = m.useP07));
-void import('./app/p8/store').then((m) => ((window as unknown as { __p8: unknown }).__p8 = m.useP08));
-void import('./app/p9/store').then((m) => ((window as unknown as { __p9: unknown }).__p9 = m.useP09));
-void import('./app/p10/store').then((m) => ((window as unknown as { __p10: unknown }).__p10 = m.useP10));
-void import('./app/b01/store').then((m) => ((window as unknown as { __b01: unknown }).__b01 = m.useB01));
-void import('./app/b02/store').then((m) => ((window as unknown as { __b02: unknown }).__b02 = m.useB02));
-void import('./app/b03/store').then((m) => ((window as unknown as { __b03: unknown }).__b03 = m.useB03));
-void import('./app/b04/store').then((m) => ((window as unknown as { __b04: unknown }).__b04 = m.useB04));
-void import('./app/b05/store').then((m) => ((window as unknown as { __b05: unknown }).__b05 = m.useB05));
-void import('./app/b06/store').then((m) => ((window as unknown as { __b06: unknown }).__b06 = m.useB06));
-void import('./app/b07/store').then((m) => ((window as unknown as { __b07: unknown }).__b07 = m.useB07));
-void import('./app/b08/store').then((m) => ((window as unknown as { __b08: unknown }).__b08 = m.useB08));
-void import('./app/b09/store').then((m) => ((window as unknown as { __b09: unknown }).__b09 = m.useB09));
-void import('./app/b10/store').then((m) => ((window as unknown as { __b10: unknown }).__b10 = m.useB10));
-void import('./app/f101/store').then((m) => ((window as unknown as { __f101: unknown }).__f101 = m.useF101));
-void import('./app/f102/store').then((m) => ((window as unknown as { __f102: unknown }).__f102 = m.useF102));
-void import('./app/f103/store').then((m) => ((window as unknown as { __f103: unknown }).__f103 = m.useF103));
-void import('./app/f04/store').then((m) => ((window as unknown as { __f04: unknown }).__f04 = m.useF04));
-void import('./app/f05/store').then((m) => ((window as unknown as { __f05: unknown }).__f05 = m.useF05));
-void import('./app/f06/store').then((m) => ((window as unknown as { __f06: unknown }).__f06 = m.useF06));
-void import('./app/f07/store').then((m) => ((window as unknown as { __f07: unknown }).__f07 = m.useF07));
-void import('./app/f08/store').then((m) => ((window as unknown as { __f08: unknown }).__f08 = m.useF08));
-void import('./app/f09/store').then((m) => ((window as unknown as { __f09: unknown }).__f09 = m.useF09));
+// Los demás laboratorios se cargan al abrirlos; cada store se expone en cuanto existe (window.__p3, window.__f09…).
+for (const id of LAB_IDS) {
+  if (id === 'p2') continue;
+  void Promise.resolve(LAB_MODULES[id].store()).then((store) => ((window as unknown as Record<string, unknown>)[`__${id}`] = store));
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

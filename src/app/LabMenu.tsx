@@ -2,36 +2,9 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShell, type LabId } from './shell';
 import { tList } from './i18n';
-import { loadAttempt } from './persistence';
-import { loadP3Attempt } from './p3/persistence';
-import { loadP4Attempt } from './p4/persistence';
-import { loadP5Attempt } from './p5/persistence';
-import { loadP6Attempt } from './p6/persistence';
-import { loadP01Attempt } from './p01/persistence';
-import { loadP07Attempt } from './p7/persistence';
-import { loadP08Attempt } from './p8/persistence';
-import { loadP09Attempt } from './p9/persistence';
-import { loadP10Attempt } from './p10/persistence';
-import { loadB01Attempt } from './b01/persistence';
-import { loadB02Attempt } from './b02/persistence';
-import { loadB03Attempt } from './b03/persistence';
-import { loadB04Attempt } from './b04/persistence';
-import { loadB05Attempt } from './b05/persistence';
-import { loadB06Attempt } from './b06/persistence';
-import { loadB07Attempt } from './b07/persistence';
-import { loadB08Attempt } from './b08/persistence';
-import { loadB09Attempt } from './b09/persistence';
-import { loadB10Attempt } from './b10/persistence';
-import { loadF101Attempt } from './f101/persistence';
-import { loadF102Attempt } from './f102/persistence';
-import { loadF103Attempt } from './f103/persistence';
-import { loadF04Attempt } from './f04/persistence';
-import { loadF05Attempt } from './f05/persistence';
-import { loadF06Attempt } from './f06/persistence';
-import { loadF07Attempt } from './f07/persistence';
-import { loadF08Attempt } from './f08/persistence';
-import { loadF09Attempt } from './f09/persistence';
 import { SUBJECTS, subjectOf, type Subject } from './labCatalog';
+import { LAB_MODULES } from './labModules';
+import { LAB_IDS, labNumber } from '../labs/registry';
 import './menu.css';
 
 /** Grupos de etiquetas de cada tarjeta (textos en `menu.labs.<id>.tags.<grupo>`), en este orden. */
@@ -54,68 +27,13 @@ export function LabCards({ locked = false, only, extra, grouped = false }: { loc
   const { t } = useTranslation();
   const [filter, setFilter] = useState<Subject | 'all'>('all');
   const open = useShell((s) => s.open);
-  const cards = useMemo<LabCard[]>(() => {
-    const p01 = loadP01Attempt();
-    const p2 = loadAttempt();
-    const p3 = loadP3Attempt();
-    const p4 = loadP4Attempt();
-    const p5 = loadP5Attempt();
-    const p6 = loadP6Attempt();
-    const p7 = loadP07Attempt();
-    const p8 = loadP08Attempt();
-    const p9 = loadP09Attempt();
-    const p10 = loadP10Attempt();
-    const b01 = loadB01Attempt();
-    const b02 = loadB02Attempt();
-    const b03 = loadB03Attempt();
-    const b04 = loadB04Attempt();
-    const b05 = loadB05Attempt();
-    const b06 = loadB06Attempt();
-    const b07 = loadB07Attempt();
-    const b08 = loadB08Attempt();
-    const b09 = loadB09Attempt();
-    const b10 = loadB10Attempt();
-    const f101 = loadF101Attempt();
-    const f102 = loadF102Attempt();
-    const f103 = loadF103Attempt();
-    const f04 = loadF04Attempt();
-    const f05 = loadF05Attempt();
-    const f06 = loadF06Attempt();
-    const f07 = loadF07Attempt();
-    const f08 = loadF08Attempt();
-    const f09 = loadF09Attempt();
-    return [
-      { id: 'p01', number: 1, key: 'menu.labs.p01', saved: p01 ? { mode: p01.settings.mode, minutes: Math.round(p01.world.timeS / 60), submitted: p01.submitted } : null },
-      { id: 'p2', number: 2, key: 'menu.labs.p2', saved: p2 ? { mode: p2.settings.mode, minutes: Math.round(p2.world.timeS / 60), submitted: p2.submitted } : null },
-      { id: 'p3', number: 3, key: 'menu.labs.p3', saved: p3 ? { mode: p3.settings.mode, minutes: Math.round(p3.world.timeS / 60), submitted: p3.submitted } : null },
-      { id: 'p4', number: 4, key: 'menu.labs.p4', saved: p4 ? { mode: p4.settings.mode, minutes: Math.round(p4.world.timeS / 60), submitted: p4.submitted } : null },
-      { id: 'p5', number: 5, key: 'menu.labs.p5', saved: p5 ? { mode: p5.settings.mode, minutes: Math.round(p5.world.timeS / 60), submitted: p5.submitted } : null },
-      { id: 'p6', number: 6, key: 'menu.labs.p6', saved: p6 ? { mode: p6.settings.mode, minutes: Math.round(p6.world.timeS / 60), submitted: p6.submitted } : null },
-      { id: 'p7', number: 7, key: 'menu.labs.p7', saved: p7 ? { mode: p7.settings.mode, minutes: Math.round(p7.world.timeS / 60), submitted: p7.submitted } : null },
-      { id: 'p8', number: 8, key: 'menu.labs.p8', saved: p8 ? { mode: p8.settings.mode, minutes: Math.round(p8.world.timeS / 60), submitted: p8.submitted } : null },
-      { id: 'p9', number: 9, key: 'menu.labs.p9', saved: p9 ? { mode: p9.settings.mode, minutes: Math.round(p9.world.timeS / 60), submitted: p9.submitted } : null },
-      { id: 'p10', number: 10, key: 'menu.labs.p10', saved: p10 ? { mode: p10.settings.mode, minutes: Math.round(p10.world.timeS / 60), submitted: p10.submitted } : null },
-      { id: 'b01', number: 11, key: 'menu.labs.b01', saved: b01 ? { mode: b01.settings.mode, minutes: Math.round(b01.world.timeS / 60), submitted: b01.submitted } : null },
-      { id: 'b02', number: 12, key: 'menu.labs.b02', saved: b02 ? { mode: b02.settings.mode, minutes: Math.round(b02.world.timeS / 60), submitted: b02.submitted } : null },
-      { id: 'b03', number: 13, key: 'menu.labs.b03', saved: b03 ? { mode: b03.settings.mode, minutes: Math.round(b03.world.timeS / 60), submitted: b03.submitted } : null },
-      { id: 'b04', number: 14, key: 'menu.labs.b04', saved: b04 ? { mode: b04.settings.mode, minutes: Math.round(b04.world.timeS / 60), submitted: b04.submitted } : null },
-      { id: 'b05', number: 15, key: 'menu.labs.b05', saved: b05 ? { mode: b05.settings.mode, minutes: Math.round(b05.world.timeS / 60), submitted: b05.submitted } : null },
-      { id: 'b06', number: 16, key: 'menu.labs.b06', saved: b06 ? { mode: b06.settings.mode, minutes: Math.round(b06.world.timeS / 60), submitted: b06.submitted } : null },
-      { id: 'b07', number: 17, key: 'menu.labs.b07', saved: b07 ? { mode: b07.settings.mode, minutes: Math.round(b07.world.timeS / 60), submitted: b07.submitted } : null },
-      { id: 'b08', number: 18, key: 'menu.labs.b08', saved: b08 ? { mode: b08.settings.mode, minutes: Math.round(b08.world.timeS / 60), submitted: b08.submitted } : null },
-      { id: 'b09', number: 19, key: 'menu.labs.b09', saved: b09 ? { mode: b09.settings.mode, minutes: Math.round(b09.world.timeS / 60), submitted: b09.submitted } : null },
-      { id: 'b10', number: 20, key: 'menu.labs.b10', saved: b10 ? { mode: b10.settings.mode, minutes: Math.round(b10.world.timeS / 60), submitted: b10.submitted } : null },
-      { id: 'f101', number: 21, key: 'menu.labs.f101', saved: f101 ? { mode: f101.settings.mode, minutes: Math.round(f101.world.timeS / 60), submitted: f101.submitted } : null },
-      { id: 'f102', number: 22, key: 'menu.labs.f102', saved: f102 ? { mode: f102.settings.mode, minutes: Math.round(f102.world.timeS / 60), submitted: f102.submitted } : null },
-      { id: 'f103', number: 23, key: 'menu.labs.f103', saved: f103 ? { mode: f103.settings.mode, minutes: Math.round(f103.world.timeS / 60), submitted: f103.submitted } : null },
-      { id: 'f04', number: 24, key: 'menu.labs.f04', saved: f04 ? { mode: f04.settings.mode, minutes: Math.round(f04.world.timeS / 60), submitted: f04.submitted } : null },
-      { id: 'f05', number: 25, key: 'menu.labs.f05', saved: f05 ? { mode: f05.settings.mode, minutes: Math.round(f05.world.timeS / 60), submitted: f05.submitted } : null },
-      { id: 'f06', number: 26, key: 'menu.labs.f06', saved: f06 ? { mode: f06.settings.mode, minutes: Math.round(f06.world.timeS / 60), submitted: f06.submitted } : null },
-      { id: 'f07', number: 27, key: 'menu.labs.f07', saved: f07 ? { mode: f07.settings.mode, minutes: Math.round(f07.world.timeS / 60), submitted: f07.submitted } : null },
-      { id: 'f08', number: 28, key: 'menu.labs.f08', saved: f08 ? { mode: f08.settings.mode, minutes: Math.round(f08.world.timeS / 60), submitted: f08.submitted } : null },
-      { id: 'f09', number: 29, key: 'menu.labs.f09', saved: f09 ? { mode: f09.settings.mode, minutes: Math.round(f09.world.timeS / 60), submitted: f09.submitted } : null },
-    ];
-  }, []);
+  const cards = useMemo<LabCard[]>(
+    () =>
+      LAB_IDS.map((id) => {
+        const saved = LAB_MODULES[id].loadAttempt();
+        return { id, number: labNumber(id), key: `menu.labs.${id}`, saved: saved ? { mode: saved.settings.mode, minutes: Math.round(saved.world.timeS / 60), submitted: saved.submitted } : null };
+      }),
+  []);
   const visible = cards.filter((c) => !only || only.includes(c.id));
   // Agrupadas, las tarjetas quedan bajo el título del área (h3): su título baja a h4.
   const Title = grouped ? 'h4' : 'h3';

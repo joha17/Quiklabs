@@ -306,17 +306,23 @@ Imanes y acoples son un destino explícito y no pasan por el choque.
 
 ## 12. Integración con la plataforma (lista de cambios)
 
-1. `src/app/shell.ts`: agregar `pNN` a `LabId`, `ROUTES` e `isLab` (ruta `#pNN`).
-2. `worker/core/types.ts`: agregar `pNN` a `LabId` y `LAB_IDS`.
-3. `src/practices/tape.ts`: agregar `pNN` a `GradedLab`; `grading.ts`: adaptador, `GRADED_LABS` y la expresión de
-   `seedFromAttemptId`.
-4. **Migración** `migrations/000N_course_labs_pNN.sql`: SQLite no permite cambiar un `CHECK`, así que se reconstruye
-   `course_labs` copiando los datos. El despliegue (`npm run deploy`, también el de Workers Builds) la aplica en
-   producción antes de publicar el código.
-5. `worker/seed/make-seed.mjs` → `npm run seed` (datos ficticios con la práctica abierta en algún curso).
-6. `src/app/LabMenu.tsx` (tarjeta e intento guardado), `src/main.tsx` (asa `window.__pNN` para pruebas), paneles de
-   estudiante y docente, textos `menu.labs.pNN`.
-7. Despliegue: `git push` a `main` o `npx wrangler deploy` (dominios de `routes` en `wrangler.jsonc`; uno añadido solo desde el panel se borra al desplegar).
+1. **`src/labs/registry.ts`**: una línea `{ id: 'pNN', subject: 'chemistry' }` en `LABS`, en el orden de las
+   tarjetas. De ahí salen `LabId` y `LAB_IDS` (Worker, calificación y paneles), la ruta `#pNN`, el área, el número de
+   tarjeta, la clave de título `menu.labs.pNN.title` y el patrón de los id de intento (semilla de la repetición).
+2. **`src/app/labModules.tsx`**: la entrada `pNN` con la pantalla (`lazy(() => import('./pNN/PNNApp'))`), el store
+   (aplica el modo del curso y queda como `window.__pNN` para las pruebas) y `loadPNNAttempt` (tarjeta del menú).
+3. **`src/practices/grading.ts`**: el adaptador `pNN` en `ADAPTERS`.
+4. **Textos**: `src/locales/es/practicePNN.json` se carga solo (todos los archivos de esa carpeta); el menú necesita
+   `menu.labs.pNN.*` y `lab-registry.test.ts` falla si una clave de primer nivel se repite entre archivos.
+5. `src/app/menu.css`: la ilustración `.art-pNN` de la tarjeta. `worker/seed/make-seed.mjs` → `npm run seed` si los
+   datos ficticios deben tener la práctica abierta en algún curso.
+
+Los pasos 1 a 3 los exige TypeScript (`Record<LabId, …>`): si falta uno, `npm run typecheck` dice cuál. **No hace falta
+migración**: desde `0030_course_labs_open_lab_id.sql`, `course_labs.lab_id` no tiene una lista fija y el Worker lo
+valida contra `LAB_IDS`. Solo una tabla con su propia lista (p. ej. `lab_photos`, si el laboratorio usa fotos) necesita
+migración.
+6. `tests/integration/replay.test.ts`: el `vi.mock` del `dispatch` del laboratorio y su caso de repetición.
+7. Despliegue: `git push` a `main` o `npm run deploy` (dominios de `routes` en `wrangler.jsonc`; uno añadido solo desde el panel se borra al desplegar).
 
 ---
 

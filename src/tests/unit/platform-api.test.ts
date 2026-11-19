@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { createApp, COOKIE } from '../../../worker/app';
 import { freshDb } from '../helpers/sqlite-d1';
+import { LAB_IDS } from '../../labs/registry';
 import { packJson, unpackJson } from '../../../worker/core/pack';
 import { replayTape, type AttemptSnapshot, type AttemptTape, type TapeEntry } from '../../practices/grading';
 import { evaluateP4 } from '../../practices/practice-04/rubric';
@@ -153,7 +154,7 @@ describe('roles y permisos', () => {
     const labs = (r: { json: Record<string, unknown> }) => (r.json.labs as Array<{ labId: string }>).map((l) => l.labId).sort();
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6']); // grupo 01
     expect(labs(await p.loginAs(EMAIL.camila, PW.student))).toEqual(['p01', 'p10', 'p2', 'p3', 'p5', 'p6']); // grupo 02: P4 abre el 12/10
-    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual(['b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f04', 'f05', 'f06', 'f07', 'f08', 'f09', 'f101', 'f102', 'f103', 'p01', 'p10', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9']); // la docente ve todas las de sus cursos (Química y Biología)
+    expect(labs(await p.loginAs(EMAIL.laura, PW.teacher))).toEqual([...LAB_IDS].sort()); // la docente ve todas las de sus cursos (Química y Biología)
     // La Práctica 7 abre el 19/10; la 8 y la 9, el 20/10.
     p.setNow('2026-10-20T18:00:00.000Z');
     expect(labs(await p.loginAs(EMAIL.valeria, PW.student))).toContain('p7');

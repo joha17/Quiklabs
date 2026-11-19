@@ -1,40 +1,13 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import es from '../locales/es/translation.json';
-import es3 from '../locales/es/practice3.json';
-import es4 from '../locales/es/practice4.json';
-import es5 from '../locales/es/practice5.json';
-import es6 from '../locales/es/practice6.json';
-import es01 from '../locales/es/practice01.json';
-import es07 from '../locales/es/practice7.json';
-import es08 from '../locales/es/practice8.json';
-import es09 from '../locales/es/practice9.json';
-import es10 from '../locales/es/practice10.json';
-import esB01 from '../locales/es/practiceB01.json';
-import esB02 from '../locales/es/practiceB02.json';
-import esB03 from '../locales/es/practiceB03.json';
-import esB04 from '../locales/es/practiceB04.json';
-import esB05 from '../locales/es/practiceB05.json';
-import esB06 from '../locales/es/practiceB06.json';
-import esB07 from '../locales/es/practiceB07.json';
-import esB08 from '../locales/es/practiceB08.json';
-import esB09 from '../locales/es/practiceB09.json';
-import esB10 from '../locales/es/practiceB10.json';
-import esF101 from '../locales/es/practiceF101.json';
-import esF102 from '../locales/es/practiceF102.json';
-import esF103 from '../locales/es/practiceF103.json';
-import esF04 from '../locales/es/practiceF04.json';
-import esF05 from '../locales/es/practiceF05.json';
-import esF06 from '../locales/es/practiceF06.json';
-import esF07 from '../locales/es/practiceF07.json';
-import esF08 from '../locales/es/practiceF08.json';
-import esF09 from '../locales/es/practiceF09.json';
-import esLanding from '../locales/es/landing.json';
-import esPlatform from '../locales/es/platform.json';
+
+// Todos los archivos de textos de src/locales/es/ (uno por práctica, más menú, portada y plataforma): un laboratorio
+// nuevo solo agrega su archivo. Las claves no se repiten entre archivos (cada uno usa su prefijo: `p3.*`, `f09.*`…).
+const files = import.meta.glob<Record<string, unknown>>('../locales/es/*.json', { eager: true, import: 'default' });
+const translation = Object.assign({}, ...Object.values(files)) as Record<string, unknown>;
 
 void i18n.use(initReactI18next).init({
-  // Las prácticas 3 a 6 y 10, el menú de laboratorios y la página de inicio tienen su propio archivo (claves `p01.*`, `p3.*`–`p9.*` y `p10.*`, `p3fb.*`–`p9fb.*` y `p10fb.*`, `menu.*`, `landing.*`).
-  resources: { es: { translation: { ...es, ...es3, ...es4, ...es5, ...es6, ...es01, ...es07, ...es08, ...es09, ...es10, ...esB01, ...esB02, ...esB03, ...esB04, ...esB05, ...esB06, ...esB07, ...esB08, ...esB09, ...esB10, ...esF101, ...esF102, ...esF103, ...esF04, ...esF05, ...esF06, ...esF07, ...esF08, ...esF09, ...esLanding, ...esPlatform } } },
+  resources: { es: { translation } },
   lng: 'es',
   fallbackLng: 'es',
   interpolation: { escapeValue: false },
