@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LabId, LabMode, Submission } from '../../../worker/core/types';
+import { labTitleKey } from '../../labs/registry';
 import { LabCards } from '../LabMenu';
 import { api } from './api';
 import { usePlatform } from './session';
@@ -21,7 +22,6 @@ interface StudentCourse {
   labs: Array<{ labId: LabId; opensAt: string; closesAt: string; mode: LabMode; open: boolean }>;
 }
 
-const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p8: 'menu.labs.p8.title', p9: 'menu.labs.p9.title', p10: 'menu.labs.p10.title', b01: 'menu.labs.b01.title', b02: 'menu.labs.b02.title', b03: 'menu.labs.b03.title', b04: 'menu.labs.b04.title', b05: 'menu.labs.b05.title', b06: 'menu.labs.b06.title', b07: 'menu.labs.b07.title', b08: 'menu.labs.b08.title', b09: 'menu.labs.b09.title', b10: 'menu.labs.b10.title', f101: 'menu.labs.f101.title', f102: 'menu.labs.f102.title', f103: 'menu.labs.f103.title', f04: 'menu.labs.f04.title', f05: 'menu.labs.f05.title', f06: 'menu.labs.f06.title', f07: 'menu.labs.f07.title', f08: 'menu.labs.f08.title', f09: 'menu.labs.f09.title' };
 
 export function StudentPanel() {
   const { t } = useTranslation();
@@ -81,7 +81,7 @@ export function StudentPanel() {
                 <ul className="pf-list">
                   {c.labs.map((l) => (
                     <li key={l.labId}>
-                      <span>{t(LAB_TITLE[l.labId])}</span>
+                      <span>{t(labTitleKey(l.labId))}</span>
                       <span className={`pf-tag ${l.open ? 'pf-tag-ok' : ''}`}>{l.open ? t('pf.labs.closes', { date: fmtDate(l.closesAt) }) : t('pf.labs.opens', { date: fmtDate(l.opensAt) })}</span>
                     </li>
                   ))}
@@ -102,7 +102,7 @@ export function StudentPanel() {
                 {subs.map((s) => (
                   <tr key={s.id}>
                     <td>{fmtDate(s.submittedAt, true)}</td>
-                    <td>{t(LAB_TITLE[s.labId])}</td>
+                    <td>{t(labTitleKey(s.labId))}</td>
                     <td>{courseOf(s.courseId) ? `${courseOf(s.courseId)!.code} G${courseOf(s.courseId)!.group}` : '—'}</td>
                     <td>{t(`pf.labs.mode.${s.mode}`)}</td>
                     <td className="num"><strong>{pct(s.score)}</strong></td>

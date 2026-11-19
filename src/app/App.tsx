@@ -1,9 +1,6 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { startBackgroundLoops, useLab } from './store';
-import { IntroScreen } from './practice-config/IntroScreen';
-import { LabScreen } from './hud/LabScreen';
-import { ReviewScreen } from './review/ReviewScreen';
+import { LAB_MODULES } from './labModules';
 import { Landing } from './landing/Landing';
 import { isLab, isLegal, useShell, type LabId } from './shell';
 import { LegalPage } from './landing/LegalPage';
@@ -13,34 +10,6 @@ import { StudentPanel } from './platform/StudentPanel';
 import { TeacherPanel } from './platform/TeacherPanel';
 import { AdminPanel } from './platform/AdminPanel';
 
-const P3App = lazy(() => import('./p3/P3App'));
-const P4App = lazy(() => import('./p4/P4App'));
-const P5App = lazy(() => import('./p5/P5App'));
-const P6App = lazy(() => import('./p6/P6App'));
-const P01App = lazy(() => import('./p01/P01App'));
-const P07App = lazy(() => import('./p7/P07App'));
-const P08App = lazy(() => import('./p8/P08App'));
-const P09App = lazy(() => import('./p9/P09App'));
-const P10App = lazy(() => import('./p10/P10App'));
-const B01App = lazy(() => import('./b01/B01App'));
-const B02App = lazy(() => import('./b02/B02App'));
-const B03App = lazy(() => import('./b03/B03App'));
-const B04App = lazy(() => import('./b04/B04App'));
-const B05App = lazy(() => import('./b05/B05App'));
-const B06App = lazy(() => import('./b06/B06App'));
-const B07App = lazy(() => import('./b07/B07App'));
-const B08App = lazy(() => import('./b08/B08App'));
-const B09App = lazy(() => import('./b09/B09App'));
-const B10App = lazy(() => import('./b10/B10App'));
-const F101App = lazy(() => import('./f101/F101App'));
-const F102App = lazy(() => import('./f102/F102App'));
-const F103App = lazy(() => import('./f103/F103App'));
-const F04App = lazy(() => import('./f04/F04App'));
-const F05App = lazy(() => import('./f05/F05App'));
-const F06App = lazy(() => import('./f06/F06App'));
-const F07App = lazy(() => import('./f07/F07App'));
-const F08App = lazy(() => import('./f08/F08App'));
-const F09App = lazy(() => import('./f09/F09App'));
 
 const Loading = () => <div className="scene-loading" role="status">…</div>;
 
@@ -99,63 +68,19 @@ function LabBlocked() {
 /** Laboratorio dentro de la plataforma: «volver» lleva al panel; el modo del curso se aplica al entrar. */
 function LabHost({ id, mode }: { id: LabId; mode: string | null }) {
   const open = useShell((s) => s.open);
+  const lab = LAB_MODULES[id];
   useEffect(() => {
     if (!mode) return;
-    if (id === 'p2') useLab.getState().setSettings({ mode: mode as never });
-    if (id === 'p3') void import('./p3/store').then((m) => m.useP3.getState().setSettings({ mode: mode as never }));
-    if (id === 'p4') void import('./p4/store').then((m) => m.useP4.getState().setSettings({ mode: mode as never }));
-    if (id === 'p5') void import('./p5/store').then((m) => m.useP5.getState().setSettings({ mode: mode as never }));
-    if (id === 'p6') void import('./p6/store').then((m) => m.useP6.getState().setSettings({ mode: mode as never }));
-    if (id === 'p01') void import('./p01/store').then((m) => m.useP01.getState().setSettings({ mode: mode as never }));
-    if (id === 'p7') void import('./p7/store').then((m) => m.useP07.getState().setSettings({ mode: mode as never }));
-    if (id === 'p8') void import('./p8/store').then((m) => m.useP08.getState().setSettings({ mode: mode as never }));
-    if (id === 'p9') void import('./p9/store').then((m) => m.useP09.getState().setSettings({ mode: mode as never }));
-    if (id === 'p10') void import('./p10/store').then((m) => m.useP10.getState().setSettings({ mode: mode as never }));
-    if (id === 'b01') void import('./b01/store').then((m) => m.useB01.getState().setSettings({ mode: mode as never }));
-    if (id === 'b02') void import('./b02/store').then((m) => m.useB02.getState().setSettings({ mode: mode as never }));
-    if (id === 'b03') void import('./b03/store').then((m) => m.useB03.getState().setSettings({ mode: mode as never }));
-    if (id === 'b04') void import('./b04/store').then((m) => m.useB04.getState().setSettings({ mode: mode as never }));
-    if (id === 'b05') void import('./b05/store').then((m) => m.useB05.getState().setSettings({ mode: mode as never }));
-    if (id === 'b06') void import('./b06/store').then((m) => m.useB06.getState().setSettings({ mode: mode as never }));
-    if (id === 'b07') void import('./b07/store').then((m) => m.useB07.getState().setSettings({ mode: mode as never }));
-    if (id === 'b08') void import('./b08/store').then((m) => m.useB08.getState().setSettings({ mode: mode as never }));
-    if (id === 'b09') void import('./b09/store').then((m) => m.useB09.getState().setSettings({ mode: mode as never }));
-    if (id === 'b10') void import('./b10/store').then((m) => m.useB10.getState().setSettings({ mode: mode as never }));
-    if (id === 'f101') void import('./f101/store').then((m) => m.useF101.getState().setSettings({ mode: mode as never }));
-    if (id === 'f102') void import('./f102/store').then((m) => m.useF102.getState().setSettings({ mode: mode as never }));
-    if (id === 'f103') void import('./f103/store').then((m) => m.useF103.getState().setSettings({ mode: mode as never }));
-    if (id === 'f04') void import('./f04/store').then((m) => m.useF04.getState().setSettings({ mode: mode as never }));
-    if (id === 'f05') void import('./f05/store').then((m) => m.useF05.getState().setSettings({ mode: mode as never }));
-    if (id === 'f06') void import('./f06/store').then((m) => m.useF06.getState().setSettings({ mode: mode as never }));
-    if (id === 'f07') void import('./f07/store').then((m) => m.useF07.getState().setSettings({ mode: mode as never }));
-    if (id === 'f08') void import('./f08/store').then((m) => m.useF08.getState().setSettings({ mode: mode as never }));
-    if (id === 'f09') void import('./f09/store').then((m) => m.useF09.getState().setSettings({ mode: mode as never }));
-  }, [id, mode]);
+    const apply = (store: Awaited<ReturnType<typeof lab.store>>) => store.getState().setSettings({ mode: mode as never });
+    const store = lab.store();
+    if (store instanceof Promise) void store.then(apply);
+    else apply(store);
+  }, [lab, mode]);
   const back = () => open('panel');
-  if (id === 'p2') return <P2App onBack={back} />;
+  const Screen = lab.App;
   return (
     <Suspense fallback={<Loading />}>
-      {id === 'p01' ? <P01App onBack={back} /> : id === 'p3' ? <P3App onBack={back} /> : id === 'p4' ? <P4App onBack={back} /> : id === 'p5' ? <P5App onBack={back} /> : id === 'p6' ? <P6App onBack={back} /> : id === 'p7' ? <P07App onBack={back} /> : id === 'p8' ? <P08App onBack={back} /> : id === 'p9' ? <P09App onBack={back} /> : id === 'b01' ? <B01App onBack={back} /> : id === 'b02' ? <B02App onBack={back} /> : id === 'b03' ? <B03App onBack={back} /> : id === 'b04' ? <B04App onBack={back} /> : id === 'b05' ? <B05App onBack={back} /> : id === 'b06' ? <B06App onBack={back} /> : id === 'b07' ? <B07App onBack={back} /> : id === 'b08' ? <B08App onBack={back} /> : id === 'b09' ? <B09App onBack={back} /> : id === 'b10' ? <B10App onBack={back} /> : id === 'f101' ? <F101App onBack={back} /> : id === 'f102' ? <F102App onBack={back} /> : id === 'f103' ? <F103App onBack={back} /> : id === 'f04' ? <F04App onBack={back} /> : id === 'f05' ? <F05App onBack={back} /> : id === 'f06' ? <F06App onBack={back} /> : id === 'f07' ? <F07App onBack={back} /> : id === 'f08' ? <F08App onBack={back} /> : id === 'f09' ? <F09App onBack={back} /> : <P10App onBack={back} />}
+      <Screen onBack={back} />
     </Suspense>
-  );
-}
-
-
-/** Práctica 2: clasificación de la materia y técnicas de separación. */
-function P2App({ onBack }: { onBack: () => void }) {
-  const { t } = useTranslation();
-  const screen = useLab((s) => s.screen);
-  const uiScale = useLab((s) => s.settings.uiScale);
-  useEffect(() => startBackgroundLoops(), []);
-  useEffect(() => {
-    document.documentElement.style.setProperty('--ui-scale', String(uiScale));
-  }, [uiScale]);
-  if (screen === 'lab') return <LabScreen />;
-  if (screen === 'review') return <ReviewScreen />;
-  return (
-    <>
-      <button className="btn small menu-back" onClick={onBack}>← {t('menu.back')}</button>
-      <IntroScreen />
-    </>
   );
 }

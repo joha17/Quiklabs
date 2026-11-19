@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { labTitleKey } from '../../labs/registry';
 import { LAB_IDS, type Course, type CourseLab, type LabId, type LabMode } from '../../../worker/core/types';
 import { LabCards } from '../LabMenu';
 import { api } from './api';
@@ -29,7 +30,6 @@ export interface Gradebook {
   rows: Array<{ student: RosterRow; cells: Record<string, { best: number; attempts: number; lastAt: string } | null> }>;
 }
 
-export const LAB_TITLE: Record<LabId, string> = { p01: 'menu.labs.p01.title', p2: 'menu.labs.p2.title', p3: 'menu.labs.p3.title', p4: 'menu.labs.p4.title', p5: 'menu.labs.p5.title', p6: 'menu.labs.p6.title', p7: 'menu.labs.p7.title', p8: 'menu.labs.p8.title', p9: 'menu.labs.p9.title', p10: 'menu.labs.p10.title', b01: 'menu.labs.b01.title', b02: 'menu.labs.b02.title', b03: 'menu.labs.b03.title', b04: 'menu.labs.b04.title', b05: 'menu.labs.b05.title', b06: 'menu.labs.b06.title', b07: 'menu.labs.b07.title', b08: 'menu.labs.b08.title', b09: 'menu.labs.b09.title', b10: 'menu.labs.b10.title', f101: 'menu.labs.f101.title', f102: 'menu.labs.f102.title', f103: 'menu.labs.f103.title', f04: 'menu.labs.f04.title', f05: 'menu.labs.f05.title', f06: 'menu.labs.f06.title', f07: 'menu.labs.f07.title', f08: 'menu.labs.f08.title', f09: 'menu.labs.f09.title' };
 const MODES: LabMode[] = ['PRACTICE', 'GUIDED', 'EVALUATION'];
 
 /** Tabla de calificaciones (también la usa el administrador). */
@@ -53,7 +53,7 @@ export function GradebookTable({ gb }: { gb: Gradebook }) {
             <thead>
               <tr>
                 <th>{t('pf.admin.name')}</th><th>{t('pf.admin.code')}</th>
-                {gb.labs.map((l) => <th key={l} className="num">{t(LAB_TITLE[l])}</th>)}
+                {gb.labs.map((l) => <th key={l} className="num">{t(labTitleKey(l))}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -107,7 +107,7 @@ function LabSchedule({ course, onSaved }: { course: Course; onSaved: (c: Course)
           <tbody>
             {LAB_IDS.map((id) => {
               const l = draft[id];
-              const title = t(LAB_TITLE[id]);
+              const title = t(labTitleKey(id));
               return (
                 <tr key={id}>
                   <td><input type="checkbox" checked={l.on} onChange={(e) => set(id, { on: e.target.checked })} aria-label={`${t('pf.teacher.assigned')}: ${title}`} /></td>

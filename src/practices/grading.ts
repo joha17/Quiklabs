@@ -10,6 +10,7 @@
  */
 import type { Evaluation } from '../simulation/scoring/types';
 import { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab } from './tape';
+import { ATTEMPT_ID_PATTERN, isLabId, LAB_IDS } from '../labs/registry';
 import { dispatchMut, stepMut } from '../simulation/world/world';
 import { dispatchFlame, stepFlame } from '../simulation/flame-world/world';
 import { dispatchReaction, globalTotals, stepReaction } from '../simulation/reaction-world/world';
@@ -224,7 +225,7 @@ import type { CellWorld } from '../simulation/cell-world/types';
 
 export { RESUME, type AttemptSnapshot, type AttemptTape, type GradedLab, type TapeEntry } from './tape';
 
-export const GRADED_LABS: GradedLab[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f101', 'f102', 'f103', 'f04', 'f05', 'f06', 'f07', 'f08', 'f09'];
+export const GRADED_LABS: GradedLab[] = LAB_IDS;
 
 interface WorldBase {
   tick: number;
@@ -606,7 +607,7 @@ export const ADAPTERS: Record<GradedLab, Adapter> = {
   },
 };
 
-export const isGradedLab = (x: unknown): x is GradedLab => GRADED_LABS.includes(x as GradedLab);
+export const isGradedLab = (x: unknown): x is GradedLab => isLabId(x);
 
 /** Problemas de plausibilidad que el servidor anota en la entrega (no la rechazan: los revisa el docente). */
 export type GradeIssue =
@@ -627,7 +628,7 @@ export interface GradeResult {
 
 /** El intento empezó con la semilla del identificador (`pN-` o `bNN-<semilla base 36>-<marca>`). */
 export function seedFromAttemptId(attemptId: string): number | null {
-  const m = /^(?:p(?:01|[2-9]|10)|b(?:0[1-9]|10)|f10[1-3]|f0[4-9])-([0-9a-z]+)-/.exec(attemptId);
+  const m = ATTEMPT_ID_PATTERN.exec(attemptId);
   return m ? parseInt(m[1], 36) : null;
 }
 
