@@ -326,6 +326,7 @@
       "b03": {
         "title": "Fronteras celulares",
         "subtitle": "Transporte selectivo, difusión, ósmosis y diálisis: membranas selladas con prueba de fugas, trazador con lecturas a 0/30/60 s, Biuret y AgNO₃ en ambos lados, jarabe frente a agua y Elodea en tres medios, al microscopio 4X → 40X.",
+        "duration": "90–120 min",
         "points": [
           "Membrana remojada, centrada y apretada: una junta floja o una membrana rota mezclan todo y no hay selectividad que interpretar.",
           "Lecturas propias con su instrumento y su hora: volumen sin paralaje, colorímetro con cero, tubos rotulados y controles.",
@@ -335,6 +336,7 @@
       "b04": {
         "title": "Detectives moleculares",
         "subtitle": "Identificación de biomoléculas y regulación de enzimas: Lugol, Biuret, emulsión y Benedict con blanco y patrón, ADN por Feulgen al microscopio, catalasa con O₂ recogido y amilasa leída con Lugol y Benedict por separado.",
+        "duration": "90–120 min",
         "points": [
           "Tubos rotulados ENSAYO/LOTE, pipeta limpia entre lotes y un control negativo y otro positivo en cada ensayo: sin controles no hay identificación.",
           "Preparaciones pesadas y medidas, con la temperatura leída en el líquido; los baños y la pinza para lo caliente.",
@@ -344,6 +346,7 @@
       "b05": {
         "title": "Cinética en acción",
         "subtitle": "Catalasa, amilasa y regulación enzimática: tasa inicial de O₂ recogido con el captador y tu cronómetro, efecto del calor y del pH, hidrólisis del almidón seguida con Lugol y Benedict a tiempos medidos y gránulos de almidón de la papa al microscopio.",
+        "duration": "100–130 min",
         "points": [
           "Preparaciones pesadas y medidas con su lectura: el hígado se agita sin calor y la temperatura se lee en el líquido, no en la perilla.",
           "Colector sellado, en cero y leído a la altura del menisco; la tasa inicial sale de TUS lecturas con el tiempo de TU cronómetro, con blanco sin enzima.",
@@ -353,6 +356,7 @@
       "b07": {
         "title": "Microbiología en evidencia",
         "subtitle": "Medios de cultivo, colonias y tinción de Gram en recursos virtuales sellados: clasifica medios por su ficha, describe y mide colonias con escala, compara trazados digitales, tiñe un frotis simulado por fases y lee al microscopio contra sus controles.",
+        "duration": "60–90 min",
         "points": [
           "Sin cultivo real: placas selladas, sin incubación, sin llama; el autoclave y el mechero son maquetas.",
           "Una colonia no es una célula, y el Gram no da la especie: una conclusión prudente vale más que un nombre inventado.",
@@ -362,6 +366,7 @@
       "b06": {
         "title": "Atlas celular comparado",
         "subtitle": "Diversidad celular por grandes grupos: bacterias en lámina permanente, Paramecium y Euglena vivos con su movilidad, estomas de Tradescantia, epitelio bucal, frotis sanguíneo preparado y Elodea, con marcas sobre capturas propias y medidas calibradas.",
+        "duration": "80–110 min",
         "points": [
           "Fichas del reto: cada muestra, fresca o permanente; las bacterias y la sangre se ven en láminas preparadas, sin cultivos abiertos ni punción.",
           "La movilidad se registra mirando la muestra viva y antes del Lugol; sin video con escala temporal no hay velocidad.",
@@ -371,6 +376,7 @@
       "b08": {
         "title": "Energía luminosa y pigmentos",
         "subtitle": "Del cromatograma al intercambio de gases: mide el menisco de un par luz/oscuridad, sigue el indicador BTB con sus controles, extrae pigmentos en campana y calcula Rf desde el origen.",
+        "duration": "80–110 min",
         "points": [
           "Virtual: los solventes solo se dosifican dentro de la campana digital, sin llama ni protocolo presencial.",
           "Valores sintéticos rotulados: la bruta se estima asumiendo una respiración constante, y el BTB habla de pH, no de glucosa.",
@@ -380,6 +386,7 @@
       "b09": {
         "title": "Arquitectura vegetal",
         "subtitle": "Del órgano al tejido: rotula plántulas, corta y tiñe con Wiesner en zona ventilada y compara raíces, tallos y hojas con capturas y medidas propias.",
+        "duration": "70–100 min",
         "points": [
           "Virtual: el ácido y el bisturí no son un protocolo presencial; el ácido solo se usa en la zona digital ventilada.",
           "Ilustraciones didácticas con grosores y contactos por calibrar; lo no resuelto no se puede afirmar.",
@@ -389,6 +396,7 @@
       "b10": {
         "title": "Tejidos animales y anatomía comparada",
         "subtitle": "Del tejido al organismo: reconoce músculos y epitelios, compara invertebrados y vertebrados en 3D, y lee picos, cráneos, dientes y huellas con luz rasante.",
+        "duration": "60–90 min",
         "points": [
           "Virtual: las láminas son ilustraciones didácticas y los modelos 3D los genera la plataforma; no reemplazan el material real.",
           "Cada modelo se gira: lo que está de espaldas no se puede rotular.",
@@ -398,6 +406,7 @@
       "f101": {
         "title": "Metrología experimental y suma vectorial",
         "subtitle": "Mide con calibrador, micrómetro, balanza y probeta, compara densidades por dos métodos y equilibra tres fuerzas en la mesa de fuerzas para sumar vectores.",
+        "duration": "80–110 min",
         "points": [
           "Cada lectura depende de cómo se mide: cero, fuerza de contacto, alineación y ángulo de la vista.",
           "La mesa de fuerzas es dinámica: el anillo se mueve hasta equilibrar las tensiones reales de los hilos.",
@@ -407,6 +416,7 @@
       "f102": {
         "title": "Cinemática rectilínea, aceleración y caída libre",
         "subtitle": "Nivela un carril, mide velocidades con fotocompuertas y aceleraciones con cinta y polea, y obtén g con un electroimán y una fotocelda; compara velocidades límite de filtros con un sensor de movimiento.",
+        "duration": "90–120 min",
         "points": [
           "El carro se suelta con la velocidad real de tu mano: soltarlo quieto es parte de la técnica.",
           "Las predicciones se contrastan con TUS masas, tus posiciones y tus alturas, no con una tabla ideal.",
@@ -416,6 +426,7 @@
       "f103": {
         "title": "Proyectiles y trayectorias bidimensionales",
         "subtitle": "Mide la velocidad de salida de un lanzador de resorte con una fotopuerta, predice y comprueba alcances a varios ángulos y alturas sobre una plataforma de impacto, y reconstruye la parábola con una pantalla de papel carbónico.",
+        "duration": "80–110 min",
         "points": [
           "El vuelo es real: el aire, el viento del ventilador y una base sin anclar cambian dónde cae la esfera.",
           "Las predicciones se contrastan con TU velocidad medida, tu altura de boca y tu ángulo, no con una tabla ideal.",
@@ -425,6 +436,7 @@
       "f09": {
         "title": "Movimiento circular, torque y momento angular",
         "subtitle": "Mide la fuerza centrípeta de una masa en una mesa giratoria a cuatro velocidades del motor, aplica un torque conocido con un dinamómetro y un tambor escalonado para obtener el momento de inercia, y comprueba la conservación del momento angular recogiendo dos masas hacia el eje.",
+        "duration": "80–110 min",
         "points": [
           "El giro es real: el roce del eje, una masa sin bloquear, el cordón flojo o un salto brusco del motor cambian lo que mide tu sensor de fuerza.",
           "F = mω²r se contrasta con TU masa, TU radio y TUS tiempos de vuelta; el I sale de tus tirones y de la desaceleración libre.",
@@ -434,6 +446,7 @@
       "f08": {
         "title": "Rotación de cuerpos rígidos y momento de inercia",
         "subtitle": "Aplica un torque constante con una masa que cae enrollada en un tambor, mide la aceleración angular con un encoder, compara disco, aro y barra con masas corredizas, comprueba el teorema de los ejes paralelos y sigue la energía con un tacómetro y una fotopuerta.",
+        "duration": "90–120 min",
         "points": [
           "El giro es real: el roce del eje, un sólido descentrado o una masa corrediza sin fijar cambian la α que mide tu encoder.",
           "El momento de inercia sale de TUS α, tu tensión y tu radio del tambor, descontando el roce con la desaceleración libre.",
@@ -443,6 +456,7 @@
       "f07": {
         "title": "Impulso, colisiones y momento lineal",
         "subtitle": "Lanza un carro contra otro sobre un riel nivelado, mide las velocidades con fotopuertas y la fuerza del choque a 5000 Hz, obtén el impulso como área bajo F–t, pega los carros con velcro y sigue el centro de masa con una cámara.",
+        "duration": "80–110 min",
         "points": [
           "El momento se sigue de verdad: un riel inclinado, un freno puesto o una mano en el carro aportan un impulso externo que se nota en tu Σp.",
           "El impulso sale del área bajo TU curva F–t, no del pico de fuerza, y se contrasta con el cambio de momento de las fotopuertas.",
@@ -452,6 +466,7 @@
       "f06": {
         "title": "Trabajo, resortes y conservación de la energía",
         "subtitle": "Calibra un resorte con pesas y una regla, dispáralo contra un carro con sensores de fuerza y posición, mide el trabajo como área bajo F–x, sigue la energía por un riel con subida y en un péndulo, y descubre adónde va la que se pierde.",
+        "duration": "90–120 min",
         "points": [
           "La energía se sigue de verdad: cada julio guardado en el resorte se reparte entre movimiento, altura y lo que disipan el roce y el amortiguador.",
           "El trabajo de una fuerza variable sale del área bajo TU curva F–x, no de F · x.",
@@ -461,6 +476,7 @@
       "f05": {
         "title": "Rozamiento y dinámica de planos inclinados",
         "subtitle": "Tira de un bloque con un dinamómetro a rapidez constante, separa el pico estático de la meseta cinética, varía la carga, busca el ángulo crítico inclinando el plano y mide la bajada con fotopuertas.",
+        "duration": "80–110 min",
         "points": [
           "El contacto es real: la adherencia crece con el tiempo quieto, las tiras se rayan y un cable inclinado cambia la normal.",
           "Los coeficientes se contrastan entre métodos (fuerzas, ángulo crítico y bajada) con TUS lecturas, no con una tabla.",
@@ -470,6 +486,7 @@
       "f04": {
         "title": "Leyes de Newton y sistemas acoplados",
         "subtitle": "Arma un carro con polea y masa colgante, mide la aceleración y la tensión con sensores reales, varía la masa colgante y comprueba la tercera ley con dos dinamómetros opuestos.",
+        "duration": "70–100 min",
         "points": [
           "El cordel, la polea y el freno son reales: un cordel flojo, la polea con inercia o el carril inclinado cambian la aceleración.",
           "Las predicciones se contrastan con TUS masas pesadas y tus ensayos, no con una tabla ideal.",

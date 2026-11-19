@@ -30,7 +30,7 @@ describe('registro de laboratorios', () => {
     }
   });
 
-  it('los archivos de textos no repiten claves de primer nivel y cada laboratorio tiene título', () => {
+  it('los archivos de textos no repiten claves de primer nivel y cada laboratorio tiene título y duración', () => {
     const owner = new Map<string, string>();
     const merged: Record<string, unknown> = {};
     for (const f of readdirSync(LOCALES).filter((n) => n.endsWith('.json'))) {
@@ -41,8 +41,11 @@ describe('registro de laboratorios', () => {
       }
       Object.assign(merged, json);
     }
-    const labs = (merged.menu as { labs: Record<string, { title?: string }> }).labs;
-    for (const id of LAB_IDS) expect(labs[id]?.title, id).toBeTruthy();
+    const labs = (merged.menu as { labs: Record<string, { title?: string; duration?: string }> }).labs;
+    for (const id of LAB_IDS) {
+      expect(labs[id]?.title, id).toBeTruthy();
+      expect(labs[id]?.duration, `${id}: duración de la tarjeta`).toMatch(/^\d+–\d+ min$/);
+    }
   });
 
   it('course_labs acepta un laboratorio nuevo sin migración (la lista la valida el Worker)', () => {
