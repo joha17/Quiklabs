@@ -260,6 +260,10 @@ Sexta práctica de Física: calibración de un resorte con pesas ranuradas y una
 
 Séptima práctica de Física: riel de 2 m nivelado con tornillo y burbuja, dos carros con lanzadores de émbolo y paragolpes de resorte, imanes o velcro, fotopuertas con abrazadera, sensor de fuerza a 5000 Hz (impulso como área bajo F–t) y cámara lateral para seguir el centro de masa; choques elásticos, perfectamente inelásticos y la conservación del momento con datos propios. 40 errores `F07-Exx`, 12 escenarios y demostración automática (`#f07`). Detalle en [docs/F07.md](docs/F07.md); requiere la migración `0027_course_labs_f07.sql`.
 
+## Física F08 — Rotación de cuerpos rígidos y momento de inercia
+
+Octava práctica de Física: soporte giratorio con guarda, tambor escalonado y una masa que cae por una polea (torque constante), encoder óptico con el cero en la marca del transportador, sensor de tensión, tacómetro láser y fotopuerta; momentos de inercia de un disco, un aro y una barra con masas corredizas, corrección del roce con el tramo libre, teorema de los ejes paralelos y balance de energía con datos propios. 40 errores `F08-Exx`, 12 escenarios y demostración automática (`#f08`). Detalle en [docs/F08.md](docs/F08.md); requiere la migración `0028_course_labs_f08.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

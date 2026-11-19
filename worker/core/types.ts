@@ -5,10 +5,10 @@
  */
 export type Role = 'admin' | 'teacher' | 'student';
 export type UserStatus = 'active' | 'suspended';
-export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06' | 'b07' | 'b08' | 'b09' | 'b10' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07';
+export type LabId = 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'b02' | 'b03' | 'b04' | 'b05' | 'b06' | 'b07' | 'b08' | 'b09' | 'b10' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' | 'f08';
 export type LabMode = 'PRACTICE' | 'GUIDED' | 'EVALUATION';
 
-export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f101', 'f102', 'f103', 'f04', 'f05', 'f06', 'f07'];
+export const LAB_IDS: LabId[] = ['p01', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'b01', 'b02', 'b03', 'b04', 'b05', 'b06', 'b07', 'b08', 'b09', 'b10', 'f101', 'f102', 'f103', 'f04', 'f05', 'f06', 'f07', 'f08'];
 
 export interface User {
   id: string;
