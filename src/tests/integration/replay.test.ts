@@ -116,6 +116,10 @@ vi.mock('../../simulation/f04-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/f04-world/world')>();
   return { ...m, dispatchF04: wrap(m.dispatchF04) };
 });
+vi.mock('../../simulation/f05-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/f05-world/world')>();
+  return { ...m, dispatchF05: wrap(m.dispatchF05) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -798,6 +802,25 @@ describe('repetición determinista — Física F04', () => {
         return out.w;
       }, sanitizeOnResumeF04);
       const { graded } = await verify('f04', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Física F05', () => {
+  for (const seed of [20261113, 105]) {
+    it(`F05 semilla ${seed}: balanza, diagramas, célula de carga, tirones, barrido de carga, ángulos críticos, bajada y reanudación`, async () => {
+      const hf = await import('../helpersF05');
+      const { sanitizeOnResumeF05 } = await import('../../practices/practice-f05/resume');
+      const { newPracticeF05World } = await import('../../practices/practice-f05');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('f05', opts, () => newPracticeF05World(opts), (w, resume) => {
+        const out = hf.idealRouteF5(seed, [], undefined, w, resume);
+        nb = hf.fillNotebookF5(out.w, out.ids);
+        return out.w;
+      }, sanitizeOnResumeF05);
+      const { graded } = await verify('f05', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }
