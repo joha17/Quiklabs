@@ -422,6 +422,15 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f09": {
+        "title": "Movimiento circular, torque y momento angular",
+        "subtitle": "Mide la fuerza centrípeta de una masa en una mesa giratoria a cuatro velocidades del motor, aplica un torque conocido con un dinamómetro y un tambor escalonado para obtener el momento de inercia, y comprueba la conservación del momento angular recogiendo dos masas hacia el eje.",
+        "points": [
+          "El giro es real: el roce del eje, una masa sin bloquear, el cordón flojo o un salto brusco del motor cambian lo que mide tu sensor de fuerza.",
+          "F = mω²r se contrasta con TU masa, TU radio y TUS tiempos de vuelta; el I sale de tus tirones y de la desaceleración libre.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, con la guarda cerrada y la masa en su tope."
+        ]
+      },
       "f08": {
         "title": "Rotación de cuerpos rígidos y momento de inercia",
         "subtitle": "Aplica un torque constante con una masa que cae enrollada en un tambor, mide la aceleración angular con un encoder, compara disco, aro y barra con masas corredizas, comprueba el teorema de los ejes paralelos y sigue la energía con un tacómetro y una fotopuerta.",
