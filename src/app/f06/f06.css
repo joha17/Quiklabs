@@ -1,0 +1,19 @@
+/* F06: visor de lectura (lupa de escala) y detalles propios; el resto reutiliza el estilo común de las prácticas. */
+.canvas-wrap.f06 .lens-panel {
+  position: absolute; right: 0.6rem; top: 0.6rem; z-index: 16; width: min(560px, calc(100% - 1.2rem));
+  background: var(--panel); color: var(--ink); border-radius: 12px; box-shadow: var(--shadow); padding: 0.6rem 0.8rem; display: grid; gap: 0.4rem;
+}
+.lens-panel header { display: flex; align-items: center; gap: 0.5rem; }
+.lens-panel .x { margin-left: auto; background: none; border: 0; cursor: pointer; color: inherit; font-size: 1.2rem; line-height: 1; }
+.lens-svg { width: 100%; height: auto; color: var(--ink); border-radius: 6px; background: #fafafa; }
+.lens-reading { margin: 0; font-variant-numeric: tabular-nums; }
+.lens-forces { margin: 0; padding-left: 1.1rem; }
+.canvas-wrap.f06 .safety-banner { position: absolute; left: 50%; bottom: 0.8rem; transform: translateX(-50%); z-index: 20; padding: 0.55rem 0.9rem; border-radius: 10px; font-weight: 600; box-shadow: var(--shadow); }
+.canvas-wrap.f06 .safety-banner.alert { background: var(--alert-soft); border-left: 5px solid var(--alert); }
+.canvas-wrap.f06 .safety-banner.critical { background: var(--alert); color: #fff; }
+.notebook .nb-group { display: grid; gap: 0.3rem; margin-bottom: 0.6rem; }
+.notebook .cell { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.notebook .cell .label { min-width: 9rem; font-size: 0.85rem; }
+.notebook .cell input { width: 6.5rem; }
+.notebook .cell input.u { width: 4.5rem; }
+.notebook table.data input { width: 5.5rem; }

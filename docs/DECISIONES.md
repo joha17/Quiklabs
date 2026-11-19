@@ -475,6 +475,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F05-4.** Una superficie rayada conserva su desgaste aunque se cambie de tira; inspeccionarla registra el daño y deja de marcar las lecturas. La base del tablero tiene una inclinación pequeña (±0,1° a ±0,4°) en modo realista para que el ángulo se lea en el goniómetro y no en la escala del soporte.
 - **F05-5.** El registrador guarda el tirón completo y el estudiante elige dos ventanas: la del pico (hasta pasado el arranque) y la de la meseta (con la oscilación extinguida). La ruta ideal (`practice-f05/route.ts`) usa una meseta adaptativa y es la misma para las pruebas, la repetición y la demostración.
 
+## F06 · Trabajo, resortes y conservación de la energía
+
+- **F06-1.** Montaje original sobre la mesada de 340 cm: soporte del resorte, estante y balanza a la izquierda; riel de 180 cm con el lanzador en el centro, delante, con el registrador detrás; péndulo en el fondo derecho, fuera del recorrido del carro. El identificador es `f06`, como en F04 y F05 (la especificación lo llama F106). Las fotopuertas y el sensor de fuerza reutilizan los instrumentos comunes.
+- **F06-2.** Rigidez, fin del tramo lineal y rigidización, factor del repuesto, daño e histéresis, masa del émbolo, rodadura, freno, amortiguamientos del soporte y del aire, retardo sin sincronía y parámetros de los instrumentos son hipotéticos y están declarados en `params.ts`.
+- **F06-3.** La coordenada del carro es horizontal (s) con la inercia efectiva m (1 + z′²) del perfil; el perfil de la subida es cosenoidal para que la pendiente sea continua. El integrador es trapezoidal con términos viscosos implícitos y una proyección de energía; cada golpe, retención del freno, corrimiento de la columna o salto del resorte se asienta como diferencia de energía, así el residuo del balance queda en ~1e-7 J.
+- **F06-4.** El trabajo externo de la mano (comprimir, empujar al soltar, cargar el carro) se calcula en `dispatchF06` como el cambio de E_mecánica + E_disipada que produce el comando, sin que cada comando lo declare.
+- **F06-5.** El escenario S10 (sensor sin cero) lo aplica el mundo con un corrimiento de 0,8 N y el S12 (canales desacoplados) multiplica el retardo por 2,5 en la lectura del disparo; los demás escenarios son parámetros de `index.ts`. La ruta ideal (`practice-f06/route.ts`) es la misma para las pruebas, la repetición y la demostración.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

@@ -27,6 +27,7 @@ import { loadF102Attempt } from './f102/persistence';
 import { loadF103Attempt } from './f103/persistence';
 import { loadF04Attempt } from './f04/persistence';
 import { loadF05Attempt } from './f05/persistence';
+import { loadF06Attempt } from './f06/persistence';
 import { SUBJECTS, subjectOf, type Subject } from './labCatalog';
 import './menu.css';
 
@@ -76,6 +77,7 @@ export function LabCards({ locked = false, only, extra, grouped = false }: { loc
     const f103 = loadF103Attempt();
     const f04 = loadF04Attempt();
     const f05 = loadF05Attempt();
+    const f06 = loadF06Attempt();
     return [
       { id: 'p01', number: 1, key: 'menu.labs.p01', saved: p01 ? { mode: p01.settings.mode, minutes: Math.round(p01.world.timeS / 60), submitted: p01.submitted } : null },
       { id: 'p2', number: 2, key: 'menu.labs.p2', saved: p2 ? { mode: p2.settings.mode, minutes: Math.round(p2.world.timeS / 60), submitted: p2.submitted } : null },
@@ -102,6 +104,7 @@ export function LabCards({ locked = false, only, extra, grouped = false }: { loc
       { id: 'f103', number: 23, key: 'menu.labs.f103', saved: f103 ? { mode: f103.settings.mode, minutes: Math.round(f103.world.timeS / 60), submitted: f103.submitted } : null },
       { id: 'f04', number: 24, key: 'menu.labs.f04', saved: f04 ? { mode: f04.settings.mode, minutes: Math.round(f04.world.timeS / 60), submitted: f04.submitted } : null },
       { id: 'f05', number: 25, key: 'menu.labs.f05', saved: f05 ? { mode: f05.settings.mode, minutes: Math.round(f05.world.timeS / 60), submitted: f05.submitted } : null },
+      { id: 'f06', number: 26, key: 'menu.labs.f06', saved: f06 ? { mode: f06.settings.mode, minutes: Math.round(f06.world.timeS / 60), submitted: f06.submitted } : null },
     ];
   }, []);
   const visible = cards.filter((c) => !only || only.includes(c.id));
