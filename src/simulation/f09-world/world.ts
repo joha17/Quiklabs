@@ -1111,7 +1111,7 @@ function timingStep(w: F09World) {
   // Instante exacto del cruce interpolado dentro del último paso (el haz se corta en el borde, no en el tick).
   const over = done ? (Math.abs(w.rotor.theta - tm.startTheta) - tm.turns * TAU) / Math.max(1e-9, Math.abs(w.rotor.omega)) : 0;
   const trueT = el - over;
-  const value = done ? timerIndication(trueT, p.gate, gaussF9(w)) : NaN;
+  const value = (done ? timerIndication(trueT, p.gate, gaussF9(w)) : null) ?? NaN;
   const r = addReading(w, {
     kind: 'period', instrumentId: 'gate01', value, unit: 's', resolution: p.gate.resolutionS, uncertainty: p.uB.gateS, sourceObjectIds: ['gate01', 'hub01'], qualityFlags: qf, trueValue: trueT,
     target: 'rotor', turns: tm.turns, trial: tm.trial, setup: runSetup(w),

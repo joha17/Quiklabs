@@ -499,6 +499,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F08-4.** El encoder entrega el ajuste cuadrático del ángulo indicado (con su cero, escala y sentido) en dos tramos: con la cuerda tensa (α = 2c) y libre después del tope (α_c). El estudiante calcula I = T r / (α + |α_c|) con T = m (g − α r); el modo curricular quita ruido, roce y desbalance para que ½ M R² se recupere sin corrección.
 - **F08-5.** S06 (roce aumentado) y S07 (eje casi sin roce) son parámetros de `index.ts`; el resto siembra el estado inicial del mundo: S01–S05 dejan montado el disco, el aro o la barra (S04 con las masas a 10 cm, S05 a radios distintos y sueltas), S10 un encoder con escala 1,2 y sentido invertido, S11 el disco en el agujero de 5 cm y S12 el tope y la fotopuerta demasiado altos. La ruta usa la pesa de 20 g en S08, la de 100 g en S09 y la de 50 g en el resto; frena y espera el rotor quieto antes de cada desmontaje y de cada lectura de radio. La ruta ideal (`practice-f08/route.ts`) es la misma para las pruebas, la repetición y la demostración.
 
+## F09 · Movimiento circular, torque y momento angular
+
+- **F09-1.** La plataforma de la especificación es de Ø 60 cm, así que la guía radial útil llega a 27 cm (tope) y no a los 0,50 m de su tabla de parámetros; el radio de la ruta es 20 cm (12 y 26 cm en S03 y S04). El caso de 0,50 m queda como oráculo de prueba unitaria. El identificador es `f09`, como en F04–F08 (la especificación lo llama F109).
+- **F09-2.** I₀ de la mesa, roce del eje, desbalance, inclinación por defecto (0,6 a 1,2° en modo realista), holgura del cordón, ceros del sensor de fuerza, del dinamómetro y de la balanza, y la respuesta del motor son hipotéticos y están declarados en `params.ts`; ninguno se presenta como medición real.
+- **F09-3.** El motor sigue la consigna con un control proporcional limitado en torque; un salto de consigna mayor que el límite (rampa de 25 rpm en la ruta) sobreesfuerza el sensor de fuerza y corre su cero, para que la rampa sea parte de la técnica.
+- **F09-4.** El modo curricular quita ruido, roce del eje y desbalance: F = m ω² r, I = τ/α y L₁ = L₂ se recuperan sin corrección. En el modo realista el estudiante suma |α_c| del tramo libre para obtener I.
+- **F09-5.** S07 (eje casi sin roce) es un parámetro de `index.ts`; el resto siembra el estado inicial del mundo o cambia la ruta (velocidades, radio). S10 (torque tangencial) es el caso de referencia: no altera el mundo y se describe así en la pantalla de inicio.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

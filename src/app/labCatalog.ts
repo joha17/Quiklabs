@@ -31,6 +31,7 @@ export const LAB_SUBJECT: Record<LabId, Subject> = {
   f06: 'physics',
   f07: 'physics',
   f08: 'physics',
+  f09: 'physics',
 };
 
 export const subjectOf = (id: LabId): Subject => LAB_SUBJECT[id];

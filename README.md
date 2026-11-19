@@ -264,6 +264,10 @@ Séptima práctica de Física: riel de 2 m nivelado con tornillo y burbuja, dos 
 
 Octava práctica de Física: soporte giratorio con guarda, tambor escalonado y una masa que cae por una polea (torque constante), encoder óptico con el cero en la marca del transportador, sensor de tensión, tacómetro láser y fotopuerta; momentos de inercia de un disco, un aro y una barra con masas corredizas, corrección del roce con el tramo libre, teorema de los ejes paralelos y balance de energía con datos propios. 40 errores `F08-Exx`, 12 escenarios y demostración automática (`#f08`). Detalle en [docs/F08.md](docs/F08.md); requiere la migración `0028_course_labs_f08.sql`.
 
+## Física F09 — Movimiento circular, torque y momento angular
+
+Novena práctica de Física: mesa giratoria con guarda enclavada, motor con consigna y embrague, freno de tres niveles, masa orbitante en una guía con tope y sensor de fuerza, fotopuerta, tambor escalonado con dinamómetro, encoder y dos masas radiales que un cordón central recoge hacia el eje; fuerza centrípeta a cuatro velocidades, momento de inercia por torque con corrección de roce y conservación del momento angular con datos propios. 40 errores `F09-Exx`, 12 escenarios y demostración automática (`#f09`). Detalle en [docs/F09.md](docs/F09.md); requiere la migración `0029_course_labs_f09.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
