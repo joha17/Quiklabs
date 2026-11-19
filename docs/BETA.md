@@ -94,7 +94,7 @@ Base `quiklabs` (binding `DB`), esquema en `migrations/`:
 | `audit` | acciones de administración y seguridad |
 
 Cada cambio y su registro de auditoría se escriben en un mismo lote atómico (`batch`). Para cambiar el esquema se agrega
-un archivo `migrations/000N_…sql` y se aplica con `npm run db:migrate:remote` **antes** de desplegar el código que lo usa.
+un archivo `migrations/000N_…sql`; el despliegue la aplica **antes** de publicar el código que lo usa (ver «Despliegue»).
 D1 guarda puntos de restauración («Time Travel»): `npx wrangler d1 time-travel restore quiklabs --timestamp …`.
 
 ## Despliegue (Cloudflare)
@@ -102,8 +102,15 @@ D1 guarda puntos de restauración («Time Travel»): `npx wrangler d1 time-trave
 1. Secreto de sesión (ya configurado): `npx wrangler secret put SESSION_SECRET`.
 2. Fotos del microscopio (una vez): habilitar R2 en el panel de Cloudflare y crear el bucket
    `npx wrangler r2 bucket create quiklabs-photos` (enlace `PHOTOS` en `wrangler.jsonc`). Sin el bucket el despliegue falla.
-3. Esquema: `npm run db:migrate:remote` (cuando haya migraciones nuevas).
-4. `git push` a `main` (Workers Builds) o `npx wrangler deploy`.
+3. `git push` a `main` (Workers Builds) o `npm run deploy` desde una terminal. Ambos aplican primero las migraciones
+   pendientes de `migrations/` a la base de producción y después publican, así el código nuevo nunca llega antes que su
+   esquema. Si una migración falla, no se publica nada. Para esto, el comando de despliegue de Workers Builds
+   (panel de Cloudflare → Workers → quiklabs → Settings → Builds → *Deploy command*) debe ser `npm run deploy`, no
+   `npx wrangler deploy`, y su token de API necesita permiso **D1: Edit**.
+   `npm run db:migrate:remote` sigue disponible para aplicar migraciones sin publicar.
+
+Cada PR y cada push a `main` pasan por GitHub Actions (`.github/workflows/ci.yml`): tipos, lint, Vitest y las
+migraciones aplicadas sobre una D1 local vacía. Las pruebas e2e siguen siendo manuales porque necesitan WebGL con GPU.
 
 Sin el secreto, la API responde `SERVER_NOT_CONFIGURED` y nadie puede entrar (los estáticos se sirven igual). Sin el
 almacén de fotos, sus rutas responden `PHOTOS_NOT_CONFIGURED` y el ocular usa las ilustraciones.

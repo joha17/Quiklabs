@@ -1,0 +1,35 @@
+# Comprobaciones de cada PR y de cada push a main: tipos, lint, pruebas unitarias y que las migraciones de D1 se
+# apliquen sobre una base vacía. Las pruebas e2e (Playwright + WebGL) siguen siendo manuales: necesitan GPU.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tipos
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Pruebas (Vitest)
+        run: npm test
+      - name: Migraciones en una D1 local vacía
+        run: npx wrangler d1 migrations apply DB --local --persist-to .wrangler/ci

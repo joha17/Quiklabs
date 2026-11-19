@@ -311,8 +311,8 @@ Imanes y acoples son un destino explícito y no pasan por el choque.
 3. `src/practices/tape.ts`: agregar `pNN` a `GradedLab`; `grading.ts`: adaptador, `GRADED_LABS` y la expresión de
    `seedFromAttemptId`.
 4. **Migración** `migrations/000N_course_labs_pNN.sql`: SQLite no permite cambiar un `CHECK`, así que se reconstruye
-   `course_labs` copiando los datos. **Aplicarla en producción antes de desplegar el código**:
-   `npm run db:migrate:remote`.
+   `course_labs` copiando los datos. El despliegue (`npm run deploy`, también el de Workers Builds) la aplica en
+   producción antes de publicar el código.
 5. `worker/seed/make-seed.mjs` → `npm run seed` (datos ficticios con la práctica abierta en algún curso).
 6. `src/app/LabMenu.tsx` (tarjeta e intento guardado), `src/main.tsx` (asa `window.__pNN` para pruebas), paneles de
    estudiante y docente, textos `menu.labs.pNN`.
