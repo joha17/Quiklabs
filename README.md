@@ -244,6 +244,10 @@ Segunda práctica de Física: carril nivelado con inclinómetro, lanzador de res
 
 Tercera práctica de Física: lanzador de resorte sobre un soporte anclado y nivelado, fotopuerta en la boca para la velocidad de salida, plataforma de impacto para comprobar alcances predichos a cuatro ángulos, a otra altura y con viento, y pantalla de papel carbónico para reconstruir la parábola. 40 errores `F103-Exx`, 12 escenarios y demostración automática (`#f103`). Detalle en [docs/F103.md](docs/F103.md); requiere la migración `0023_course_labs_f103.sql`.
 
+## Física F04 — Leyes de Newton y sistemas acoplados
+
+Cuarta práctica de Física: carril nivelado con el acelerómetro, carro unido por una polea a una masa colgante, sensor de fuerza en el gancho y fotopuertas; ensayos repetidos con la ventana elegida en la gráfica del registrador, barrido de masa colgante contra a = m_h g/(m_c + m_h) y la masa efectiva de la polea, diagramas de cuerpo libre sobre los objetos y tercera ley con dos carros y dinamómetros enfrentados. 40 errores `F04-Exx`, 12 escenarios y demostración automática (`#f04`). Detalle en [docs/F04.md](docs/F04.md); requiere la migración `0024_course_labs_f04.sql`.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

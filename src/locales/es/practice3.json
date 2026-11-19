@@ -421,6 +421,15 @@
           "Las predicciones se contrastan con TU velocidad medida, tu altura de boca y tu ángulo, no con una tabla ideal.",
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
+      },
+      "f04": {
+        "title": "Leyes de Newton y sistemas acoplados",
+        "subtitle": "Arma un carro con polea y masa colgante, mide la aceleración y la tensión con sensores reales, varía la masa colgante y comprueba la tercera ley con dos dinamómetros opuestos.",
+        "points": [
+          "El cordel, la polea y el freno son reales: un cordel flojo, la polea con inercia o el carril inclinado cambian la aceleración.",
+          "Las predicciones se contrastan con TUS masas pesadas y tus ensayos, no con una tabla ideal.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas y diagramas de cuerpo libre coherentes."
+        ]
       }
     },
     "tagsLabel": "Características del laboratorio",
