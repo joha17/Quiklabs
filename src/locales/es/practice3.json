@@ -422,6 +422,15 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f07": {
+        "title": "Impulso, colisiones y momento lineal",
+        "subtitle": "Lanza un carro contra otro sobre un riel nivelado, mide las velocidades con fotopuertas y la fuerza del choque a 5000 Hz, obtén el impulso como área bajo F–t, pega los carros con velcro y sigue el centro de masa con una cámara.",
+        "points": [
+          "El momento se sigue de verdad: un riel inclinado, un freno puesto o una mano en el carro aportan un impulso externo que se nota en tu Σp.",
+          "El impulso sale del área bajo TU curva F–t, no del pico de fuerza, y se contrasta con el cambio de momento de las fotopuertas.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, de frente y con los instrumentos listos."
+        ]
+      },
       "f06": {
         "title": "Trabajo, resortes y conservación de la energía",
         "subtitle": "Calibra un resorte con pesas y una regla, dispáralo contra un carro con sensores de fuerza y posición, mide el trabajo como área bajo F–x, sigue la energía por un riel con subida y en un péndulo, y descubre adónde va la que se pierde.",
