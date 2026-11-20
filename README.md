@@ -268,6 +268,10 @@ Octava práctica de Física: soporte giratorio con guarda, tambor escalonado y u
 
 Novena práctica de Física: mesa giratoria con guarda enclavada, motor con consigna y embrague, freno de tres niveles, masa orbitante en una guía con tope y sensor de fuerza, fotopuerta, tambor escalonado con dinamómetro, encoder y dos masas radiales que un cordón central recoge hacia el eje; fuerza centrípeta a cuatro velocidades, momento de inercia por torque con corrección de roce y conservación del momento angular con datos propios. 40 errores `F09-Exx`, 12 escenarios y demostración automática (`#f09`). Detalle en [docs/F09.md](docs/F09.md); requiere la migración `0029_course_labs_f09.sql`.
 
+## Física F10 — Equilibrio de vigas y elasticidad de materiales
+
+Décima práctica de Física: viga de 120 cm sobre dos apoyos regulables con sensores de reacción y topes de seguridad, cuña para el centro de masa, carga con gancho de cierre, dinamómetro en un pórtico, y una prensa de tracción con manivela, celda de carga, mordazas, protector enclavado, comparador digital y registrador; equilibrio de fuerzas y torques, brazo de palanca, módulo de Young y deformación plástica con datos propios. 40 errores `F10-Exx`, 12 escenarios y demostración automática (`#f10`). Detalle en [docs/F10.md](docs/F10.md); se habilita desde el registro de laboratorios, sin migración.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

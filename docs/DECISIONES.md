@@ -508,6 +508,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F09-4.** El modo curricular quita ruido, roce del eje y desbalance: F = m ω² r, I = τ/α y L₁ = L₂ se recuperan sin corrección. En el modo realista el estudiante suma |α_c| del tramo libre para obtener I.
 - **F09-5.** S07 (eje casi sin roce) es un parámetro de `index.ts`; el resto siembra el estado inicial del mundo o cambia la ruta (velocidades, radio). S10 (torque tangencial) es el caso de referencia: no altera el mundo y se describe así en la pantalla de inicio.
 
+## F10 · Equilibrio de vigas y elasticidad de materiales
+
+- **F10-1.** El identificador es `f10` (la especificación lo llama F110), como en F04–F09. Montaje original sobre la mesada de 340 cm: el riel con la viga a la izquierda, el pórtico, el estante y el registrador en el centro, la prensa a la derecha.
+- **F10-2.** La probeta es de Ø 5,05 mm y 300 mm de zona calibrada para que la fluencia del acero (≈ 5 kN) quede dentro de una prensa de mesada de 10 kN y el alargamiento elástico (≈ 0,3 mm) se lea con un comparador de 0,001 mm. El caso de la especificación (300 N sobre 1 cm² y 0,5 m) queda como oráculo de prueba unitaria.
+- **F10-3.** Masas, centro de masa corrido 1,5 cm, ceros, ruido, excentricidad (0,09 mm), precarga, inclinación de la mesada (1,5°) y propiedades de los materiales son hipotéticos y están declarados en `params.ts`; ninguno se presenta como medición real. El modo curricular quita ruido, excentricidad, inclinación y el corrimiento del centro de masa.
+- **F10-4.** El vuelco se integra con una actualización de la velocidad angular que conserva la energía exactamente (ω sale de la energía cinética ganada), para que el balance cierre a precisión de máquina. En la escena el recorrido del travesaño se dibuja exagerado ×2.
+- **F10-5.** S01, S02, S06, S07, S08 y S12 son parámetros de `index.ts`; S03, S04 y S11 cambian la ruta o el estado inicial (apoyos, cargas, excentricidad), S09 deja el comparador sin calibrar y S10 un filo flojo. La ruta ideal (`practice-f10/route.ts`) es la misma para las pruebas, la repetición y la demostración. La disponibilidad del laboratorio sale del registro (`src/labs/registry.ts`), sin migración de base de datos.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

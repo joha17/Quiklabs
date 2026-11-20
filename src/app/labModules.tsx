@@ -37,6 +37,7 @@ import { loadF06Attempt } from './f06/persistence';
 import { loadF07Attempt } from './f07/persistence';
 import { loadF08Attempt } from './f08/persistence';
 import { loadF09Attempt } from './f09/persistence';
+import { loadF10Attempt } from './f10/persistence';
 
 /** Lo mínimo que la plataforma necesita del store de un laboratorio. */
 export interface LabStore {
@@ -86,4 +87,5 @@ export const LAB_MODULES: Record<LabId, LabModule> = {
   f07: { App: lazy(() => import('./f07/F07App')), store: () => import('./f07/store').then((m) => m.useF07), loadAttempt: loadF07Attempt },
   f08: { App: lazy(() => import('./f08/F08App')), store: () => import('./f08/store').then((m) => m.useF08), loadAttempt: loadF08Attempt },
   f09: { App: lazy(() => import('./f09/F09App')), store: () => import('./f09/store').then((m) => m.useF09), loadAttempt: loadF09Attempt },
+  f10: { App: lazy(() => import('./f10/F10App')), store: () => import('./f10/store').then((m) => m.useF10), loadAttempt: loadF10Attempt },
 };

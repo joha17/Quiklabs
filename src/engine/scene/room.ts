@@ -62,7 +62,7 @@ function instancedBoxes(size: [number, number, number], mat: THREE.Material, pos
 }
 
 /** `variant`: cartelería de la práctica (la sala y la mesada son las mismas). */
-export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' | 'f08' | 'f09' = 'p2'): THREE.Group {
+export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'p8' | 'p9' | 'p10' | 'b01' | 'f101' | 'f102' | 'f103' | 'f04' | 'f05' | 'f06' | 'f07' | 'f08' | 'f09' | 'f10' = 'p2'): THREE.Group {
   const g = new THREE.Group();
   const detail = QUALITY[q].roomDetail;
   const L = BENCH.length;
@@ -248,6 +248,9 @@ export function createRoom(q: QualityLevel, variant: 'p01' | 'p2' | 'p3' | 'p4' 
   } else if (variant === 'f09') {
     poster(posterTexture('MESA GIRATORIA', ['Guarda cerrada', 'antes de acoplar'], '#d0021b', 'goggles'), 318, 60);
     poster(posterTexture('MASAS', ['Tope trabado y', 'pasadores puestos'], '#1565c0', 'eye'), 318, 92);
+  } else if (variant === 'f10') {
+    poster(posterTexture('PRENSA', ['Protector cerrado', 'antes de cargar'], '#d0021b', 'goggles'), 186, 60);
+    poster(posterTexture('VIGA', ['Ganchos cerrados,', 'apoyos trabados'], '#1565c0', 'eye'), 186, 92);
   } else if (variant === 'p7') {
     poster(posterTexture('ELECTRICIDAD', ['Nunca con las', 'manos mojadas'], '#f2a900', 'goggles'), 318, 60);
     poster(posterTexture('DISOLVENTES', ['Frascos tapados,', 'sin llamas'], '#d0021b', 'nofood'), 318, 92);
