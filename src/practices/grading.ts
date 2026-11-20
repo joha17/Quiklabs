@@ -214,6 +214,14 @@ import type { F09Notebook } from './practice-f09/notebook';
 import type { F09World } from '../simulation/f09-world/types';
 import { dispatchF09, stepF09World } from '../simulation/f09-world/world';
 import { conservedTotalsF09 } from '../simulation/f09-world/conservation';
+import { newPracticeF10World, type PracticeF10Options } from './practice-f10';
+import { f10StageEvidence } from './practice-f10/evidence';
+import { evaluateF10 } from './practice-f10/rubric';
+import { sanitizeOnResumeF10 } from './practice-f10/resume';
+import type { F10Notebook } from './practice-f10/notebook';
+import type { F10World } from '../simulation/f10-world/types';
+import { dispatchF10, stepF10World } from '../simulation/f10-world/world';
+import { conservedTotalsF10 } from '../simulation/f10-world/conservation';
 import type { PlantWorld } from '../simulation/plant-world/types';
 import { conservedPlant, dispatchPlant, stepPlantWorld } from '../simulation/plant-world/world';
 import type { PhotoWorld } from '../simulation/photo-world/types';
@@ -604,6 +612,18 @@ export const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as F09World).scenarios, initialTotals: (w as F09World).initialTotals }),
     conserved: (w) => conservedTotalsF09(w as F09World),
     mode: (o) => opt<PracticeF09Options>(o).mode,
+  },
+  f10: {
+    create: (o) => newPracticeF10World(opt<PracticeF10Options>(o)),
+    dispatch: (w, c) => void dispatchF10(w as F10World, c as never),
+    step: (w) => stepF10World(w as F10World),
+    sanitize: (w) => sanitizeOnResumeF10(w as F10World),
+    latch: (w, nb) => void f10StageEvidence(w as F10World, nb as F10Notebook),
+    evaluate: (w, s) => evaluateF10(w as F10World, s.notebook as F10Notebook),
+    // Lo inmutable del intento: semilla, parámetros (viga, apoyos, carga, probetas, prensa, sensores) y escenarios.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as F10World).scenarios, initialTotals: (w as F10World).initialTotals }),
+    conserved: (w) => conservedTotalsF10(w as F10World),
+    mode: (o) => opt<PracticeF10Options>(o).mode,
   },
 };
 

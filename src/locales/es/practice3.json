@@ -433,6 +433,16 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f10": {
+        "title": "Equilibrio de vigas y elasticidad de materiales",
+        "subtitle": "Pesa una viga y una carga con el dinamómetro, encuentra su centro de masa en la cuña, mide las reacciones de dos apoyos con la carga en varias posiciones y comprueba ΣF = 0 y Στ = 0; después tracciona una probeta de acero en la prensa, mide fuerza y alargamiento y obtén el módulo de Young antes de llevarla más allá de la fluencia.",
+        "duration": "75–110 min",
+        "points": [
+          "La estática es real: un apoyo sin trabar se corre, un gancho abierto suelta la carga y una carga fuera de los apoyos vuelca la viga sobre los topes.",
+          "R_A, R_B y E se contrastan con TUS pesos, TUS posiciones y TUS pares fuerza–alargamiento; el comparador mal montado o sin calibrar cambia la pendiente.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, con los apoyos trabados, el protector cerrado y el comparador en cero."
+        ]
+      },
       "f09": {
         "title": "Movimiento circular, torque y momento angular",
         "subtitle": "Mide la fuerza centrípeta de una masa en una mesa giratoria a cuatro velocidades del motor, aplica un torque conocido con un dinamómetro y un tambor escalonado para obtener el momento de inercia, y comprueba la conservación del momento angular recogiendo dos masas hacia el eje.",
