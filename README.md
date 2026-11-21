@@ -272,6 +272,10 @@ Novena práctica de Física: mesa giratoria con guarda enclavada, motor con cons
 
 Décima práctica de Física: viga de 120 cm sobre dos apoyos regulables con sensores de reacción y topes de seguridad, cuña para el centro de masa, carga con gancho de cierre, dinamómetro en un pórtico, y una prensa de tracción con manivela, celda de carga, mordazas, protector enclavado, comparador digital y registrador; equilibrio de fuerzas y torques, brazo de palanca, módulo de Young y deformación plástica con datos propios. 40 errores `F10-Exx`, 12 escenarios y demostración automática (`#f10`). Detalle en [docs/F10.md](docs/F10.md); se habilita desde el registro de laboratorios, sin migración.
 
+## Física F11 — Hidrostática, densidad y flotación
+
+Undécima práctica de Física: tanque transparente con canilla, salmuera bombeada, desagüe y agitador; sonda hidrostática en una guía trabable con regla, cero, calibración y purga, conectada a un registrador; balanza y probeta para las densidades; vaso de rebose con colector y un bloque de aluminio colgado de un dinamómetro en un soporte con guía de inmersión para comprobar Arquímedes; y un bloque y una botella lastrable para predecir qué flota y cuánto se hunde. 40 errores `F11-Exx`, 12 escenarios y demostración automática (`#f11`). Detalle en [docs/F11.md](docs/F11.md); se habilita desde el registro de laboratorios, sin migración.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).

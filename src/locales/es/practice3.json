@@ -433,6 +433,16 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f11": {
+        "title": "Hidrostática, densidad y flotación",
+        "subtitle": "Mide la presión a varias profundidades en agua y en salmuera con una sonda en una guía, obtén la densidad de cada líquido con la pendiente y con la balanza y la probeta, comprueba el principio de Arquímedes con un dinamómetro y un vaso de rebose, y predice qué flota y cuánto se hunde antes de soltarlo en el tanque.",
+        "duration": "75–110 min",
+        "points": [
+          "El líquido es real: el oleaje, una burbuja en la membrana, la salmuera mal mezclada o un rebose cambian lo que mides.",
+          "ρ, el empuje y el calado se contrastan con TUS profundidades, TUS masas y TUS volúmenes desplazados, no con una tabla ideal.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas, con la sonda en cero y calibrada, la balanza tarada y la superficie en calma."
+        ]
+      },
       "f10": {
         "title": "Equilibrio de vigas y elasticidad de materiales",
         "subtitle": "Pesa una viga y una carga con el dinamómetro, encuentra su centro de masa en la cuña, mide las reacciones de dos apoyos con la carga en varias posiciones y comprueba ΣF = 0 y Στ = 0; después tracciona una probeta de acero en la prensa, mide fuerza y alargamiento y obtén el módulo de Young antes de llevarla más allá de la fluencia.",
