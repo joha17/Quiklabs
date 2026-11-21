@@ -140,6 +140,10 @@ vi.mock('../../simulation/f10-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/f10-world/world')>();
   return { ...m, dispatchF10: wrap(m.dispatchF10) };
 });
+vi.mock('../../simulation/f11-world/world', async (orig) => {
+  const m = await orig<typeof import('../../simulation/f11-world/world')>();
+  return { ...m, dispatchF11: wrap(m.dispatchF11) };
+});
 vi.mock('../../simulation/calorimetry-world/world', async (orig) => {
   const m = await orig<typeof import('../../simulation/calorimetry-world/world')>();
   return { ...m, dispatchCalor: wrap(m.dispatchCalor) };
@@ -1133,6 +1137,25 @@ describe('repetición determinista — Física F10', () => {
         return out.w;
       }, sanitizeOnResumeF10);
       const { graded } = await verify('f10', r, nb);
+      expect(graded.evaluation.total).toBeGreaterThan(0.85);
+    }, 300000);
+  }
+});
+
+describe('repetición determinista — Física F11', () => {
+  for (const seed of [20261117, 111]) {
+    it(`F11 semilla ${seed}: perfiles de presión en agua y salmuera, densidades, empuje en el vaso de rebose, flotación y reanudación`, async () => {
+      const hf = await import('../helpersF11');
+      const { sanitizeOnResumeF11 } = await import('../../practices/practice-f11/resume');
+      const { newPracticeF11World } = await import('../../practices/practice-f11');
+      const opts = { mode: 'PRACTICE' as const, seed, scenarios: [] };
+      let nb: unknown = null;
+      const r = record('f11', opts, () => newPracticeF11World(opts), (w, resume) => {
+        const out = hf.idealRouteF11(seed, [], undefined, w, resume);
+        nb = hf.fillNotebookF11(out.w, out.ids);
+        return out.w;
+      }, sanitizeOnResumeF11);
+      const { graded } = await verify('f11', r, nb);
       expect(graded.evaluation.total).toBeGreaterThan(0.85);
     }, 300000);
   }

@@ -516,6 +516,14 @@ Especificación «B01 — revisión de instrumentos ópticos realistas y manipul
 - **F10-4.** El vuelco se integra con una actualización de la velocidad angular que conserva la energía exactamente (ω sale de la energía cinética ganada), para que el balance cierre a precisión de máquina. En la escena el recorrido del travesaño se dibuja exagerado ×2.
 - **F10-5.** S01, S02, S06, S07, S08 y S12 son parámetros de `index.ts`; S03, S04 y S11 cambian la ruta o el estado inicial (apoyos, cargas, excentricidad), S09 deja el comparador sin calibrar y S10 un filo flojo. La ruta ideal (`practice-f10/route.ts`) es la misma para las pruebas, la repetición y la demostración. La disponibilidad del laboratorio sale del registro (`src/labs/registry.ts`), sin migración de base de datos.
 
+## F11 · Hidrostática, densidad y flotación
+
+- **F11-1.** El identificador es `f11` (la especificación lo llama F201), como en F04–F10. Montaje original sobre la mesada de 340 cm: el tanque con su guía y la sonda a la izquierda, el estante de objetos y el registrador en el centro, la balanza, la probeta y el vaso de rebose con el soporte y el dinamómetro a la derecha.
+- **F11-2.** El tanque es de 60 × 35 × 45 cm para que 40 cm de profundidad den ≈ 3,9 kPa (dentro del rango de 20 kPa de la sonda y fuera del de 2 kPa) y el bloque de aluminio de 500 cm³ pese 13,2 N, dentro del dinamómetro de 20 N. Los casos de la especificación (3924 Pa a 0,40 m, 4,905 N para 5 × 10⁻⁴ m³) quedan como oráculos de prueba unitaria.
+- **F11-3.** Densidades, ceros, escala de calibración, ruido, burbujas, oleaje, estratificación y caudales son hipotéticos y están declarados en `params.ts`. El modo curricular usa agua de 1000 kg/m³ y quita ruido, burbujas y el error de escala; los ceros se mantienen porque ponerlos es parte de la técnica.
+- **F11-4.** No hay simulación de fluido: el nivel sale del volumen integrado más lo que desplazan los cuerpos, la presión es hidrostática con el perfil de densidad del momento y el oleaje es una onda que decae. Los cuerpos flotan sin inclinarse. Así la conservación del volumen entre recipientes cierra a precisión de máquina.
+- **F11-5.** S02, S03, S04 y S07 son parámetros de `index.ts`; S05, S06, S08, S10, S11 y S12 cambian el estado inicial de la sonda o del tanque, y S04 y S09 cambian la ruta (`routeFloatsF11`, `routeImmersionsF11`). Las cotas de la ruta tienen milímetros no redondos para que redondear h al centímetro (E35) se note. La ruta ideal (`practice-f11/route.ts`) es la misma para las pruebas, la repetición y la demostración.
+
 ## Agente al azar en todas las prácticas
 
 `replay.test.ts` parte de la cinta real de cada práctica, la desordena y altera, y exige que la sesión no reviente, no deje NaN, no levante sospechas falsas y se repita idéntica. Una cinta con basura debe terminar en un resultado, nunca en un cuelgue. `FUZZ_SESSIONS` sube el número de sesiones. Lo que encontró:

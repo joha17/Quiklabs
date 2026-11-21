@@ -44,6 +44,7 @@ export const LABS = [
   { id: 'f08', subject: 'physics' },
   { id: 'f09', subject: 'physics' },
   { id: 'f10', subject: 'physics' },
+  { id: 'f11', subject: 'physics' },
 ] as const satisfies readonly { id: string; subject: Subject }[];
 
 export type LabId = (typeof LABS)[number]['id'];
