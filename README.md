@@ -276,6 +276,10 @@ Décima práctica de Física: viga de 120 cm sobre dos apoyos regulables con sen
 
 Undécima práctica de Física: tanque transparente con canilla, salmuera bombeada, desagüe y agitador; sonda hidrostática en una guía trabable con regla, cero, calibración y purga, conectada a un registrador; balanza y probeta para las densidades; vaso de rebose con colector y un bloque de aluminio colgado de un dinamómetro en un soporte con guía de inmersión para comprobar Arquímedes; y un bloque y una botella lastrable para predecir qué flota y cuánto se hunde. 40 errores `F11-Exx`, 12 escenarios y demostración automática (`#f11`). Detalle en [docs/F11.md](docs/F11.md); se habilita desde el registro de laboratorios, sin migración.
 
+## Física F12 — Presión en flujo y continuidad
+
+Duodécima práctica de Física: circuito de agua con depósito, bomba de velocidad variable, caudalímetro, tubo Venturi de 4 cm a 2 cm con tres tomas, tramo de ensayo liso o rugoso con purga, juntas con empaquetadura y válvula rotativa; tres sensores de presión con registrador, vaso volumétrico con cronómetro, calibre y regla; continuidad, Bernoulli, ρ por ajuste, coeficiente de pérdida y golpe de ariete con datos propios. 40 errores `F12-Exx`, 12 escenarios y demostración automática (`#f12`). Detalle en [docs/F12.md](docs/F12.md); se habilita desde el registro de laboratorios, sin migración.
+
 ## Biología B10 — Tejidos animales y anatomía comparada
 
 Del tejido al organismo sobre el microscopio y el estereoscopio compartidos: láminas de músculo, epitelio, conectivo y nervioso, invertebrados en lámina, muestras pequeñas, un visor 3D con modelos rotulables, aves, cráneos y huellas con luz rasante. Detalle en [docs/BIOLOGIA_B10.md](docs/BIOLOGIA_B10.md).
