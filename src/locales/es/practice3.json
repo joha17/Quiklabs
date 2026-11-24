@@ -433,6 +433,16 @@
           "Las etapas avanzan solo con evidencia: lecturas registradas, no botones de «hecho»."
         ]
       },
+      "f12": {
+        "title": "Presión en flujo y continuidad",
+        "subtitle": "Arma un circuito de agua con bomba, un tubo Venturi de 4 cm a 2 cm y una válvula; púrgalo, pon en cero tres sensores de presión, varía el caudal y comprueba la continuidad y Bernoulli con tus presiones, un caudalímetro y una recolección cronometrada; después cambia el tramo por uno rugoso y mide las pérdidas.",
+        "duration": "75–110 min",
+        "points": [
+          "El agua es real: el aire sin purgar, una junta que gotea, el transitorio de la bomba o un cierre brusco cambian lo que mides.",
+          "Δp, ρ y K se contrastan con TUS diámetros, TUS presiones y TU caudal medido, no con una tabla ideal.",
+          "Las etapas avanzan solo con evidencia: lecturas registradas en régimen, con los sensores calibrados y en cero y el circuito purgado."
+        ]
+      },
       "f11": {
         "title": "Hidrostática, densidad y flotación",
         "subtitle": "Mide la presión a varias profundidades en agua y en salmuera con una sonda en una guía, obtén la densidad de cada líquido con la pendiente y con la balanza y la probeta, comprueba el principio de Arquímedes con un dinamómetro y un vaso de rebose, y predice qué flota y cuánto se hunde antes de soltarlo en el tanque.",

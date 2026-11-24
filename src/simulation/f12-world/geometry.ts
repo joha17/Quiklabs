@@ -37,7 +37,7 @@ export const GEOF12 = {
   beakerOutlet: { x: 252, y: 18 },
   beakerBench: { x: 270, y: 14 },
   timer: { x: 286, y: 12 },
-  panel: { x: 150, y: 54, w: 50, d: 8, h: 26 },
+  panel: { x: 150, y: 54, w: 50, d: 8, h: 44 },
   ruler: { x: 200, y: 18, h: 40 },
   gaskets: { x: 300, y: 18 },
   spoolRack: { x: 304, y: 44 },

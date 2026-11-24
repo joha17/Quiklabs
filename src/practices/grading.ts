@@ -230,6 +230,14 @@ import type { F11Notebook } from './practice-f11/notebook';
 import type { F11World } from '../simulation/f11-world/types';
 import { dispatchF11, stepF11World } from '../simulation/f11-world/world';
 import { conservedTotalsF11 } from '../simulation/f11-world/conservation';
+import { newPracticeF12World, type PracticeF12Options } from './practice-f12';
+import { f12StageEvidence } from './practice-f12/evidence';
+import { evaluateF12 } from './practice-f12/rubric';
+import { sanitizeOnResumeF12 } from './practice-f12/resume';
+import type { F12Notebook } from './practice-f12/notebook';
+import type { F12World } from '../simulation/f12-world/types';
+import { dispatchF12, stepF12World } from '../simulation/f12-world/world';
+import { conservedTotalsF12 } from '../simulation/f12-world/conservation';
 import type { PlantWorld } from '../simulation/plant-world/types';
 import { conservedPlant, dispatchPlant, stepPlantWorld } from '../simulation/plant-world/world';
 import type { PhotoWorld } from '../simulation/photo-world/types';
@@ -644,6 +652,18 @@ export const ADAPTERS: Record<GradedLab, Adapter> = {
     fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as F11World).scenarios, initialTotals: (w as F11World).initialTotals }),
     conserved: (w) => conservedTotalsF11(w as F11World),
     mode: (o) => opt<PracticeF11Options>(o).mode,
+  },
+  f12: {
+    create: (o) => newPracticeF12World(opt<PracticeF12Options>(o)),
+    dispatch: (w, c) => void dispatchF12(w as F12World, c as never),
+    step: (w) => stepF12World(w as F12World),
+    sanitize: (w) => sanitizeOnResumeF12(w as F12World),
+    latch: (w, nb) => void f12StageEvidence(w as F12World, nb as F12Notebook),
+    evaluate: (w, s) => evaluateF12(w as F12World, s.notebook as F12Notebook),
+    // Lo inmutable del intento: semilla, parámetros (circuito, bomba, Venturi, sensores, caudalímetro) y escenarios.
+    fixed: (w) => ({ seed: w.seed, params: w.params, scenarios: (w as F12World).scenarios, initialTotals: (w as F12World).initialTotals }),
+    conserved: (w) => conservedTotalsF12(w as F12World),
+    mode: (o) => opt<PracticeF12Options>(o).mode,
   },
 };
 

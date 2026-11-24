@@ -132,6 +132,9 @@ const spoolK = (w: F12World, k: SpoolKind = w.circuit.spool) => (k === 'rough' ?
 const convK = (w: F12World) => (w.reversed ? w.params.K.diff : w.params.K.conv);
 const diffK = (w: F12World) => (w.reversed ? Math.max(w.params.K.diff, 0.5) : w.params.K.diff) + (w.circuit.obstructed ? 1.2 : 0);
 
+/** K verdadero entre las tomas 1 y 3 referido a v1 (cono, difusor y tramo), para la revisión. */
+export const trueLossKF12 = (w: F12World, k: SpoolKind = w.circuit.spool) => (convK(w) + diffK(w)) * (A1(w) / A2(w)) ** 2 + spoolK(w, k);
+
 export interface Hydraulics {
   /** Presiones manométricas (Pa) en las tomas, salida de la bomba y juntas. */
   p: Record<PortId, number>;
